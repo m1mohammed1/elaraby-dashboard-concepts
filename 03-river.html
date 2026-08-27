@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>النهر — النظرة العامة</title>
+<style>
+/* ============================================================
+   0 · tokens
+   ============================================================ */
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --glass:      rgba(255,255,255,.045);
+  --glass-hi:   rgba(255,255,255,.065);
+  --glass-lo:   rgba(255,255,255,.032);
+  --stroke:     rgba(255,255,255,.085);
+  --sheen:      0 1px 0 0 rgba(255,255,255,.10) inset;
+  --drop:       0 20px 50px -20px rgba(0,0,0,.55);
+  --ease:       cubic-bezier(.22,.61,.36,1);
+}
+
+/* ============================================================
+   1 · base
+   ============================================================ */
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  background:#06100c;
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-weight:400;
+  font-size:14px;
+  line-height:1.7;
+  letter-spacing:normal;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+h1,h2,h3,p,ul,ol{ margin:0; padding:0; }
+ul,ol{ list-style:none; }
+button{ font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; letter-spacing:normal; }
+.num{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; direction:ltr; unicode-bidi:isolate; }
+.iso{ unicode-bidi:isolate; }
+.plate{ unicode-bidi:isolate; direction:rtl; font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:6px;
+}
+svg :focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+::-webkit-scrollbar{ width:9px; height:9px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.10); border-radius:8px; }
+::-webkit-scrollbar-thumb:hover{ background:rgba(255,255,255,.18); }
+*{ scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.14) transparent; }
+
+/* ============================================================
+   2 · the scene — the only colour on the page
+   ============================================================ */
+.scene{ position:fixed; inset:0; z-index:-3; overflow:hidden; pointer-events:none; }
+.lamp{ position:absolute; border-radius:50%; filter:blur(90px); }
+.lamp.a{ inset-block-start:-14vh; inset-inline-end:-8vw;  inline-size:62vw; block-size:58vh; background:radial-gradient(circle,#10613f 0%,rgba(16,97,63,0) 70%); opacity:.20; }
+.lamp.b{ inset-block-start:26vh;  inset-inline-start:-14vw; inline-size:58vw; block-size:62vh; background:radial-gradient(circle,#0f4d38 0%,rgba(15,77,56,0) 70%); opacity:.18; }
+.lamp.c{ inset-block-end:-20vh;   inset-inline-end:16vw;  inline-size:52vw; block-size:52vh; background:radial-gradient(circle,#145a45 0%,rgba(20,90,69,0) 70%); opacity:.14; }
+.lamp.d{ inset-block-start:52vh;  inset-inline-end:34vw;  inline-size:44vw; block-size:44vh; background:radial-gradient(circle,#0b3a30 0%,rgba(11,58,48,0) 70%); opacity:.16; }
+.lamp.e{ inset-block-start:2vh;   inset-inline-start:24vw; inline-size:38vw; block-size:40vh; background:radial-gradient(circle,#08302a 0%,rgba(8,48,42,0) 70%); opacity:.12; }
+.vignette{
+  position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 40%, rgba(0,0,0,0) 38%, rgba(0,0,0,.55) 100%);
+}
+.grain{
+  position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   3 · glass
+   ============================================================ */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(22px) saturate(1.25);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid var(--stroke);
+  border-radius:16px;
+  box-shadow:var(--sheen), var(--drop);
+}
+.glass--near{
+  background:var(--glass-hi);
+  backdrop-filter:blur(14px) saturate(1.3);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);
+  border-color:rgba(255,255,255,.10);
+}
+.glass--far{
+  background:var(--glass-lo);
+  backdrop-filter:blur(34px) saturate(1.15);
+  -webkit-backdrop-filter:blur(34px) saturate(1.15);
+  border-color:rgba(255,255,255,.07);
+  box-shadow:var(--sheen), 0 24px 60px -26px rgba(0,0,0,.6);
+}
+
+/* ============================================================
+   4 · shell
+   ============================================================ */
+.shell{
+  max-inline-size:1440px;
+  margin-inline:auto;
+  padding:22px clamp(14px,2.4vw,32px) 30px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* --- masthead --------------------------------------------- */
+.top{
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:12px 16px;
+}
+.brand{ display:flex; align-items:baseline; gap:10px; min-inline-size:0; }
+.brand h1{ font-size:17px; font-weight:600; letter-spacing:normal; }
+.brand .sub{ font-size:11.5px; color:var(--ink-3); }
+.live{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; color:var(--ink-2); }
+.dot-live{
+  inline-size:7px; block-size:7px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 0 0 rgba(110,196,155,.45);
+  animation:beat 2.6s ease-in-out infinite;
+}
+@keyframes beat{
+  0%,100%{ box-shadow:0 0 0 0 rgba(110,196,155,.40); }
+  55%    { box-shadow:0 0 0 6px rgba(110,196,155,0); }
+}
+.top .spacer{ flex:1 1 auto; }
+.who{ display:flex; align-items:center; gap:10px; }
+.who .meta{ text-align:start; line-height:1.35; }
+.who .nm{ font-size:13px; font-weight:500; }
+.who .rl{ font-size:11px; color:var(--ink-3); }
+.avatar{
+  inline-size:34px; block-size:34px; border-radius:11px; display:grid; place-items:center;
+  background:rgba(255,255,255,.07); border:1px solid var(--stroke);
+  font-size:14px; font-weight:600; color:var(--ink);
+}
+
+/* --- figures band (rule separated) ------------------------- */
+.band{
+  display:flex; flex-wrap:wrap; align-items:stretch;
+  padding:2px 4px;
+}
+.fig{
+  flex:1 1 150px; min-inline-size:0;
+  padding:14px 16px 13px;
+  border-inline-start:1px solid var(--line);
+  display:flex; flex-direction:column; gap:3px;
+}
+.fig:first-child{ border-inline-start:0; }
+.fig .lbl{ font-size:11.5px; color:var(--ink-3); line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fig .val{
+  font-size:clamp(22px,2.5vw,30px); font-weight:600; line-height:1.15;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate; text-align:end;
+}
+.fig .valrow{ display:flex; align-items:baseline; gap:6px; }
+.fig .unit{ font-size:11px; color:var(--ink-3); unicode-bidi:isolate; }
+.fig .delta{ display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--ink-3); }
+.fig .delta svg{ inline-size:11px; block-size:11px; }
+.fig--wanted .val{ color:var(--wanted); }
+.fig--clean  .val{ color:var(--clean); }
+.fig--unread .val{ color:var(--unread); }
+.fig--gates{ flex:1 1 168px; }
+.gbar{ display:flex; gap:3px; margin-block-start:6px; }
+.gbar i{ block-size:5px; flex:1 1 auto; border-radius:2px; background:rgba(255,255,255,.30); }
+.gbar i.off{ background:rgba(255,255,255,.10); }
+.gbar i.deg{ background:rgba(255,255,255,.18); }
+
+/* ============================================================
+   5 · the river
+   ============================================================ */
+.river{ padding:16px 18px 14px; position:relative; }
+.riverhead{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-block-end:6px; }
+.riverhead h2{ font-size:14px; font-weight:600; }
+.riverhead .note{ font-size:11.5px; color:var(--ink-3); }
+.pinnote{
+  margin-inline-start:auto; display:flex; align-items:center; gap:8px;
+  font-size:11.5px; color:var(--ink-2);
+}
+.pinnote .chip{
+  padding:3px 9px; border-radius:999px; border:1px solid var(--stroke);
+  background:rgba(255,255,255,.05);
+}
+.btn-clear{
+  padding:3px 10px; border-radius:999px; border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04); font-size:11.5px; color:var(--ink-2);
+  transition:background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
+}
+.btn-clear:hover{ background:rgba(255,255,255,.10); color:var(--ink); border-color:rgba(255,255,255,.16); }
+
+.scroller{ overflow-x:auto; overflow-y:hidden; padding-block-end:2px; }
+.diagram{ position:relative; min-inline-size:860px; aspect-ratio:1000/640; }
+.diagram--mini{ min-inline-size:860px; aspect-ratio:1000/220; }
+.diagram svg{ position:absolute; inset:0; inline-size:100%; block-size:100%; display:block; }
+
+/* overlay is LTR so logical inset maps predictably onto the LTR svg viewBox */
+.ovl{ position:absolute; inset:0; direction:ltr; pointer-events:none; }
+.ovl .nlabel{
+  position:absolute; direction:ltr; transform:translateY(-50%);
+  pointer-events:auto; display:block; text-align:start;
+  transition:opacity .16s var(--ease);
+}
+.ovl .nlabel .row{
+  direction:rtl; display:flex; align-items:baseline; gap:8px;
+  line-height:1.35;
+}
+.ovl .nlabel .row.spread{ justify-content:space-between; }
+/* مطلوب is the one label that sits on the far side of its bar, so its row
+   hugs the inline-end of its box to stay next to the mark it names */
+.ovl .nlabel[data-nd="wanted"] .row{ justify-content:flex-end; }
+.ovl .nlabel .nm{ font-size:11.5px; color:var(--ink-2); white-space:nowrap; }
+.ovl .nlabel .vv{
+  font-size:11.5px; color:var(--ink); font-weight:500;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate;
+}
+.ovl .nlabel .pc{
+  display:block; direction:rtl; text-align:start;
+  font-size:10px; color:var(--ink-3); margin-block-start:1px;
+}
+.ovl .nlabel.big .nm{ font-size:13px; color:var(--ink); font-weight:600; }
+.ovl .nlabel.big .vv{ font-size:13px; }
+.ovl .nlabel.chip .row{
+  background:rgba(0,0,0,.42);
+  backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  border:1px solid var(--line-2);
+  border-radius:9px; padding:2px 8px;
+}
+.ovl .nlabel[data-tone="wanted"] .nm{ color:var(--wanted); }
+.ovl .nlabel[data-tone="unread"] .nm{ color:var(--unread); }
+.ovl .nlabel[data-tone="clean"]  .nm{ color:var(--clean); }
+.ovl .nlabel:hover .nm,
+.ovl .nlabel[aria-pressed="true"] .nm{ color:var(--ink); }
+.ovl .nlabel[aria-pressed="true"] .row{ text-shadow:0 0 18px rgba(110,196,155,.5); }
+
+.ovl .stage{
+  position:absolute; direction:ltr; transform:translateY(-50%);
+}
+.ovl .stage .st{
+  direction:rtl; display:flex; align-items:baseline; gap:8px; justify-content:flex-start;
+}
+.ovl .stage .st b{ font-size:12px; font-weight:600; color:var(--ink); }
+.ovl .stage .st i{
+  font-style:normal; font-size:10.5px; color:var(--ink-3);
+  direction:ltr; unicode-bidi:isolate;
+}
+.ovl .stage .rule{
+  block-size:1px; background:linear-gradient(to left, var(--line), rgba(255,255,255,0));
+  margin-block-start:5px;
+}
+
+/* svg marks */
+.ribbons .rb{
+  fill:rgba(255,255,255,.07);
+  stroke:rgba(255,255,255,.17);
+  stroke-width:.6;
+  transition:fill .16s var(--ease), stroke .16s var(--ease), opacity .16s var(--ease);
+}
+.ribbons .sp{
+  fill:none; stroke:rgba(255,255,255,.28); stroke-width:1;
+  transition:stroke .16s var(--ease), opacity .16s var(--ease);
+}
+.ribbons .rb[data-tone="wanted"]{ fill:rgba(255,107,107,.32); stroke:rgba(255,107,107,.70); stroke-width:.7; }
+.ribbons .sp[data-tone="wanted"]{ stroke:rgba(255,107,107,.85); stroke-width:1.5; }
+.ribbons .rb[data-tone="unread"]{ fill:rgba(232,176,85,.30); stroke:rgba(232,176,85,.66); stroke-width:.7; }
+.ribbons .sp[data-tone="unread"]{ stroke:rgba(232,176,85,.80); stroke-width:1.35; }
+/* every ribbon in the magnifier is the مطلوب path, so the tone that reads as a
+   thread in the main river would read as one flat red slab here. Carry the
+   colour on the edge instead of the body — same hue, a fraction of the area. */
+#dgMini .ribbons .rb[data-tone="wanted"]{ fill:rgba(255,107,107,.17); stroke:rgba(255,107,107,.55); }
+.hit{ cursor:pointer; }
+.hit--fill{ fill:rgba(0,0,0,0); stroke:none; pointer-events:fill; }
+.hit--line{ fill:none; stroke:rgba(0,0,0,0); pointer-events:stroke; }
+
+.nodes .nb{
+  fill:rgba(255,255,255,.46);
+  transition:fill .16s var(--ease), opacity .16s var(--ease);
+}
+.nodes .nb[data-tone="wanted"]{ fill:var(--wanted); }
+.nodes .nb[data-tone="unread"]{ fill:var(--unread); }
+.nodes .nb[data-tone="clean"]{  fill:var(--clean); opacity:.85; }
+.nodes .nb.hot{ fill:#ffffff; }
+
+.diagram.focus .rb:not(.on),
+.diagram.focus .sp:not(.on){ opacity:.10; }
+.diagram.focus .nb:not(.on){ opacity:.16; }
+.diagram.focus .nlabel:not(.on){ opacity:.26; }
+
+/* Detached gates — they sit ON the empty far bank of the river, in the stretch
+   the flow never reaches because 99.5% of it has already terminated at سليم.
+   Absolutely placed inside .diagram so its percentages are the viewBox's own
+   coordinates; the layer is forced LTR to match that viewBox, and the text
+   inside reads RTL, the same convention .ovl uses. */
+.detached{
+  position:absolute; direction:ltr; z-index:2;
+  inset-inline-start:2.6%; inset-block-start:20%; inline-size:29%;
+  display:flex; flex-direction:column; gap:9px;
+  padding-block-start:9px;
+  border-block-start:1px solid var(--line);
+  font-size:11.5px; color:var(--ink-3);
+}
+.detached .cap{ color:var(--ink-2); direction:rtl; }
+.detached .dn{ display:flex; align-items:center; gap:8px; direction:rtl; }
+.detached .stub{
+  inline-size:11px; block-size:11px; border-radius:3px;
+  border:1px dashed rgba(255,255,255,.28);
+}
+.detached .stub.ring{ border-style:solid; border-color:rgba(255,255,255,.20); border-radius:50%; }
+.detached .st-lbl{ color:var(--ink-2); }
+
+/* magnifier */
+.mag{ margin-block-start:12px; padding-block-start:12px; border-block-start:1px solid var(--line); }
+.maghead{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-block-end:4px; }
+.maghead h3{ font-size:12.5px; font-weight:600; color:var(--ink); }
+.maghead .why{ font-size:11px; color:var(--ink-3); line-height:1.65; flex:1 1 320px; }
+.maghead .scalechip{
+  font-size:10.5px; color:var(--ink-2);
+  border:1px solid var(--stroke); background:rgba(255,255,255,.05);
+  border-radius:999px; padding:2px 9px;
+}
+
+/* tooltip — the layer is LTR so its logical inset and the pointer maths
+   (always clientX - rect.left) agree no matter how the page reads */
+.tiplayer{ position:absolute; inset:0; direction:ltr; pointer-events:none; z-index:20; overflow:hidden; }
+.tip{
+  position:absolute; inset-block-start:0; inset-inline-start:0;
+  direction:ltr; pointer-events:none; opacity:0;
+  transition:opacity .12s var(--ease);
+  background:rgba(0,0,0,.80);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--stroke); border-radius:11px;
+  padding:8px 11px; min-inline-size:150px;
+  box-shadow:0 16px 40px -18px rgba(0,0,0,.8);
+}
+.tip.show{ opacity:1; }
+.tip .tt{ font-size:11.5px; color:var(--ink); display:flex; align-items:baseline; gap:6px; }
+.tip .tv{
+  font-size:16px; font-weight:600; margin-block-start:2px;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate; text-align:end;
+}
+.tip .tm{ font-size:10.5px; color:var(--ink-3); }
+
+/* ============================================================
+   6 · lower panels
+   ============================================================ */
+.below{ display:flex; gap:16px; align-items:stretch; flex-wrap:wrap; }
+.p-events{ flex:1.65 1 420px; min-inline-size:0; padding:14px 16px 8px; display:flex; flex-direction:column; }
+.p-ops{    flex:.95 1 260px; min-inline-size:0; padding:14px 16px; }
+.p-hours{  flex:1.15 1 320px; min-inline-size:0; padding:14px 16px 10px; }
+
+.phead{ display:flex; align-items:baseline; gap:10px; margin-block-end:10px; }
+.phead h3{ font-size:13px; font-weight:600; }
+.phead .cnt{
+  font-size:11px; color:var(--ink-3);
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate;
+}
+.phead .trail{ margin-inline-start:auto; font-size:11px; color:var(--ink-3); }
+
+/* events */
+.evwrap{ flex:1 1 auto; max-block-size:352px; overflow-y:auto; margin-inline-end:-6px; padding-inline-end:6px; }
+.ev{
+  display:flex; align-items:flex-start; gap:12px;
+  padding:9px 8px 9px 8px;
+  border-block-end:1px solid var(--line-2);
+  border-radius:8px;
+  transition:background .16s var(--ease);
+}
+.ev:last-child{ border-block-end:0; }
+.ev:hover{ background:rgba(255,255,255,.035); }
+.ev .tm{
+  font-size:11.5px; color:var(--ink-3); inline-size:38px; flex:0 0 auto;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate; text-align:end; padding-block-start:2px;
+}
+.ev .mid{ flex:1 1 auto; min-inline-size:0; }
+.ev .pl{
+  font-size:13.5px; font-weight:500; letter-spacing:normal;
+  display:inline-block;                      /* the plate is one bidi island */
+  unicode-bidi:isolate; direction:rtl;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+}
+.ev .sub{ font-size:11px; color:var(--ink-3); line-height:1.6; }
+.ev .sub .sep{ padding-inline:4px; }
+.ev .vd{ flex:0 0 auto; display:flex; align-items:center; gap:6px; font-size:11.5px; padding-block-start:2px; }
+.ev .vd .d{ inline-size:7px; block-size:7px; border-radius:50%; flex:0 0 auto; }
+.ev[data-v="wanted"] .vd{ color:var(--wanted); } .ev[data-v="wanted"] .d{ background:var(--wanted); }
+.ev[data-v="clean"]  .vd{ color:var(--clean);  } .ev[data-v="clean"]  .d{ background:var(--clean); }
+.ev[data-v="unread"] .vd{ color:var(--unread); } .ev[data-v="unread"] .d{ background:var(--unread); }
+.ev .ref{
+  font-size:10.5px; color:var(--ink-3);
+  direction:ltr; unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+}
+.empty{
+  padding:34px 10px; text-align:center; color:var(--ink-3); font-size:12.5px;
+}
+.empty .hint{ display:block; font-size:11px; margin-block-start:6px; }
+
+/* operators */
+.op{
+  inline-size:100%; text-align:start; display:block;
+  padding:8px 10px; border-radius:10px;
+  border-inline-start:2px solid transparent;
+  transition:background .16s var(--ease), border-color .16s var(--ease);
+}
+.op:hover{ background:rgba(255,255,255,.04); }
+.op[aria-pressed="true"]{ background:rgba(255,255,255,.06); border-inline-start-color:var(--accent); }
+.op .r1{ display:flex; align-items:baseline; gap:8px; }
+.op .nm{ font-size:12.5px; font-weight:500; }
+.op .rv{
+  margin-inline-start:auto; font-size:11.5px; color:var(--ink-2);
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate;
+}
+.op .track{ block-size:4px; border-radius:3px; background:rgba(255,255,255,.07); margin-block:5px 4px; overflow:hidden; }
+.op .fill{
+  block-size:100%; border-radius:3px; background:rgba(255,255,255,.32);
+  transform-origin:100% 50%; transform:scaleX(0);   /* grows from the RTL start edge */
+  transition:transform .7s var(--ease);
+}
+.op[aria-pressed="true"] .fill{ background:var(--accent); }
+.op .r2{ display:flex; gap:12px; font-size:10.5px; color:var(--ink-3); }
+.op .r2 b{ font-weight:500; color:var(--ink-2); direction:ltr; unicode-bidi:isolate; }
+.op .r2 .w b{ color:var(--wanted); }
+
+/* hourly */
+/* aspect-ratio alone sizes the box: a min-block-size here would set the box's
+   min-content width to 150px × 700/244 = 430px and blow a hole through the
+   375px layout, while doing nothing for the drawing — preserveAspectRatio is
+   "meet", so the plot is width-bound either way. */
+.hchart{ position:relative; aspect-ratio:700/244; inline-size:100%; min-inline-size:0; }
+.hchart svg{ position:absolute; inset:0; inline-size:100%; block-size:100%; display:block; }
+/* the slot row spans exactly the plotted x-range, extended half a step at each
+   end, so slot centres land on hx(i) instead of drifting across the label gutter.
+   inline-start/-end resolve to left/right here because the row is forced LTR,
+   matching the SVG viewBox. */
+.hhits{
+  position:absolute; inset-block:0;
+  inset-inline-start:-.58%; inset-inline-end:4.28%;
+  direction:ltr; display:flex;
+}
+.hhits button{
+  flex:1 1 0; min-inline-size:0; border-radius:5px;
+  transition:background .14s var(--ease);
+}
+.hhits button:hover{ background:rgba(255,255,255,.05); }
+.hhits button[aria-pressed="true"]{ background:rgba(110,196,155,.10); box-shadow:inset 0 0 0 1px rgba(110,196,155,.28); }
+.hlegend{ display:flex; align-items:center; gap:14px; font-size:10.5px; color:var(--ink-3); margin-block-start:6px; flex-wrap:wrap; }
+.hlegend .k{ display:inline-flex; align-items:center; gap:6px; }
+.hlegend .sw{ inline-size:10px; block-size:3px; border-radius:2px; background:rgba(255,255,255,.5); }
+.hlegend .sw.w{ background:var(--wanted); block-size:8px; inline-size:5px; }
+.hlegend .sw.u{ background:var(--unread); block-size:8px; inline-size:5px; }
+.hread{
+  display:flex; gap:16px; flex-wrap:wrap; align-items:baseline;
+  font-size:11.5px; color:var(--ink-3); margin-block-end:8px;
+  min-block-size:22px;
+}
+.hread b{
+  color:var(--ink); font-weight:600; font-size:13px;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+  direction:ltr; unicode-bidi:isolate;
+}
+.hread .w b{ color:var(--wanted); }
+.hread .u b{ color:var(--unread); }
+
+.gline{ stroke:rgba(255,255,255,.08); stroke-width:1; vector-effect:non-scaling-stroke; }
+.gtxt{ fill:var(--ink-3); font-size:9.5px; direction:ltr; unicode-bidi:isolate; }
+.tline{
+  fill:none; stroke:rgba(255,255,255,.62); stroke-width:2;
+  stroke-linejoin:round; stroke-linecap:round;
+  vector-effect:non-scaling-stroke;          /* stays a true 2px line at any panel width */
+}
+.tarea{ fill:rgba(255,255,255,.07); }
+.bw{ fill:var(--wanted); }
+.bu{ fill:var(--unread); }
+.bar{ transform-box:fill-box; transform-origin:center bottom; }
+.hdot{ fill:var(--accent); }
+.vsel{ stroke:rgba(110,196,155,.55); stroke-width:1; stroke-dasharray:3 3; vector-effect:non-scaling-stroke; }
+
+/* footer */
+.foot{
+  text-align:center; font-size:11px; color:var(--ink-3);
+  padding-block-start:6px;
+}
+
+/* ============================================================
+   7 · entrance — once
+   ============================================================ */
+.rise{ opacity:0; transform:translateY(14px); animation:rise .58s var(--ease) forwards; animation-delay:var(--d,0ms); }
+@keyframes rise{ to{ opacity:1; transform:none; } }
+
+/* ============================================================
+   8 · responsive
+   ============================================================ */
+@media (max-width:1080px){
+  .p-events{ flex:1 1 100%; }
+  .p-ops,.p-hours{ flex:1 1 300px; }
+}
+@media (max-width:720px){
+  .band{ padding:2px 0; }
+  .fig{ flex:1 1 45%; border-inline-start:0; border-block-start:1px solid var(--line); }
+  .fig:first-child,.fig:nth-child(2){ border-block-start:0; }
+  .top{ gap:10px; }
+  .who .meta{ display:none; }
+  .shell{ gap:12px; }
+  /* svg font-size is in viewBox units, so the axis labels shrink with the panel —
+     bump them back up once the 24-hour plot is rendering under ~330px */
+  .gtxt{ font-size:15px; }
+}
+@media (max-width:430px){
+  .fig{ flex:1 1 100%; }
+  .fig:nth-child(2){ border-block-start:1px solid var(--line); }
+  .ev{ gap:8px; }
+}
+
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{
+  animation-duration:.01ms !important; animation-iteration-count:1 !important;
+  transition-duration:.01ms !important; } }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp a"></div><div class="lamp b"></div><div class="lamp c"></div>
+  <div class="lamp d"></div><div class="lamp e"></div>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<main class="shell">
+
+  <!-- ── masthead ─────────────────────────────────────────── -->
+  <header class="glass glass--near top rise" style="--d:0ms">
+    <div class="brand">
+      <h1>النهر — النظرة العامة</h1>
+      <span class="sub">تدفّق فحص اللوحات من البوابة حتى الإجراء</span>
+    </div>
+    <span class="live"><span class="dot-live" aria-hidden="true"></span>مباشر · حُدِّث <span class="iso">اليوم 14:32</span></span>
+    <span class="spacer"></span>
+    <div class="who">
+      <div class="meta">
+        <div class="nm">أحمد عماد</div>
+        <div class="rl">مدير النظام</div>
+      </div>
+      <div class="avatar" aria-hidden="true">أ</div>
+    </div>
+  </header>
+
+  <!-- ── six figures, rule separated ──────────────────────── -->
+  <section class="glass band rise" style="--d:60ms" aria-label="الأرقام الرئيسية">
+    <div class="fig">
+      <span class="lbl">إجمالي عمليات المسح</span>
+      <span class="valrow"><span class="val" data-count="12847">12,847</span></span>
+      <span class="delta"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9.5V2.5M6 2.5 3 5.5M6 2.5 9 5.5"/></svg><span class="num">6.2%</span> عن الأمس</span>
+    </div>
+    <div class="fig fig--wanted">
+      <span class="lbl">مركبات مطلوبة</span>
+      <span class="valrow"><span class="val" data-count="38">38</span></span>
+      <span class="delta"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2.5v7M6 9.5 3 6.5M6 9.5 9 6.5"/></svg><span class="num">11.6%</span> عن الأمس</span>
+    </div>
+    <div class="fig fig--clean">
+      <span class="lbl">مركبات سليمة</span>
+      <span class="valrow"><span class="val" data-count="12782">12,782</span></span>
+      <span class="delta"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9.5V2.5M6 2.5 3 5.5M6 2.5 9 5.5"/></svg><span class="num">6.3%</span> عن الأمس</span>
+    </div>
+    <div class="fig fig--unread">
+      <span class="lbl">لوحات غير مقروءة</span>
+      <span class="valrow"><span class="val" data-count="27">27</span></span>
+      <span class="delta"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9.5V2.5M6 2.5 3 5.5M6 2.5 9 5.5"/></svg><span class="num">2.4%</span> عن الأمس</span>
+    </div>
+    <div class="fig">
+      <span class="lbl">متوسط زمن المعالجة</span>
+      <span class="valrow"><span class="val" data-count="412">412</span><span class="unit">مللي/ث</span></span>
+      <span class="delta"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2.5v7M6 9.5 3 6.5M6 9.5 9 6.5"/></svg><span class="num">8.0%</span> عن الأمس</span>
+    </div>
+    <div class="fig fig--gates">
+      <span class="lbl">بوابات نشطة</span>
+      <span class="valrow"><span class="val"><span class="num">9</span></span><span class="unit">من <span class="num">11</span></span></span>
+      <span class="delta">بوابتان خارج التدفق · واحدة بطيئة</span>
+      <span class="gbar" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i class="deg"></i><i></i><i></i><i class="off"></i><i class="off"></i>
+      </span>
+    </div>
+  </section>
+
+  <!-- ── the river ────────────────────────────────────────── -->
+  <section class="glass river rise" style="--d:120ms" aria-label="مخطط التدفق">
+    <div class="riverhead">
+      <h2>مجرى الفحص</h2>
+      <span class="note">يُقرأ من اليمين إلى اليسار · سُمك الشريط يساوي الحجم بالمقياس الحقيقي</span>
+      <span class="pinnote">
+        <span class="chip" id="pinChip">لا يوجد مسار مثبّت</span>
+        <button class="btn-clear" id="btnClear" type="button">مسح التصفية</button>
+      </span>
+    </div>
+
+    <div class="scroller">
+      <div class="diagram" id="dgMain">
+        <svg id="svgMain" viewBox="0 0 1000 640" role="img"
+             aria-label="مخطط سانكي: البوابات ثم المعالجة ثم الحكم ثم الإجراء">
+          <defs>
+            <clipPath id="revealMain" clipPathUnits="userSpaceOnUse">
+              <rect id="revealRectMain" x="0" y="0" width="1000" height="640"></rect>
+            </clipPath>
+          </defs>
+          <g class="ribbons" id="ribMain" clip-path="url(#revealMain)"></g>
+          <g class="nodes" id="ndMain"></g>
+          <g class="hits" id="htMain"></g>
+        </svg>
+        <div class="ovl" id="ovlMain"></div>
+        <div class="detached">
+          <span class="cap">عُقد خارج المجرى:</span>
+          <span class="dn"><span class="stub" aria-hidden="true"></span>بوابة الغرب<span class="st-lbl">— خارج الخدمة</span></span>
+          <span class="dn"><span class="stub" aria-hidden="true"></span>مدخل الصيانة<span class="st-lbl">— صيانة</span></span>
+          <span class="dn"><span class="stub ring" aria-hidden="true"></span>محطة الوزن<span class="st-lbl">— بطيئة، <span class="num">508</span> مللي/ث</span></span>
+        </div>
+        <!-- pointer-only affordance: every value it shows is already text inside the
+             focusable node buttons, so it is hidden from AT rather than spamming a live region -->
+        <div class="tiplayer"><div class="tip" id="tipMain" aria-hidden="true"></div></div>
+      </div>
+    </div>
+
+    <!-- magnifier -->
+    <div class="mag">
+      <div class="maghead">
+        <h3>مسار المطلوب — مقياس مستقل</h3>
+        <span class="scalechip">مقياس مكبّر ×<span class="num">90</span> تقريبًا</span>
+        <p class="why">
+          <span class="num">38</span> من <span class="num">12,847</span> تساوي <span class="num">0.3%</span>؛ عند المقياس الحقيقي تظهر كخيط.
+          المخطط أعلاه لم يُشوَّه ولم يُضخَّم فيه أي مسار — هذا المخطط المصغّر وحده هو الذي يعيد رسم مسار المطلوب بمقياسه الخاص.
+        </p>
+      </div>
+      <div class="scroller">
+        <div class="diagram diagram--mini" id="dgMini">
+          <svg id="svgMini" viewBox="0 0 1000 220" role="img" aria-label="مخطط مصغّر لمسار المركبات المطلوبة بمقياس مستقل">
+            <defs>
+              <clipPath id="revealMini" clipPathUnits="userSpaceOnUse">
+                <rect id="revealRectMini" x="0" y="0" width="1000" height="220"></rect>
+              </clipPath>
+            </defs>
+            <g class="ribbons" id="ribMini" clip-path="url(#revealMini)"></g>
+            <g class="nodes" id="ndMini"></g>
+            <g class="hits" id="htMini"></g>
+          </svg>
+          <div class="ovl" id="ovlMini"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── lower panels ─────────────────────────────────────── -->
+  <div class="below">
+
+    <section class="glass glass--near p-events rise" style="--d:180ms" aria-label="أحدث السجلات">
+      <div class="phead">
+        <h3>أحدث السجلات</h3>
+        <span class="cnt" id="evCount">16 / 16</span>
+        <span class="trail" id="evScope">كل المسارات</span>
+      </div>
+      <div class="evwrap"><div id="evList"></div></div>
+    </section>
+
+    <section class="glass glass--far p-ops rise" style="--d:230ms" aria-label="المراجعون">
+      <div class="phead">
+        <h3>المراجعون</h3>
+        <span class="cnt"><span class="num">1,949</span> مراجعة</span>
+      </div>
+      <div id="opList"></div>
+    </section>
+
+    <section class="glass glass--far p-hours rise" style="--d:280ms" aria-label="المسار الزمني خلال 24 ساعة">
+      <div class="phead">
+        <h3>على مدى <span class="num">24</span> ساعة</h3>
+        <span class="trail" id="hrHint">اضغط أي ساعة للتدقيق</span>
+      </div>
+      <div class="hread" id="hrRead"></div>
+      <div class="hchart" id="hChart">
+        <svg id="svgHours" viewBox="0 0 700 244" role="img" aria-label="إجمالي عمليات المسح وحالات المطلوب وغير المقروء لكل ساعة"></svg>
+        <div class="hhits" id="hHits"></div>
+      </div>
+      <div class="hlegend">
+        <span class="k"><span class="sw" aria-hidden="true"></span>إجمالي المسح (مقياس أعلى)</span>
+        <span class="k"><span class="sw w" aria-hidden="true"></span>مطلوب</span>
+        <span class="k"><span class="sw u" aria-hidden="true"></span>غير مقروء</span>
+        <span class="k">مقياسان منفصلان — بمحور زمني واحد</span>
+      </div>
+    </section>
+
+  </div>
+
+  <p class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</p>
+</main>
+
+<script>
+"use strict";
+/* ============================================================
+   A · dataset — verbatim from SPEC §7
+   ============================================================ */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+/* ── concept extension: the fourth stage (الإجراء).
+      Volumes come from the brief; the mapping below attaches the four
+      recorded wanted events to their action so the pinned path can filter. */
+const ACTIONS = { reported:21, review:12, closed:5 };
+const ACTION_OF = { "KSA-2291":"reported", "KSA-2287":"review", "KSA-2284":"reported", "KSA-2280":"closed" };
+
+const READ_V   = KPI.total.v - KPI.unread.v;   // 12,820
+const VERDICT_LABEL = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+const STATUS_LABEL  = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+
+/* ============================================================
+   B · helpers
+   ============================================================ */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+const fmt = n => n.toLocaleString('en-US');
+const pct = (a, b) => { const p = (a / b) * 100; return (p >= 10 ? p.toFixed(1) : p.toFixed(2)) + '%'; };
+const gateName = id => { const g = GATES.find(x => x.id === id); return g ? g.name : id; };
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============================================================
+   C · the graph model
+   ============================================================ */
+const NODE_META = {
+  read:     { label:"مقروء",       stage:1 },
+  unread:   { label:"غير مقروء",   stage:1, tone:"unread" },
+  clean:    { label:"سليم",        stage:2, tone:"clean"  },
+  wanted:   { label:"مطلوب",       stage:2, tone:"wanted" },
+  reported: { label:"تم التبليغ",  stage:3 },
+  review:   { label:"قيد المراجعة",stage:3 },
+  closed:   { label:"أُغلق",       stage:3 }
+};
+
+const ACTIVE_GATES = GATES.filter(g => g.total > 0);
+
+/* graph edges — used for both diagrams and for path traversal */
+const EDGES = [];
+ACTIVE_GATES.forEach(g => {
+  EDGES.push({ s:g.id, t:'read',   v:g.total - g.unread });
+  EDGES.push({ s:g.id, t:'unread', v:g.unread, tone:'unread' });
+});
+EDGES.push({ s:'read', t:'clean',  v:KPI.clean.v });
+EDGES.push({ s:'read', t:'wanted', v:KPI.wanted.v, tone:'wanted' });
+EDGES.push({ s:'wanted', t:'reported', v:ACTIONS.reported });
+EDGES.push({ s:'wanted', t:'review',   v:ACTIONS.review   });
+EDGES.push({ s:'wanted', t:'closed',   v:ACTIONS.closed   });
+EDGES.forEach((e, i) => { e.id = e.s + '>' + e.t; e.i = i; });
+
+const OUT = {}, IN = {};
+EDGES.forEach(e => { (OUT[e.s] = OUT[e.s] || []).push(e); (IN[e.t] = IN[e.t] || []).push(e); });
+
+function walk(start, mapObj, key) {
+  const nodes = new Set([start]), links = new Set(), stack = [start];
+  while (stack.length) {
+    const n = stack.pop();
+    (mapObj[n] || []).forEach(e => {
+      links.add(e.id);
+      const nx = e[key];
+      if (!nodes.has(nx)) { nodes.add(nx); stack.push(nx); }
+    });
+  }
+  return { nodes, links };
+}
+function pathOfNode(id) {
+  const d = walk(id, OUT, 't'), u = walk(id, IN, 's');
+  return { nodes: new Set([...d.nodes, ...u.nodes]), links: new Set([...d.links, ...u.links]) };
+}
+function pathOfLink(edge) {
+  const d = walk(edge.t, OUT, 't'), u = walk(edge.s, IN, 's');
+  const links = new Set([edge.id, ...d.links, ...u.links]);
+  return { nodes: new Set([...d.nodes, ...u.nodes]), links };
+}
+
+/* ============================================================
+   D · main sankey layout (true scale, no path enlarged)
+   ============================================================ */
+const VB   = { w:1000, h:640 };
+const NW   = 12;
+const COLX = { gate:812, proc:620, verd:380, act:140 };
+const TOP  = 78, BOT = 22, GAP = 9;
+const K    = (VB.h - TOP - BOT - (ACTIVE_GATES.length - 1) * GAP) / KPI.total.v;
+const MIN_BAR = 3.5;
+
+const NODES = {};
+(function layout() {
+  let y = TOP;
+  ACTIVE_GATES.forEach(g => {
+    NODES[g.id] = { id:g.id, label:g.name, val:g.total, x:COLX.gate, y:y, h:g.total * K, stage:0 };
+    y += g.total * K + GAP;
+  });
+  const put = (id, x, opt) => {
+    const m = NODE_META[id];
+    const h = opt.v * K;
+    NODES[id] = { id:id, label:m.label, val:opt.v, x:x, h:h, stage:m.stage, tone:m.tone,
+                  y: opt.top != null ? opt.top : opt.c - h / 2 };
+  };
+  put('read',     COLX.proc, { v:READ_V,          top:TOP });
+  put('unread',   COLX.proc, { v:KPI.unread.v,    c:598  });
+  put('clean',    COLX.verd, { v:KPI.clean.v,     top:TOP });
+  put('wanted',   COLX.verd, { v:KPI.wanted.v,    c:562  });
+  put('reported', COLX.act,  { v:ACTIONS.reported,c:512  });
+  put('review',   COLX.act,  { v:ACTIONS.review,  c:562  });
+  put('closed',   COLX.act,  { v:ACTIONS.closed,  c:612  });
+
+  Object.keys(NODES).forEach(id => {
+    const n = NODES[id];
+    n.barH = Math.max(n.h, MIN_BAR);
+    n.barY = n.y - (n.barH - n.h) / 2;
+    n.cy   = n.y + n.h / 2;
+  });
+
+  /* slot every edge on both banks, in declaration order */
+  const so = {}, ti = {};
+  EDGES.forEach(e => {
+    const s = NODES[e.s], t = NODES[e.t], h = e.v * K;
+    const a = so[e.s] || 0, b = ti[e.t] || 0;
+    e.y0 = s.y + a; e.y1 = t.y + b; e.th = h;
+    so[e.s] = a + h; ti[e.t] = b + h;
+  });
+})();
+
+function band(xR, yR0, yR1, xL, yL0, yL1) {
+  const xm = (xR + xL) / 2;
+  return 'M' + xR + ',' + yR0 +
+         ' C' + xm + ',' + yR0 + ' ' + xm + ',' + yL0 + ' ' + xL + ',' + yL0 +
+         ' L' + xL + ',' + yL1 +
+         ' C' + xm + ',' + yL1 + ' ' + xm + ',' + yR1 + ' ' + xR + ',' + yR1 + ' Z';
+}
+function spine(xR, yR, xL, yL) {
+  const xm = (xR + xL) / 2;
+  return 'M' + xR + ',' + yR + ' C' + xm + ',' + yR + ' ' + xm + ',' + yL + ' ' + xL + ',' + yL;
+}
+const r2 = v => Math.round(v * 100) / 100;
+
+function renderMain() {
+  let rib = '', nds = '', ovl = '';
+  let hitsThick = '', hitsThin = '';
+
+  EDGES.forEach(e => {
+    const s = NODES[e.s], t = NODES[e.t];
+    const xR = s.x, xL = t.x + NW;
+    const d  = band(xR, r2(e.y0), r2(e.y0 + e.th), xL, r2(e.y1), r2(e.y1 + e.th));
+    const sp = spine(xR, r2(e.y0 + e.th / 2), xL, r2(e.y1 + e.th / 2));
+    const tone = e.tone ? ' data-tone="' + e.tone + '"' : '';
+    rib += '<path class="rb" data-lk="' + e.id + '"' + tone + ' d="' + d + '"></path>';
+    if (e.th < 4) rib += '<path class="sp" data-lk="' + e.id + '"' + tone + ' d="' + sp + '"></path>';
+    /* thick ribbons are hit by their own body; hairlines get a 10px invisible spine
+       appended afterwards so the thread always wins the pointer over the flood */
+    if (e.th >= 10) {
+      hitsThick += '<path class="hit hit--fill" data-lk="' + e.id + '" d="' + d + '"></path>';
+    } else {
+      hitsThin += '<path class="hit hit--line" data-lk="' + e.id + '" d="' + sp + '" stroke-width="10"></path>';
+    }
+  });
+  const hits = hitsThick + hitsThin;
+
+  Object.keys(NODES).forEach(id => {
+    const n = NODES[id];
+    const tone = n.tone ? ' data-tone="' + n.tone + '"' : '';
+    nds += '<rect class="nb" data-nd="' + id + '"' + tone + ' x="' + n.x + '" y="' + r2(n.barY) +
+           '" width="' + NW + '" height="' + r2(n.barH) + '" rx="2.5"></rect>';
+  });
+
+  /* ── overlay labels ────────────────────────────────────── */
+  const box = (x0, x1) => 'inset-inline-start:' + r2(x0 / VB.w * 100) + '%;width:' + r2((x1 - x0) / VB.w * 100) + '%;';
+  const at  = y => 'top:' + r2(y / VB.h * 100) + '%;';
+
+  ACTIVE_GATES.forEach(g => {
+    const n = NODES[g.id];
+    ovl += '<button type="button" class="nlabel" data-nd="' + g.id + '" aria-pressed="false" ' +
+           'style="' + box(824, 1000) + at(n.cy) + '">' +
+             '<span class="row spread"><span class="nm">' + g.name + '</span>' +
+             '<span class="vv">' + fmt(g.total) + '</span></span>' +
+           '</button>';
+  });
+
+  const big = (id, x0, x1, y) => {
+    const n = NODES[id];
+    ovl += '<button type="button" class="nlabel big" data-nd="' + id + '" aria-pressed="false"' +
+           (n.tone ? ' data-tone="' + n.tone + '"' : '') +
+           ' style="' + box(x0, x1) + at(y) + '">' +
+             '<span class="row"><span class="nm">' + n.label + '</span>' +
+             '<span class="vv">' + fmt(n.val) + '</span></span>' +
+             '<span class="pc">' + pct(n.val, KPI.total.v) + ' من التدفق</span>' +
+           '</button>';
+  };
+  big('read',  430, 632, 56);
+  big('clean', 190, 392, 56);
+
+  const smallChip = (id, x0, x1, y, cls) => {
+    const n = NODES[id];
+    ovl += '<button type="button" class="nlabel chip ' + (cls || '') + '" data-nd="' + id + '" aria-pressed="false"' +
+           (n.tone ? ' data-tone="' + n.tone + '"' : '') +
+           ' style="' + box(x0, x1) + at(y) + '">' +
+             '<span class="row"><span class="nm">' + n.label + '</span>' +
+             '<span class="vv">' + fmt(n.val) + '</span></span>' +
+           '</button>';
+  };
+  smallChip('unread', 386, 608, 598);
+  smallChip('wanted', 400, 604, 562);
+
+  ['reported', 'review', 'closed'].forEach(id => {
+    const n = NODES[id];
+    ovl += '<button type="button" class="nlabel" data-nd="' + id + '" aria-pressed="false" ' +
+           'style="' + box(0, 132) + at(n.cy) + '">' +
+             '<span class="row"><span class="nm">' + n.label + '</span>' +
+             '<span class="vv">' + fmt(n.val) + '</span></span>' +
+           '</button>';
+  });
+
+  /* stage headers, right → left */
+  const stage = (title, sub, x0, x1) =>
+    '<div class="stage" style="' + box(x0, x1) + 'top:3.1%;">' +
+      '<div class="st"><b>' + title + '</b><i>' + sub + '</i></div><div class="rule"></div></div>';
+  ovl += stage('البوابات', fmt(KPI.total.v), 780, 1000);
+  ovl += stage('المعالجة', fmt(READ_V) + ' + ' + fmt(KPI.unread.v), 436, 632);
+  ovl += stage('الحكم',    fmt(KPI.clean.v) + ' + ' + fmt(KPI.wanted.v), 196, 392);
+  ovl += stage('الإجراء',  fmt(KPI.wanted.v), 0, 152);
+
+  $('#ribMain').innerHTML  = rib;
+  $('#ndMain').innerHTML   = nds;
+  $('#htMain').innerHTML   = hits;
+  $('#ovlMain').innerHTML  = ovl;
+}
+
+/* ============================================================
+   E · magnifier — the مطلوب path only, at its own scale
+   ============================================================ */
+const MVB  = { w:1000, h:220 };
+const MCOL = { gate:812, wanted:470, act:140 };
+const MNW  = 10;
+const MTOP = 26, MGAP = 6, MK = 3.2;   /* own scale — roughly 88× the main diagram's */
+
+const MN = {};
+(function mlayout() {
+  let y = MTOP;
+  ACTIVE_GATES.forEach(g => {
+    MN[g.id] = { id:g.id, label:g.name, val:g.wanted, x:MCOL.gate, y:y, h:g.wanted * MK };
+    y += g.wanted * MK + MGAP;
+  });
+  const span = y - MGAP - MTOP;
+  const wh = KPI.wanted.v * MK;
+  MN.wanted = { id:'wanted', label:'مطلوب', val:KPI.wanted.v, x:MCOL.wanted, h:wh, y: MTOP + (span - wh) / 2, tone:'wanted' };
+  const acts = ['reported', 'review', 'closed'];
+  let ah = acts.reduce((s, a) => s + ACTIONS[a] * MK, 0) + (acts.length - 1) * 10;
+  let ay = MTOP + (span - ah) / 2;
+  acts.forEach(a => {
+    MN[a] = { id:a, label:NODE_META[a].label, val:ACTIONS[a], x:MCOL.act, h:ACTIONS[a] * MK, y:ay };
+    ay += ACTIONS[a] * MK + 10;
+  });
+  Object.keys(MN).forEach(id => { const n = MN[id]; n.cy = n.y + n.h / 2; });
+})();
+
+const MEDGES = [];
+ACTIVE_GATES.forEach(g => MEDGES.push({ s:g.id, t:'wanted', v:g.wanted, id:g.id + '>wanted' }));
+['reported', 'review', 'closed'].forEach(a => MEDGES.push({ s:'wanted', t:a, v:ACTIONS[a], id:'wanted>' + a }));
+(function mslot() {
+  const so = {}, ti = {};
+  MEDGES.forEach(e => {
+    const s = MN[e.s], t = MN[e.t], h = e.v * MK;
+    const a = so[e.s] || 0, b = ti[e.t] || 0;
+    e.y0 = s.y + a; e.y1 = t.y + b; e.th = h;
+    so[e.s] = a + h; ti[e.t] = b + h;
+  });
+})();
+
+function renderMini() {
+  let rib = '', nds = '', ovl = '';
+  let hitsThick = '', hitsThin = '';
+  MEDGES.forEach(e => {
+    const s = MN[e.s], t = MN[e.t];
+    const d = band(s.x, r2(e.y0), r2(e.y0 + e.th), t.x + MNW, r2(e.y1), r2(e.y1 + e.th));
+    rib += '<path class="rb" data-lk="' + e.id + '" data-tone="wanted" d="' + d + '"></path>';
+    const sp = spine(s.x, r2(e.y0 + e.th / 2), t.x + MNW, r2(e.y1 + e.th / 2));
+    if (e.th >= 10) hitsThick += '<path class="hit hit--fill" data-lk="' + e.id + '" d="' + d + '"></path>';
+    else            hitsThin  += '<path class="hit hit--line" data-lk="' + e.id + '" d="' + sp + '" stroke-width="10"></path>';
+  });
+  const hits = hitsThick + hitsThin;
+  Object.keys(MN).forEach(id => {
+    const n = MN[id];
+    nds += '<rect class="nb" data-nd="' + id + '" data-tone="wanted" x="' + n.x + '" y="' + r2(n.y) +
+           '" width="' + MNW + '" height="' + r2(Math.max(n.h, 2.5)) + '" rx="2"></rect>';
+  });
+
+  const box = (x0, x1) => 'inset-inline-start:' + r2(x0 / MVB.w * 100) + '%;width:' + r2((x1 - x0) / MVB.w * 100) + '%;';
+  const at  = y => 'top:' + r2(y / MVB.h * 100) + '%;';
+
+  ACTIVE_GATES.forEach(g => {
+    const n = MN[g.id];
+    ovl += '<button type="button" class="nlabel" data-nd="' + g.id + '" aria-pressed="false" ' +
+           'style="' + box(824, 1000) + at(n.cy) + '">' +
+             '<span class="row spread"><span class="nm">' + g.name + '</span>' +
+             '<span class="vv">' + g.wanted + '</span></span></button>';
+  });
+  const w = MN.wanted;
+  ovl += '<button type="button" class="nlabel chip" data-nd="wanted" data-tone="wanted" aria-pressed="false" ' +
+         'style="' + box(492, 700) + at(w.cy) + '">' +
+           '<span class="row"><span class="nm">مطلوب</span><span class="vv">' + KPI.wanted.v + '</span></span></button>';
+  ['reported', 'review', 'closed'].forEach(id => {
+    const n = MN[id];
+    ovl += '<button type="button" class="nlabel" data-nd="' + id + '" aria-pressed="false" ' +
+           'style="' + box(0, 132) + at(n.cy) + '">' +
+             '<span class="row"><span class="nm">' + n.label + '</span>' +
+             '<span class="vv">' + n.val + '</span></span></button>';
+  });
+  ovl += '<div class="stage" style="' + box(824, 1000) + 'top:5%;"><div class="st"><b>البوابات</b><i>38</i></div><div class="rule"></div></div>';
+  ovl += '<div class="stage" style="' + box(0, 132) + 'top:5%;"><div class="st"><b>الإجراء</b><i>38</i></div><div class="rule"></div></div>';
+
+  $('#ribMini').innerHTML = rib;
+  $('#ndMini').innerHTML  = nds;
+  $('#htMini').innerHTML  = hits;
+  $('#ovlMini').innerHTML = ovl;
+}
+
+/* ============================================================
+   F · state — every render below reads from here
+   ============================================================ */
+const S = {
+  pin:   null,   // node id pinned in the sankey
+  hover: null,   // {kind:'node'|'link', id}
+  hour:  null,   // 0..23
+  op:    null    // operator name
+};
+
+/* ── highlight ─────────────────────────────────────────── */
+function activePath() {
+  if (S.hover && S.hover.kind === 'node') return pathOfNode(S.hover.id);
+  if (S.hover && S.hover.kind === 'link') return pathOfLink(S.hover.edge);
+  if (S.pin) return pathOfNode(S.pin);
+  return null;
+}
+/* the magnifier draws gate→مطلوب directly, an edge the main graph does not carry,
+   so membership falls back to "both endpoints lie on the path" */
+function linkOnPath(id, p) {
+  if (p.links.has(id)) return true;
+  const parts = id.split('>');
+  return p.nodes.has(parts[0]) && p.nodes.has(parts[1]);
+}
+function paintHighlight() {
+  const p = activePath();
+  ['#dgMain', '#dgMini'].forEach(sel => {
+    const root = $(sel);
+    root.classList.toggle('focus', !!p);
+    $$('[data-lk]', root).forEach(el => el.classList.toggle('on', !!p && linkOnPath(el.getAttribute('data-lk'), p)));
+    $$('[data-nd]', root).forEach(el => {
+      const on = !!p && p.nodes.has(el.getAttribute('data-nd'));
+      el.classList.toggle('on', on);
+      if (el.classList.contains('nb')) el.classList.toggle('hot', on && !el.hasAttribute('data-tone'));
+    });
+  });
+  $$('.nlabel').forEach(b => b.setAttribute('aria-pressed', String(S.pin === b.getAttribute('data-nd'))));
+}
+
+/* ── tooltip ───────────────────────────────────────────── */
+const tip = $('#tipMain');
+function showTip(html, ev) {
+  const host = $('#dgMain').getBoundingClientRect();
+  tip.innerHTML = html;
+  tip.classList.add('show');
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX - host.left + 14;
+  let y = ev.clientY - host.top - h - 10;
+  if (x + w > host.width) x = ev.clientX - host.left - w - 14;
+  if (x < 0) x = 4;
+  if (y < 0) y = ev.clientY - host.top + 16;
+  tip.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+}
+function hideTip() { tip.classList.remove('show'); }
+
+function linkTip(e) {
+  const s = NODES[e.s] ? NODES[e.s].label : e.s;
+  const t = NODES[e.t] ? NODES[e.t].label : e.t;
+  return '<div class="tt" dir="rtl">' + s + ' ← ' + t + '</div>' +
+         '<div class="tv">' + fmt(e.v) + '</div>' +
+         '<div class="tm" dir="rtl">' + pct(e.v, KPI.total.v) + ' من إجمالي التدفق</div>';
+}
+function nodeTip(id) {
+  const n = NODES[id];
+  const g = GATES.find(x => x.id === id);
+  let extra = '';
+  if (g) extra = 'مطلوب <span class="num">' + g.wanted + '</span> · غير مقروء <span class="num">' + g.unread +
+                 '</span> · <span class="num">' + g.ms + '</span> مللي/ث · ' + STATUS_LABEL[g.status];
+  else   extra = pct(n.val, KPI.total.v) + ' من إجمالي التدفق';
+  return '<div class="tt" dir="rtl">' + n.label + '</div>' +
+         '<div class="tv">' + fmt(n.val) + '</div>' +
+         '<div class="tm" dir="rtl">' + extra + '</div>';
+}
+
+/* ============================================================
+   G · derived filtering
+   ============================================================ */
+function matchesPin(e, pin) {
+  if (!pin) return true;
+  if (pin.charAt(0) === 'g' && NODES[pin] && NODES[pin].stage === 0) return e.gate === pin;
+  if (pin === 'read')   return e.verdict !== 'unread';
+  if (pin === 'unread') return e.verdict === 'unread';
+  if (pin === 'clean')  return e.verdict === 'clean';
+  if (pin === 'wanted') return e.verdict === 'wanted';
+  if (ACTIONS[pin] != null) return e.verdict === 'wanted' && ACTION_OF[e.ref] === pin;
+  return true;
+}
+function filteredEvents() {
+  return EVENTS.filter(e => {
+    if (!matchesPin(e, S.pin)) return false;
+    if (S.hour != null && parseInt(e.t.slice(0, 2), 10) !== S.hour) return false;
+    if (S.op && e.by !== S.op) return false;
+    return true;
+  });
+}
+function scopeText() {
+  const bits = [];
+  if (S.pin)          bits.push(NODES[S.pin] ? NODES[S.pin].label : S.pin);
+  if (S.hour != null) bits.push('الساعة <span class="num">' + String(S.hour).padStart(2, '0') + '</span>');
+  if (S.op)           bits.push(S.op);
+  return bits.length ? bits.join(' · ') : 'كل المسارات';
+}
+
+/* ============================================================
+   H · event list
+   ============================================================ */
+function renderEvents() {
+  const rows = filteredEvents();
+  const host = $('#evList');
+  $('#evCount').textContent = rows.length + ' / ' + EVENTS.length;
+  $('#evScope').innerHTML = scopeText();
+
+  if (!rows.length) {
+    host.innerHTML = '<div class="empty">لا توجد سجلات مطابقة' +
+      '<span class="hint">جرّب مسح التصفية أو اختيار عقدة أخرى في المجرى.</span></div>';
+    return;
+  }
+  host.innerHTML = rows.map(e => {
+    const sub = [];
+    sub.push(gateName(e.gate));
+    if (e.reason) sub.push(e.reason);
+    if (e.by)     sub.push('راجعها ' + e.by);
+    const act = e.ref && ACTION_OF[e.ref] ? NODE_META[ACTION_OF[e.ref]].label : null;
+    if (act) sub.push(act);
+    return '<article class="ev" data-v="' + e.verdict + '">' +
+      '<span class="tm">' + e.t + '</span>' +
+      '<span class="mid">' +
+        '<span class="pl plate">' + e.plate + '</span>' +
+        '<span class="sub">' + sub.join('<span class="sep">·</span>') +
+          (e.ref ? '<span class="sep">·</span><span class="ref">' + e.ref + '</span>' : '') +
+        '</span>' +
+      '</span>' +
+      '<span class="vd"><span class="d" aria-hidden="true"></span>' + VERDICT_LABEL[e.verdict] + '</span>' +
+    '</article>';
+  }).join('');
+}
+
+/* ============================================================
+   I · operators
+   ============================================================ */
+function renderOperators() {
+  const max = Math.max.apply(null, OPERATORS.map(o => o.reviews));
+  $('#opList').innerHTML = OPERATORS.map(o =>
+    '<button type="button" class="op" data-op="' + o.name + '" aria-pressed="' + (S.op === o.name) + '">' +
+      '<span class="r1"><span class="nm">' + o.name + '</span>' +
+      '<span class="rv">' + fmt(o.reviews) + '</span></span>' +
+      '<span class="track"><span class="fill" data-w="' + (o.reviews / max) + '"></span></span>' +
+      '<span class="r2"><span class="w">مطلوب <b>' + o.wanted + '</b></span>' +
+      '<span>الدقة <b>' + o.acc + '%</b></span></span>' +
+    '</button>'
+  ).join('');
+  requestAnimationFrame(() => {
+    $$('#opList .fill').forEach(f => { f.style.transform = 'scaleX(' + f.getAttribute('data-w') + ')'; });
+  });
+}
+
+/* ============================================================
+   J · 24-hour panel — two stacked plots, one shared x-axis
+   ============================================================ */
+const HW = 700, HH = 244;
+const HPAD = { end:44, start:10 };          // "end" side carries the value labels (right, in RTL reading)
+const HSTEP = (HW - HPAD.end - HPAD.start) / 23;
+const hx = i => HW - HPAD.end - i * HSTEP;  // hour 0 sits on the right
+const TOP_Y = 8,  TOP_H = 112, TOP_MAX = 1000;   // nice maximum: 1 × 10³
+const BOT_Y = 152, BOT_H = 62, BOT_MAX = 5;      // nice maximum: 5
+const ty = v => TOP_Y + TOP_H - (v / TOP_MAX) * TOP_H;
+const by = v => BOT_Y + BOT_H - (v / BOT_MAX) * BOT_H;
+
+function renderHours() {
+  let s = '';
+  /* grid — top plot */
+  [0, 500, 1000].forEach(v => {
+    s += '<line class="gline" x1="' + HPAD.start + '" y1="' + r2(ty(v)) + '" x2="' + (HW - HPAD.end) + '" y2="' + r2(ty(v)) + '"></line>';
+    s += '<text class="gtxt" x="' + (HW - HPAD.end + 8) + '" y="' + r2(ty(v) + 3.5) + '">' + fmt(v) + '</text>';
+  });
+  /* grid — bottom plot */
+  [0, 5].forEach(v => {
+    s += '<line class="gline" x1="' + HPAD.start + '" y1="' + r2(by(v)) + '" x2="' + (HW - HPAD.end) + '" y2="' + r2(by(v)) + '"></line>';
+    s += '<text class="gtxt" x="' + (HW - HPAD.end + 8) + '" y="' + r2(by(v) + 3.5) + '">' + v + '</text>';
+  });
+
+  /* total: area + line */
+  let line = '', area = '';
+  HOURLY.total.forEach((v, i) => {
+    const X = r2(hx(i)), Y = r2(ty(v));
+    line += (i ? ' L' : 'M') + X + ',' + Y;
+    area += (i ? ' L' : 'M' + r2(hx(0)) + ',' + r2(ty(0)) + ' L') + X + ',' + Y;
+  });
+  area += ' L' + r2(hx(23)) + ',' + r2(ty(0)) + ' Z';
+  s += '<path class="tarea" d="' + area + '"></path>';
+  s += '<path class="tline" id="hLine" d="' + line + '"></path>';
+
+  /* wanted / unread grouped bars — 5px wide, 2px apart */
+  HOURLY.wanted.forEach((v, i) => {
+    const u = HOURLY.unread[i];
+    if (v > 0) s += '<rect class="bar bw" x="' + r2(hx(i) + 1) + '" y="' + r2(by(v)) + '" width="5" height="' + r2(BOT_H - (by(v) - BOT_Y)) + '" rx="1.5" style="animation-delay:' + (i * 14) + 'ms"></rect>';
+    if (u > 0) s += '<rect class="bar bu" x="' + r2(hx(i) - 6) + '" y="' + r2(by(u)) + '" width="5" height="' + r2(BOT_H - (by(u) - BOT_Y)) + '" rx="1.5" style="animation-delay:' + (i * 14) + 'ms"></rect>';
+  });
+
+  /* shared x axis */
+  [0, 4, 8, 12, 16, 20].forEach(i => {
+    s += '<text class="gtxt" x="' + r2(hx(i)) + '" y="' + (BOT_Y + BOT_H + 18) + '" text-anchor="middle">' + String(i).padStart(2, '0') + '</text>';
+  });
+  /* selection marker */
+  if (S.hour != null) {
+    const X = r2(hx(S.hour));
+    s += '<line class="vsel" x1="' + X + '" y1="' + TOP_Y + '" x2="' + X + '" y2="' + (BOT_Y + BOT_H) + '"></line>';
+    s += '<circle class="hdot" cx="' + X + '" cy="' + r2(ty(HOURLY.total[S.hour])) + '" r="3.2"></circle>';
+  }
+  $('#svgHours').innerHTML = s;
+
+  /* readout reads from state */
+  const rd = $('#hrRead');
+  if (S.hour == null) {
+    rd.innerHTML = 'اليوم كاملًا · إجمالي <b>' + fmt(KPI.total.v) + '</b>' +
+                   '<span class="w">مطلوب <b>' + KPI.wanted.v + '</b></span>' +
+                   '<span class="u">غير مقروء <b>' + KPI.unread.v + '</b></span>' +
+                   '<span>الذروة <b>' + String(HOURLY.total.indexOf(Math.max.apply(null, HOURLY.total))).padStart(2, '0') + ':00</b></span>';
+  } else {
+    const i = S.hour;
+    rd.innerHTML = 'الساعة <b>' + String(i).padStart(2, '0') + ':00</b> · إجمالي <b>' + fmt(HOURLY.total[i]) + '</b>' +
+                   '<span class="w">مطلوب <b>' + HOURLY.wanted[i] + '</b></span>' +
+                   '<span class="u">غير مقروء <b>' + HOURLY.unread[i] + '</b></span>' +
+                   '<span><b>' + pct(HOURLY.total[i], KPI.total.v) + '</b> من اليوم</span>';
+  }
+  $$('#hHits button').forEach(b => b.setAttribute('aria-pressed', String(S.hour === Number(b.getAttribute('data-h')))));
+}
+
+function buildHourHits() {
+  let h = '';
+  for (let i = 23; i >= 0; i--) {
+    h += '<button type="button" data-h="' + i + '" aria-pressed="false" aria-label="الساعة ' +
+         String(i).padStart(2, '0') + ':00"></button>';
+  }
+  /* the flex row is LTR: hour 23 leftmost, hour 0 rightmost — matching hx().
+     the row itself is inset to the plotted x-range ± half a step (see .hhits),
+     so the 24 equal slots centre exactly on hx(0..23). */
+  $('#hHits').innerHTML = h;
+}
+
+/* ============================================================
+   K · pin / clear
+   ============================================================ */
+function setPin(id) {
+  S.pin = (S.pin === id) ? null : id;
+  $('#pinChip').innerHTML = S.pin
+    ? 'المسار المثبّت: ' + (NODES[S.pin] ? NODES[S.pin].label : S.pin)
+    : 'لا يوجد مسار مثبّت';
+  paintHighlight();
+  renderEvents();
+}
+function clearAll() {
+  S.pin = null; S.hour = null; S.op = null; S.hover = null;
+  $('#pinChip').textContent = 'لا يوجد مسار مثبّت';
+  paintHighlight();
+  renderEvents();
+  renderOperators();
+  renderHours();
+}
+
+/* ============================================================
+   L · wiring
+   ============================================================ */
+function wireDiagram(rootSel, edgeList, isMain) {
+  const root = $(rootSel);
+
+  const findEdge = id => edgeList.find(x => x.id === id);
+
+  root.addEventListener('pointerover', ev => {
+    const lk = ev.target.closest('[data-lk]');
+    const nd = ev.target.closest('[data-nd]');
+    if (lk) {
+      const e = findEdge(lk.getAttribute('data-lk'));
+      if (!e) return;
+      S.hover = { kind:'link', edge:e };
+      paintHighlight();
+      if (isMain) showTip(linkTip(e), ev);
+    } else if (nd) {
+      S.hover = { kind:'node', id:nd.getAttribute('data-nd') };
+      paintHighlight();
+      if (isMain) showTip(nodeTip(S.hover.id), ev);
+    }
+  });
+  root.addEventListener('pointermove', ev => {
+    if (!isMain || !S.hover) return;
+    if (S.hover.kind === 'link') showTip(linkTip(S.hover.edge), ev);
+    else showTip(nodeTip(S.hover.id), ev);
+  });
+  root.addEventListener('pointerout', ev => {
+    if (root.contains(ev.relatedTarget)) return;
+    S.hover = null; hideTip(); paintHighlight();
+  });
+  root.addEventListener('click', ev => {
+    const nd = ev.target.closest('[data-nd]');
+    const lk = ev.target.closest('[data-lk]');
+    if (nd) setPin(nd.getAttribute('data-nd'));
+    else if (lk) { const e = findEdge(lk.getAttribute('data-lk')); if (e) setPin(e.t); }
+  });
+  root.addEventListener('focusin', ev => {
+    const nd = ev.target.closest('[data-nd]');
+    if (!nd) return;
+    S.hover = { kind:'node', id:nd.getAttribute('data-nd') };
+    paintHighlight();
+  });
+  root.addEventListener('focusout', () => { S.hover = null; paintHighlight(); });
+}
+
+function wire() {
+  wireDiagram('#dgMain', EDGES, true);
+  wireDiagram('#dgMini', MEDGES, false);
+
+  $('#btnClear').addEventListener('click', clearAll);
+
+  $('#opList').addEventListener('click', ev => {
+    const b = ev.target.closest('.op'); if (!b) return;
+    const nm = b.getAttribute('data-op');
+    S.op = (S.op === nm) ? null : nm;
+    renderOperators();
+    renderEvents();
+  });
+
+  $('#hHits').addEventListener('click', ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    const h = Number(b.getAttribute('data-h'));
+    S.hour = (S.hour === h) ? null : h;
+    renderHours();
+    renderEvents();
+  });
+}
+
+/* ============================================================
+   M · once-only motion
+   ============================================================ */
+function countUp() {
+  if (REDUCED || document.hidden) return;
+  $$('[data-count]').forEach((el, k) => {
+    const target = Number(el.getAttribute('data-count'));
+    const dur = 900, t0 = performance.now() + k * 55;
+    const step = now => {
+      if (now < t0) { requestAnimationFrame(step); return; }
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(target * e));
+      if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+function revealRiver() {
+  if (REDUCED || document.hidden) return;
+  [['#revealRectMain', VB.w], ['#revealRectMini', MVB.w]].forEach(([sel, w], idx) => {
+    const rect = $(sel);
+    const dur = 900, t0 = performance.now() + 260 + idx * 140;
+    rect.setAttribute('x', String(w)); rect.setAttribute('width', '0');
+    const step = now => {
+      if (now < t0) { requestAnimationFrame(step); return; }
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      rect.setAttribute('x', String(r2(w * (1 - e))));
+      rect.setAttribute('width', String(r2(w * e)));
+      if (p < 1) requestAnimationFrame(step);
+      else { rect.setAttribute('x', '0'); rect.setAttribute('width', String(w)); }
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+function growBars() {
+  if (REDUCED || document.hidden) return;
+  $$('#svgHours .bar').forEach(b => {
+    b.style.transform = 'scaleY(0)';
+    b.style.transition = 'transform .5s var(--ease)';
+    b.style.transitionDelay = b.style.animationDelay;
+  });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { $$('#svgHours .bar').forEach(b => { b.style.transform = 'scaleY(1)'; }); });
+  });
+  const ln = $('#hLine');
+  if (ln && ln.getTotalLength) {
+    const L = ln.getTotalLength();
+    ln.style.strokeDasharray = L + ' ' + L;
+    ln.style.strokeDashoffset = L;
+    requestAnimationFrame(() => {
+      ln.style.transition = 'stroke-dashoffset 1s var(--ease) .15s';
+      ln.style.strokeDashoffset = '0';
+    });
+  }
+}
+
+/* ============================================================
+   N · boot
+   ============================================================ */
+renderMain();
+renderMini();
+buildHourHits();
+renderHours();
+renderOperators();
+renderEvents();
+wire();
+paintHighlight();
+countUp();
+revealRiver();
+growBars();
+</script>
+</body>
+</html>

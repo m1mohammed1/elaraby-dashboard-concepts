@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>غرفة التحكم</title>
+<style>
+/* ============================================================
+   غرفة التحكم — NOC wall
+   Organizing idea: one figure owns a quarter of the screen,
+   everything else is deliberately unequal around it.
+   Type scale is exactly 200 / 64 / 28 / 15 / 12. Nothing between.
+   ============================================================ */
+
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  /* the aggressive scale — five steps, no in-betweens */
+  --t1: 200px;   /* the one number the room looks at */
+  --t2: 64px;    /* two secondary headlines only      */
+  --t3: 28px;    /* ledger figures, panel titles      */
+  --t4: 15px;    /* body                              */
+  --t5: 12px;    /* meta, labels, axes                */
+
+  --gap: 12px;
+  --pad: 20px;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+html{ -webkit-text-size-adjust:100%; }
+
+body{
+  background:#06100c;
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-size:var(--t4);
+  line-height:1.75;
+  letter-spacing:normal;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ---------- the scene: the only colour on the page ---------- */
+.scene{position:fixed;inset:0;z-index:-2;background:#06100c;overflow:hidden;pointer-events:none;}
+.scene b{position:absolute;display:block;border-radius:50%;filter:blur(90px);}
+.l1{inset-inline-start:-6%; inset-block-start:-14%; width:52vw;  height:52vw;  background:#10613f; opacity:.16;}
+.l2{inset-inline-start:38%; inset-block-start:-22%; width:46vw;  height:44vw;  background:#0f4d38; opacity:.14;}
+.l3{inset-inline-start:62%; inset-block-start:34%;  width:54vw;  height:50vw;  background:#145a45; opacity:.13;}
+.l4{inset-inline-start:-14%;inset-block-start:52%;  width:48vw;  height:46vw;  background:#0b3a30; opacity:.18;}
+.l5{inset-inline-start:14%; inset-block-start:24%;  width:40vw;  height:38vw;  background:#08302a; opacity:.22;}
+.l6{inset-inline-start:24%; inset-block-start:78%;  width:56vw;  height:34vw;  background:#0f4d38; opacity:.10;}
+.scene::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(130% 95% at 50% 38%, rgba(0,0,0,0) 38%, rgba(0,0,0,.62) 100%);
+}
+.grain{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- glass ---------- */
+.glass{
+  background:rgba(255,255,255,.045);
+  backdrop-filter:blur(22px) saturate(1.25);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid rgba(255,255,255,.085);
+  border-radius:16px;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,
+             0 20px 50px -20px rgba(0,0,0,.55);
+}
+/* depth: nearer panels sharper + lighter, farther blurrier + dimmer */
+.near{background:rgba(255,255,255,.065);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);}
+.far {background:rgba(255,255,255,.032);backdrop-filter:blur(34px) saturate(1.2);-webkit-backdrop-filter:blur(34px) saturate(1.2);border-color:rgba(255,255,255,.06);}
+
+/* ---------- shell ---------- */
+.shell{max-width:1560px;margin-inline:auto;padding:16px 24px 0;}
+
+/* ---------- top bar ---------- */
+.topbar{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:12px 18px;margin-block-end:var(--gap);
+}
+.brand{display:flex;align-items:baseline;gap:10px;}
+.brand h1{font-size:var(--t3);font-weight:600;margin:0;line-height:1.2;}
+.brand span{font-size:var(--t5);color:var(--ink-3);}
+.live{display:inline-flex;align-items:center;gap:7px;font-size:var(--t5);color:var(--ink-2);}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--clean);box-shadow:0 0 0 3px rgba(61,220,151,.14);display:block;}
+.topbar .sep{width:1px;height:26px;background:var(--line);}
+.spacer{flex:1 1 auto;}
+
+.seg{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:11px;background:rgba(0,0,0,.16);}
+.seg button{
+  font:inherit;font-size:var(--t5);color:var(--ink-3);background:transparent;border:0;
+  padding:5px 12px;border-radius:8px;cursor:pointer;transition:background .16s var(--ease),color .16s var(--ease);
+  white-space:nowrap;
+}
+.seg button:hover{color:var(--ink);background:rgba(255,255,255,.05);}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink);}
+
+.who{display:flex;align-items:center;gap:10px;}
+.who .av{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:var(--t4);font-weight:600;
+}
+.who .nm{font-size:var(--t4);line-height:1.3;}
+.who .rl{font-size:var(--t5);color:var(--ink-3);line-height:1.3;}
+
+/* ---------- scope strip ---------- */
+.scope{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:9px 18px;margin-block-end:var(--gap);font-size:var(--t5);color:var(--ink-3);
+}
+.scope .tag{
+  display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink-2);
+}
+.scope .tag b{font-weight:600;color:var(--ink);}
+.btn-clear{
+  font:inherit;font-size:var(--t5);color:var(--ink-2);background:transparent;
+  border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer;
+  transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease);
+}
+.btn-clear:hover{background:rgba(255,255,255,.07);color:var(--ink);border-color:rgba(255,255,255,.16);}
+.btn-clear[hidden]{display:none;}
+
+/* ---------- the wall ---------- */
+.wall{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  /* row 3 is capped so the event log scrolls inside itself instead of
+     stretching the whole wall to the height of 16 rows. The cap grew into
+     the space the marquee strip used to occupy. */
+  grid-template-rows:auto minmax(104px,auto) minmax(190px,348px);
+  gap:var(--gap);
+  grid-template-areas:
+    "hero hero hero hero gates gates gates gates gates gates thr thr"
+    "hero hero hero hero ledg ledg ledg ops  ops  ops  thr thr"
+    "log  log  log  log  ledg ledg ledg ops  ops  ops  thr thr";
+}
+.panel{padding:var(--pad);min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.p-hero{grid-area:hero;}
+.p-gates{grid-area:gates;}
+.p-thr{grid-area:thr;}
+.p-ledg{grid-area:ledg;}
+.p-ops{grid-area:ops;}
+.p-log{grid-area:log;}
+
+/* entrance — once */
+@keyframes rise{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+.panel,.topbar,.scope{animation:rise .6s var(--ease) both;animation-delay:var(--d,0ms);}
+
+.p-title{
+  font-size:var(--t5);color:var(--ink-3);margin:0 0 2px;font-weight:500;
+  display:flex;align-items:center;gap:8px;line-height:1.5;
+}
+.p-title span:not(.dot){min-width:0;}
+.p-title .dot{width:4px;height:4px;border-radius:50%;background:var(--ink-3);display:block;}
+.p-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-block-end:12px;}
+
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;unicode-bidi:isolate;}
+.ltr{direction:ltr;unicode-bidi:isolate;}
+
+/* ---------- HERO — مركبات مطلوبة ---------- */
+.p-hero{
+  justify-content:center;overflow:hidden;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,
+             0 20px 50px -20px rgba(0,0,0,.55),
+             0 0 40px -12px rgba(110,196,155,.35);
+}
+/* no tinted blob inside the panel — the hero's green comes from the scene
+   light behind it showing through neutral glass. The panel's only emphasis
+   is the one sanctioned outer glow above. */
+.hero-body{position:relative;}
+.hero-label{font-size:var(--t3);font-weight:600;line-height:1.25;margin:0;}
+.hero-sub{font-size:var(--t5);color:var(--ink-3);margin:2px 0 0;}
+.hero-fig{
+  font-size:var(--t1);font-weight:600;line-height:.86;margin:6px 0 0;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  unicode-bidi:isolate;
+}
+.hero-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-block-start:10px;}
+.delta{display:inline-flex;align-items:center;gap:6px;font-size:var(--t4);font-variant-numeric:tabular-nums;}
+.delta svg{width:11px;height:11px;}
+.delta.good{color:var(--clean);}
+.delta.bad{color:var(--wanted);}
+.delta .cap{color:var(--ink-3);font-size:var(--t5);}
+.hero-note{font-size:var(--t5);color:var(--ink-3);}
+.hero-spark{margin-block-start:14px;border-block-start:1px solid var(--line-2);padding-block-start:12px;}
+.hero-spark svg{display:block;width:100%;height:96px;overflow:visible;}
+.hero-scale{display:flex;justify-content:space-between;font-size:var(--t5);color:var(--ink-3);margin-block-start:6px;}
+
+/* ---------- GATE BOARD ---------- */
+.gates-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-block-end:10px;}
+.big2{font-size:var(--t2);font-weight:600;line-height:.9;font-variant-numeric:tabular-nums;unicode-bidi:isolate;}
+.big2 small{font-size:var(--t4);font-weight:400;color:var(--ink-3);margin-inline-start:6px;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:var(--t5);color:var(--ink-3);}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend i{width:9px;height:9px;border-radius:2px;display:block;}
+.ramp{display:flex;gap:2px;align-items:center;}
+.ramp i{width:9px;height:9px;border-radius:2px;background:rgba(241,246,243,.08);}
+
+.gate-rows{display:flex;flex-direction:column;gap:3px;flex:1 1 auto;min-height:0;justify-content:center;}
+.gate-row{
+  display:grid;grid-template-columns:162px 1fr 86px;align-items:center;gap:10px;
+  width:100%;background:transparent;border:0;border-radius:8px;padding:2px 5px;
+  font:inherit;color:inherit;text-align:start;cursor:pointer;
+  transition:background .16s var(--ease),opacity .16s var(--ease);
+}
+/* --ink-3 only clears 4.5:1 over glass-on-scene by a hair, so selection is
+   carried by the ring + the dimming of the other rows, not by a lighter fill */
+.gate-row:hover{background:rgba(255,255,255,.04);}
+.gate-row[aria-pressed="true"]{background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);}
+.gate-rows.has-sel .gate-row:not([aria-pressed="true"]){opacity:.42;}
+.gate-nm{min-width:0;display:flex;align-items:baseline;gap:7px;}
+.gate-nm .n{font-size:var(--t4);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gate-nm .s{font-size:var(--t5);color:var(--ink-3);line-height:1.4;white-space:nowrap;}
+.gate-nm .s.down{color:var(--wanted);}
+.gate-nm .s.slow{color:var(--unread);}
+.strip{display:flex;gap:2px;align-items:stretch;height:15px;}
+.strip span{
+  flex:1 1 0;border-radius:2px;background:rgba(241,246,243,.05);
+  transition:opacity .3s var(--ease),background .16s var(--ease);
+  position:relative;
+}
+.strip span.hit::after{
+  content:"";position:absolute;inset-inline:0;inset-block-end:0;height:2px;border-radius:2px;background:var(--wanted);
+}
+.strip span.hr-sel{box-shadow:0 0 0 1px var(--accent);}
+.strip.dead span{background:rgba(241,246,243,.028);}
+.endcap{width:5px;border-radius:2px;flex:0 0 5px;background:transparent;}
+.endcap.wanted{background:var(--wanted);}
+.endcap.unread{background:var(--unread);}
+.gate-val{
+  text-align:end;font-size:var(--t4);font-variant-numeric:tabular-nums;line-height:1.4;
+  display:flex;align-items:baseline;justify-content:flex-end;gap:6px;
+}
+.gate-val .tv{unicode-bidi:isolate;}
+.gate-val small{
+  font-size:var(--t5);color:var(--ink-3);unicode-bidi:isolate;
+  display:inline-flex;align-items:center;gap:4px;
+}
+.gate-val small.w{color:var(--wanted);}
+.wdot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55;flex:0 0 6px;}
+.gate-val small.w .wdot{opacity:1;}
+
+/* ---------- THROUGHPUT COLUMN ---------- */
+.thr-head{margin-block-end:10px;}
+.thr-peak{font-size:var(--t2);font-weight:600;line-height:.9;font-variant-numeric:tabular-nums;unicode-bidi:isolate;}
+.thr-peak small{display:block;font-size:var(--t5);font-weight:400;color:var(--ink-3);line-height:1.6;}
+.thr-wrap{flex:1 1 auto;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;}
+.thr-wrap::-webkit-scrollbar{width:6px;}
+.thr-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:99px;}
+.thr-wrap svg{display:block;width:100%;max-width:264px;margin-inline:auto;}
+.thr-row{cursor:pointer;}
+.thr-row rect.bar{transform-box:fill-box;transform-origin:100% 50%;}
+.thr-row:hover rect.hitbox{fill:rgba(255,255,255,.04);}
+.thr-row:focus-visible rect.hitbox{fill:rgba(255,255,255,.055);}
+
+/* ---------- LEDGER 2×3 ---------- */
+.ledger{
+  flex:1 1 auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);
+  border-block-start:1px solid var(--line);
+}
+.cell{
+  padding:12px 12px 10px;min-width:0;display:flex;flex-direction:column;justify-content:center;
+  border-block-end:1px solid var(--line-2);border-inline-end:1px solid var(--line-2);
+  transition:background .16s var(--ease);
+}
+.cell:nth-child(2n){border-inline-end:0;}
+.cell:nth-child(n+5){border-block-end:0;}
+.cell.lit{background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);}
+.cell .k{font-size:var(--t5);color:var(--ink-3);line-height:1.5;}
+.cell .v{font-size:var(--t3);font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;unicode-bidi:isolate;}
+/* the figure and its Arabic unit are separate bidi runs, or "412 مللي/ث"
+   reorders the moment the unit changes length */
+.cell .v .vnum{unicode-bidi:isolate;}
+.cell .v em{font-style:normal;font-size:var(--t5);color:var(--ink-3);font-weight:400;margin-inline-start:4px;unicode-bidi:isolate;}
+.cell .d{font-size:var(--t5);}
+.cell .d.good{color:var(--clean);}
+.cell .d.bad{color:var(--wanted);}
+.cell .d.flat{color:var(--ink-3);}
+
+/* ---------- OPERATORS ---------- */
+.ops-sort{display:flex;gap:2px;}
+.op-list{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;}
+.op{display:grid;grid-template-columns:20px 1fr auto;gap:10px;align-items:center;}
+.op .rk{font-size:var(--t5);color:var(--ink-3);font-variant-numeric:tabular-nums;text-align:center;}
+.op .nm{font-size:var(--t4);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.op .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;margin-block-start:3px;}
+.op .bar i{display:block;height:100%;border-radius:99px;background:rgba(241,246,243,.34);transition:width .5s var(--ease);}
+.op.top .bar i{background:var(--accent);}
+.op .fig{text-align:end;font-size:var(--t4);font-variant-numeric:tabular-nums;unicode-bidi:isolate;line-height:1.2;}
+.op .fig small{display:block;font-size:var(--t5);color:var(--ink-3);}
+
+/* ---------- EVENT LOG ---------- */
+.chips{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:11px;background:rgba(0,0,0,.16);}
+.log-wrap{flex:1 1 auto;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;margin-inline-end:-6px;padding-inline-end:6px;}
+.log-wrap::-webkit-scrollbar{width:6px;}
+.log-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:99px;}
+.ev{
+  display:grid;grid-template-columns:46px 8px 1fr auto;gap:10px;align-items:baseline;
+  padding:6px 4px;line-height:1.5;border-block-end:1px solid var(--line-2);
+}
+.ev:last-child{border-block-end:0;}
+.ev .tm{font-size:var(--t5);color:var(--ink-3);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;text-align:start;}
+.ev .vd{width:8px;height:8px;border-radius:50%;align-self:center;}
+.ev .vd.wanted{background:var(--wanted);}
+.ev .vd.clean{background:var(--clean);}
+.ev .vd.unread{background:var(--unread);}
+.plate{
+  unicode-bidi:isolate;direction:rtl;font-size:var(--t4);font-weight:500;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+}
+.ev .why{font-size:var(--t5);color:var(--ink-3);}
+.ev .rt{text-align:end;font-size:var(--t5);color:var(--ink-3);white-space:nowrap;}
+.empty{padding:26px 8px;text-align:center;color:var(--ink-3);font-size:var(--t4);}
+
+/* ---------- footer ---------- */
+.foot{padding:12px 6px 16px;font-size:var(--t5);color:var(--ink-3);text-align:center;}
+
+/* ---------- focus ---------- */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px;}
+
+/* ---------- responsive ---------- */
+@media (max-width:1240px){
+  :root{--t1:150px;--t2:52px;}
+  .wall{
+    grid-template-rows:auto auto auto auto;
+    grid-template-areas:
+      "hero hero hero hero hero gates gates gates gates gates gates gates"
+      "thr  thr  thr  ledg ledg ledg ledg ops  ops  ops  ops  ops"
+      "log  log  log  log  log  log  log  log  log  log  log  log"
+      "log  log  log  log  log  log  log  log  log  log  log  log";
+  }
+  .p-thr{min-height:520px;}
+}
+@media (max-width:900px){
+  :root{--t1:128px;--t2:46px;--t3:24px;}
+  .wall{
+    grid-template-columns:1fr;
+    grid-template-rows:auto;
+    grid-template-areas:"hero" "gates" "ledg" "thr" "ops" "log";
+  }
+  .gate-row{grid-template-columns:112px 1fr 62px;}
+}
+@media (max-width:560px){
+  :root{--t1:104px;--t2:40px;--gap:10px;--pad:15px;}
+  .shell{padding:14px 12px 0;}
+  .topbar{gap:12px;}
+  .gate-row{grid-template-columns:96px 1fr 54px;gap:7px;}
+  .ev{grid-template-columns:42px 8px 1fr;}
+  .ev .rt{grid-column:1 / -1;text-align:start;padding-inline-start:56px;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <b class="l1"></b><b class="l2"></b><b class="l3"></b>
+  <b class="l4"></b><b class="l5"></b><b class="l6"></b>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ================= TOP BAR ================= -->
+  <header class="topbar glass near" style="--d:0ms">
+    <div class="brand">
+      <h1>غرفة التحكم</h1>
+      <span>النظرة العامة — نظام العربي لفحص اللوحات</span>
+    </div>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="live"><i aria-hidden="true"></i>مباشر</span>
+    <span class="live">آخر تحديث <span class="num">اليوم 14:32</span></span>
+    <span class="spacer"></span>
+    <div class="seg" role="group" aria-label="نطاق الوقت" id="rangeSeg">
+      <button type="button" data-range="24" aria-pressed="true">آخر 24 ساعة</button>
+      <button type="button" data-range="12" aria-pressed="false">آخر 12 ساعة</button>
+      <button type="button" data-range="6"  aria-pressed="false">آخر 6 ساعات</button>
+    </div>
+    <span class="sep" aria-hidden="true"></span>
+    <div class="who">
+      <div class="av" aria-hidden="true">أ</div>
+      <div>
+        <div class="nm">أحمد عماد</div>
+        <div class="rl">مدير النظام</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= SCOPE STRIP ================= -->
+  <div class="scope glass far" style="--d:50ms">
+    <span>النطاق الحالي</span>
+    <span class="tag" id="scopeGate">كل البوابات <b class="num">11</b></span>
+    <span class="tag" id="scopeRange">آخر 24 ساعة</span>
+    <span class="tag" id="scopeHour" hidden>الساعة <b class="num ltr">—</b></span>
+    <span class="tag" id="scopeVerdict" hidden>الحكم <b>—</b></span>
+    <span class="spacer"></span>
+    <span id="scopeCount">‏<span class="num">16</span> حدثاً مطابقاً</span>
+    <button type="button" class="btn-clear" id="clearBtn" hidden>مسح المرشحات</button>
+  </div>
+
+  <!-- ================= THE WALL ================= -->
+  <main class="wall">
+
+    <!-- ---------- HERO ---------- -->
+    <section class="panel glass near p-hero" style="--d:110ms" aria-labelledby="heroLabel">
+      <div class="hero-body">
+        <p class="p-title"><span class="dot" aria-hidden="true"></span>المؤشر الرئيسي</p>
+        <h2 class="hero-label" id="heroLabel">مركبات مطلوبة</h2>
+        <p class="hero-sub" id="heroSub">كل البوابات · آخر 24 ساعة</p>
+        <div class="hero-fig" id="heroFig" data-value="0">38</div>
+        <div class="hero-meta">
+          <span id="heroDeltaSlot">
+            <!-- مطلوب is DOWN 11.6% — the arrow must point down even though the
+                 trend is good news; direction encodes the sign, colour the verdict -->
+            <span class="delta good">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M6 2v8M6 10 2.5 6.5M6 10l3.5-3.5"/>
+              </svg>
+              <span class="num">11.6%</span>
+              <span class="cap">مقارنة بالأمس</span>
+            </span>
+          </span>
+          <span class="hero-note" id="heroNote"><span class="num">0.30%</span> من <span class="num">12,847</span> عملية مسح في النطاق</span>
+        </div>
+        <div class="hero-spark">
+          <div class="p-title" style="margin-block-end:6px">المطلوب لكل ساعة</div>
+          <svg id="sparkSvg" viewBox="0 0 320 96" preserveAspectRatio="none" role="img" aria-label="منحنى المركبات المطلوبة خلال 24 ساعة"></svg>
+          <div class="hero-scale">
+            <span class="ltr" id="sparkStart">00:00</span>
+            <span id="sparkMax">الذروة <span class="num">4</span></span>
+            <span class="ltr" id="sparkEnd">23:00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- GATE BOARD ---------- -->
+    <section class="panel glass p-gates" style="--d:170ms" aria-labelledby="gatesTitle">
+      <div class="gates-head">
+        <div>
+          <p class="p-title" id="gatesTitle"><span class="dot" aria-hidden="true"></span>لوحة البوابات — كل شريحة ساعة</p>
+          <div class="big2 num">9<small>من 11 بوابة نشطة</small></div>
+        </div>
+        <span class="spacer"></span>
+        <div class="legend">
+          <span>منخفض
+            <span class="ramp" aria-hidden="true">
+              <i style="background:rgba(241,246,243,.07)"></i>
+              <i style="background:rgba(241,246,243,.14)"></i>
+              <i style="background:rgba(241,246,243,.22)"></i>
+              <i style="background:rgba(241,246,243,.30)"></i>
+              <i style="background:rgba(241,246,243,.38)"></i>
+            </span>
+            مرتفع</span>
+          <span><i style="background:var(--wanted)"></i>مطلوب / خارج الخدمة</span>
+          <span><i style="background:var(--unread)"></i>بطيئة</span>
+        </div>
+      </div>
+      <div class="gate-rows" id="gateRows"></div>
+    </section>
+
+    <!-- ---------- THROUGHPUT COLUMN ---------- -->
+    <section class="panel glass far p-thr" style="--d:230ms" aria-labelledby="thrTitle">
+      <div class="thr-head">
+        <p class="p-title" id="thrTitle"><span class="dot" aria-hidden="true"></span><span id="thrTitleTxt">الإنتاجية بالساعة</span></p>
+        <div class="thr-peak num" id="thrPeak">874<small>الذروة عند الساعة <span class="ltr">08:00</span></small></div>
+      </div>
+      <div class="thr-wrap">
+        <svg id="thrSvg" role="img" aria-label="عمود الإنتاجية لكل ساعة"></svg>
+        <p class="empty" id="thrEmpty" hidden>لا توجد سجلات مطابقة</p>
+      </div>
+    </section>
+
+    <!-- ---------- LEDGER 2×3 ---------- -->
+    <section class="panel glass p-ledg" style="--d:290ms" aria-labelledby="ledgTitle">
+      <div class="p-head">
+        <p class="p-title" id="ledgTitle"><span class="dot" aria-hidden="true"></span>دفتر الأرقام</p>
+      </div>
+      <div class="ledger" id="ledger">
+        <div class="cell"><span class="k">إجمالي عمليات المسح</span>
+          <span class="v num"><span class="vnum" data-value="0">12,847</span></span>
+          <span class="d good"><span class="num">+6.2%</span> مقارنة بالأمس</span></div>
+        <div class="cell"><span class="k">مركبات سليمة</span>
+          <span class="v num"><span class="vnum" data-value="0">12,782</span></span>
+          <span class="d good"><span class="num">+6.3%</span> مقارنة بالأمس</span></div>
+        <div class="cell"><span class="k">لوحات غير مقروءة</span>
+          <span class="v num"><span class="vnum" data-value="0">27</span></span>
+          <span class="d bad"><span class="num">+2.4%</span> مقارنة بالأمس</span></div>
+        <div class="cell"><span class="k">متوسط زمن المعالجة</span>
+          <span class="v num"><span class="vnum" data-value="0">412</span><em>مللي/ث</em></span>
+          <span class="d good"><span class="num">−8.0%</span> مقارنة بالأمس</span></div>
+        <div class="cell"><span class="k">بوابات نشطة</span>
+          <span class="v num"><span class="vnum" data-value="0">9</span><em>من 11</em></span>
+          <span class="d flat">بوابتان متوقفتان</span></div>
+        <div class="cell"><span class="k">نسبة اللوحات غير المقروءة</span>
+          <span class="v num"><span class="vnum">0.21%</span></span>
+          <span class="d flat">من المسح في النطاق</span></div>
+      </div>
+    </section>
+
+    <!-- ---------- OPERATORS ---------- -->
+    <section class="panel glass p-ops" style="--d:350ms" aria-labelledby="opsTitle">
+      <div class="p-head">
+        <p class="p-title" id="opsTitle"><span class="dot" aria-hidden="true"></span>المراجعون</p>
+        <div class="seg ops-sort" role="group" aria-label="ترتيب المراجعين" id="opsSort">
+          <button type="button" data-sort="reviews" aria-pressed="true">المراجعات</button>
+          <button type="button" data-sort="wanted" aria-pressed="false">مطلوب</button>
+          <button type="button" data-sort="acc" aria-pressed="false">الدقة</button>
+        </div>
+      </div>
+      <div class="op-list" id="opList"></div>
+    </section>
+
+    <!-- ---------- EVENT LOG ---------- -->
+    <section class="panel glass near p-log" style="--d:410ms" aria-labelledby="logTitle">
+      <div class="p-head">
+        <p class="p-title" id="logTitle"><span class="dot" aria-hidden="true"></span>أحدث الأحداث</p>
+        <div class="chips" role="group" aria-label="تصفية حسب الحكم" id="verdictChips">
+          <button type="button" data-verdict="all" aria-pressed="true">الكل</button>
+          <button type="button" data-verdict="wanted" aria-pressed="false">مطلوب</button>
+          <button type="button" data-verdict="clean" aria-pressed="false">سليم</button>
+          <button type="button" data-verdict="unread" aria-pressed="false">غير مقروء</button>
+        </div>
+      </div>
+      <div class="log-wrap"><div id="logList" aria-live="polite"></div></div>
+    </section>
+
+  </main>
+
+  <p class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</p>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================================================
+   1 — DATASET (verbatim from the shared contract)
+   ========================================================== */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+const STATUS_LABEL = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+const VERDICT_LABEL = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+const GATE_BY_ID = Object.fromEntries(GATES.map(g => [g.id, g]));
+const CURRENT_HOUR = 14; /* consistent with UPDATED = 14:32 */
+
+/* ==========================================================
+   2 — STATE  (everything renders out of this object)
+   ========================================================== */
+const state = {
+  gate:    "all",     /* "all" | gate id                */
+  verdict: "all",     /* "all" | wanted | clean | unread*/
+  range:   24,        /* 24 | 12 | 6 hours              */
+  hour:    null,      /* null | 0..23 drill-down        */
+  sort:    "reviews"  /* reviews | wanted | acc         */
+};
+
+/* ==========================================================
+   3 — HELPERS
+   ========================================================== */
+const nf   = n => Number(n).toLocaleString('en-US');
+const hh   = h => String(h).padStart(2,'0') + ":00";
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* rAF is throttled in a hidden tab — never hand it a job that hides content */
+const canAnimate = () => !REDUCED && !document.hidden;
+
+/* largest-remainder split so a gate's hourly series sums EXACTLY to its total */
+function distribute(total, weights){
+  const sw = weights.reduce((a,b)=>a+b,0);
+  if(!sw || !total) return weights.map(()=>0);
+  const raw  = weights.map(w => total * w / sw);
+  const base = raw.map(Math.floor);
+  let rem = total - base.reduce((a,b)=>a+b,0);
+  const order = raw.map((v,i)=>({f:v-Math.floor(v), i})).sort((a,b)=>b.f-a.f);
+  for(let k=0; k<rem; k++) base[order[k % order.length].i]++;
+  return base;
+}
+
+const _seriesCache = {};
+function seriesFor(gateId){
+  if(gateId === "all") return HOURLY;
+  if(_seriesCache[gateId]) return _seriesCache[gateId];
+  const g = GATE_BY_ID[gateId];
+  const s = {
+    total : distribute(g.total,  HOURLY.total),
+    wanted: distribute(g.wanted, HOURLY.wanted),
+    unread: distribute(g.unread, HOURLY.unread)
+  };
+  _seriesCache[gateId] = s;
+  return s;
+}
+
+/* the hour window implied by the range control */
+function rangeHours(){
+  if(state.range === 24) return Array.from({length:24},(_,i)=>i);
+  const out = [];
+  for(let k = state.range - 1; k >= 0; k--){
+    out.push(((CURRENT_HOUR - k) % 24 + 24) % 24);
+  }
+  return out.sort((a,b)=>a-b);
+}
+/* the hours actually in scope (range, or one drilled hour) */
+function scopeHours(){
+  const hrs = rangeHours();
+  if(state.hour === null) return hrs;
+  return hrs.includes(state.hour) ? [state.hour] : [];
+}
+
+function totalsFor(gateId, hours){
+  const s = seriesFor(gateId);
+  let total=0, wanted=0, unread=0;
+  hours.forEach(h => { total += s.total[h]; wanted += s.wanted[h]; unread += s.unread[h]; });
+  return { total, wanted, unread, clean: Math.max(0, total - wanted - unread) };
+}
+
+/* Arabic counts a singular, a dual and two plural forms — not "1 vs many" */
+function countLabel(n){
+  const N = '<span class="num">' + n + '</span> ';
+  if(n === 0)  return 'لا أحداث مطابقة';
+  if(n === 1)  return 'حدث واحد مطابق';
+  if(n === 2)  return 'حدثان مطابقان';
+  if(n <= 10)  return N + 'أحداث مطابقة';
+  return N + 'حدثاً مطابقاً';
+}
+
+function niceMax(v){
+  if(v <= 0) return 1;
+  const exp  = Math.floor(Math.log10(v));
+  const base = Math.pow(10, exp);
+  const f    = v / base;
+  const step = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+  return step * base;
+}
+
+function deltaMarkup(pct, goodWhenDown, caption){
+  const up   = pct > 0;
+  const good = goodWhenDown ? !up : up;
+  const path = up ? "M6 10v-8M6 2 2.5 5.5M6 2l3.5 3.5" : "M6 2v8M6 10 2.5 6.5M6 10l3.5-3.5";
+  return '<span class="delta ' + (good ? 'good' : 'bad') + '">' +
+           '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="' + path + '"/></svg>' +
+           '<span class="num">' + Math.abs(pct).toFixed(1) + '%</span>' +
+           (caption ? '<span class="cap">' + caption + '</span>' : '') +
+         '</span>';
+}
+
+/* compact delta for the ledger cells — stays on the 12px step */
+function deltaText(pct, goodWhenDown){
+  const up   = pct > 0;
+  const good = goodWhenDown ? !up : up;
+  return '<span class="d ' + (good ? 'good' : 'bad') + '"><span class="num">' +
+         (up ? '+' : '−') + Math.abs(pct).toFixed(1) + '%</span> مقارنة بالأمس</span>';
+}
+
+/* Count-up that can never leave a stale figure on screen.
+   - the real figure is already in the markup, so nothing starts from empty
+   - a hidden tab throttles rAF, so we skip the animation entirely there
+   - a run token kills superseded loops (rapid clicks)
+   - a setTimeout safety net snaps to the final value even if frames stop */
+let _runSeq = 0;
+function countUp(el, to, format){
+  const fmt  = format || nf;
+  const from = Number(el.dataset.value);
+  const run  = String(++_runSeq);
+  el.dataset.run   = run;
+  el.dataset.value = to;
+
+  if(REDUCED || document.hidden || !Number.isFinite(from) || from === to){
+    el.textContent = fmt(to);
+    return;
+  }
+  const dur = 640, t0 = performance.now();
+  function step(now){
+    if(el.dataset.run !== run) return;            /* superseded */
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(Math.round(from + (to - from) * e));
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+  setTimeout(()=>{ if(el.dataset.run === run) el.textContent = fmt(to); }, dur + 90);
+}
+
+/* ==========================================================
+   4 — RENDER: HERO
+   ========================================================== */
+function renderHero(){
+  const hours = scopeHours();
+  const t     = totalsFor(state.gate, hours);
+  const gName = state.gate === "all" ? "كل البوابات" : GATE_BY_ID[state.gate].name;
+  const rName = state.hour !== null
+      ? "الساعة " + hh(state.hour)
+      : (state.range === 24 ? "آخر 24 ساعة" : "آخر " + state.range + (state.range === 12 ? " ساعة" : " ساعات"));
+
+  document.getElementById('heroSub').textContent = gName + " · " + rName;
+  countUp(document.getElementById('heroFig'), t.wanted);
+
+  const full = state.gate === "all" && state.range === 24 && state.hour === null;
+  const slot = document.getElementById('heroDeltaSlot');
+  const nEl  = document.getElementById('heroNote');
+  if(full){
+    /* a real day-over-day delta only exists for the unfiltered day */
+    slot.innerHTML = deltaMarkup(KPI.wanted.delta, true, "مقارنة بالأمس");
+  }else{
+    const share = KPI.wanted.v ? (t.wanted / KPI.wanted.v * 100) : 0;
+    slot.innerHTML = '<span class="delta" style="color:var(--ink-2)">' +
+        '<span class="num">' + share.toFixed(1) + '%</span>' +
+        '<span class="cap">من مطلوب اليوم البالغ <span class="num">38</span></span></span>';
+  }
+
+  if(t.total === 0){
+    nEl.textContent = 'لا عمليات مسح في هذا النطاق';
+  }else{
+    const rate = t.wanted / t.total * 100;
+    nEl.innerHTML = '<span class="num">' + rate.toFixed(2) + '%</span> من ' +
+                    '<span class="num">' + nf(t.total) + '</span> عملية مسح في النطاق';
+  }
+
+  renderSpark();
+}
+
+function renderSpark(){
+  const svg   = document.getElementById('sparkSvg');
+  const hours = rangeHours();
+  const s     = seriesFor(state.gate);
+  const vals  = hours.map(h => s.wanted[h]);
+  const max   = niceMax(Math.max(1, ...vals));
+  const W = 320, H = 96, pad = 4;
+  const n = hours.length;
+  const x = i => (n === 1) ? W/2 : W - pad - (i * (W - pad*2) / (n - 1)); /* mirrored: hour 0 at inline-start (right) */
+  const y = v => H - 6 - (v / max) * (H - 18);
+
+  let line = "", area = "";
+  hours.forEach((h,i)=>{
+    const px = x(i).toFixed(1), py = y(vals[i]).toFixed(1);
+    line += (i ? " L" : "M") + px + " " + py;
+  });
+  area = line + " L" + x(n-1).toFixed(1) + " " + (H-6) + " L" + x(0).toFixed(1) + " " + (H-6) + " Z";
+
+  let dots = "";
+  hours.forEach((h,i)=>{
+    const sel = (state.hour === h);
+    const r   = sel ? 4 : (vals[i] >= max ? 3 : 0);
+    if(r) dots += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(vals[i]).toFixed(1) + '" r="' + r +
+                  '" fill="' + (sel ? 'var(--accent)' : 'var(--wanted)') + '"/>';
+  });
+
+  /* baseline + midline, drawn once per render */
+  const mid = y(max/2).toFixed(1);
+  svg.innerHTML =
+    '<line x1="0" y1="' + (H-6) + '" x2="' + W + '" y2="' + (H-6) + '" stroke="var(--line)" stroke-width="1"/>' +
+    '<line x1="0" y1="' + mid + '" x2="' + W + '" y2="' + mid + '" stroke="var(--line-2)" stroke-width="1" stroke-dasharray="3 5"/>' +
+    '<path d="' + area + '" fill="rgba(255,107,107,.13)"/>' +
+    '<path id="sparkPath" d="' + line + '" fill="none" stroke="var(--wanted)" stroke-width="2" ' +
+    'stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+    dots;
+
+  const p = svg.querySelector('#sparkPath');
+  if(p && canAnimate()){
+    const len = p.getTotalLength();
+    p.style.strokeDasharray  = len;
+    p.style.strokeDashoffset = len;
+    p.getBoundingClientRect();
+    p.style.transition = "stroke-dashoffset 900ms cubic-bezier(.22,.61,.36,1)";
+    p.style.strokeDashoffset = "0";
+  }
+
+  document.getElementById('sparkStart').textContent = hh(hours[0]);
+  document.getElementById('sparkEnd').textContent   = hh(hours[hours.length-1]);
+  document.getElementById('sparkMax').innerHTML     = 'الذروة <span class="num">' + Math.max(...vals) + '</span>';
+}
+
+/* ==========================================================
+   5 — RENDER: GATE BOARD
+   ========================================================== */
+function renderGates(){
+  const wrap  = document.getElementById('gateRows');
+  const hours = rangeHours();
+
+  /* one shared intensity scale across every gate and hour */
+  let peak = 1;
+  GATES.forEach(g=>{
+    const s = seriesFor(g.id);
+    hours.forEach(h => { if(s.total[h] > peak) peak = s.total[h]; });
+  });
+
+  wrap.innerHTML = "";
+  wrap.classList.toggle('has-sel', state.gate !== "all");
+
+  GATES.forEach((g, gi)=>{
+    const dead = (g.status === "offline" || g.status === "maint");
+    const s    = seriesFor(g.id);
+    const sel  = state.gate === g.id;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'gate-row';
+    btn.setAttribute('aria-pressed', sel ? 'true' : 'false');
+    btn.dataset.gate = g.id;
+
+    let statusCls = '', statusTxt = STATUS_LABEL[g.status];
+    if(g.status === 'offline' || g.status === 'maint') statusCls = 'down';
+    else if(g.status === 'degraded') statusCls = 'slow';
+
+    let segs = "";
+    hours.forEach(h=>{
+      const v = s.total[h];
+      const a = dead ? .028 : (.055 + .33 * (v / peak));
+      const hit = !dead && s.wanted[h] > 0;
+      const hsel = (state.hour === h);
+      segs += '<span class="' + (hit ? 'hit ' : '') + (hsel ? 'hr-sel' : '') +
+              '" style="background:rgba(241,246,243,' + a.toFixed(3) + ')"></span>';
+    });
+
+    let capCls = '';
+    if(dead) capCls = 'wanted';
+    else if(g.status === 'degraded') capCls = 'unread';
+
+    const scoped = totalsFor(g.id, scopeHours());
+
+    /* the status word is noise on a healthy gate — only the three
+       unhealthy ones spell it out; the rest is carried by the strip */
+    const showStatus = g.status !== 'online';
+
+    btn.innerHTML =
+      '<span class="gate-nm"><span class="n">' + g.name + '</span>' +
+      (showStatus ? '<span class="s ' + statusCls + '">' + statusTxt + '</span>' : '') + '</span>' +
+      '<span class="strip' + (dead ? ' dead' : '') + '">' + segs +
+      '<span class="endcap ' + capCls + '"></span></span>' +
+      '<span class="gate-val"><span class="tv num">' + nf(scoped.total) + '</span>' +
+      (dead ? '<small>—</small>'
+            : '<small class="' + (scoped.wanted ? 'w' : '') + '">' +
+              '<i class="wdot" aria-hidden="true"></i>' + scoped.wanted + '</small>') +
+      '</span>';
+
+    btn.setAttribute('aria-label',
+      g.name + ' — ' + statusTxt + ' — ' + nf(scoped.total) + ' عملية مسح، ' +
+      scoped.wanted + ' مركبة مطلوبة');
+
+    /* render() rebuilds every row, so the node that was clicked no longer
+       exists afterwards — put focus back on its replacement or a keyboard
+       user is dumped on <body> after every selection */
+    btn.addEventListener('click', ()=>{
+      state.gate = (state.gate === g.id) ? "all" : g.id;
+      render();
+      const again = document.querySelector('#gateRows [data-gate="' + g.id + '"]');
+      if(again) again.focus();
+    });
+    wrap.appendChild(btn);
+
+    /* data-change animation: segments fade in, staggered by row */
+    if(canAnimate()){
+      const spans = btn.querySelectorAll('.strip span');
+      spans.forEach((el,i)=>{
+        el.style.opacity = '0';
+        el.style.transitionDelay = (gi * 18 + i * 5) + 'ms';
+      });
+      requestAnimationFrame(()=>spans.forEach(el => el.style.opacity = '1'));
+    }
+  });
+
+  const active = GATES.filter(g => g.status === 'online' || g.status === 'degraded').length;
+  document.querySelector('.gates-head .big2').innerHTML =
+    active + '<small>من ' + GATES.length + ' بوابة نشطة</small>';
+}
+
+/* ==========================================================
+   6 — RENDER: THROUGHPUT COLUMN (hand-written SVG)
+   ========================================================== */
+function renderThroughput(){
+  const svg   = document.getElementById('thrSvg');
+  const hours = rangeHours();
+  const s     = seriesFor(state.gate);
+  const vals  = hours.map(h => s.total[h]);
+  const sum   = vals.reduce((a,b)=>a+b,0);
+  const max   = niceMax(Math.max(1, ...vals));
+  const empty = document.getElementById('thrEmpty');
+
+  /* the dataset carries a daily total per gate, not an hourly one — the
+     per-gate curve is the day's shape apportioned to the gate's share,
+     so say that rather than pass it off as measured */
+  document.getElementById('thrTitleTxt').textContent =
+    state.gate === "all" ? 'الإنتاجية بالساعة' : 'الإنتاجية بالساعة — موزّعة حسب حصة البوابة';
+
+  /* a gate that is out of service has no series to draw — say so */
+  if(sum === 0){
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox','0 0 1 1');
+    svg.style.display = 'none';
+    empty.hidden = false;
+    document.getElementById('thrPeak').innerHTML = '0<small>لا حركة في هذا النطاق</small>';
+    return;
+  }
+  svg.style.display = '';
+  empty.hidden = true;
+
+  /* axis labels: keep a decimal while the scale is tiny, or 0.5 rounds to 1 */
+  const axisFmt = v => max < 10 ? String(Math.round(v*10)/10) : nf(Math.round(v));
+
+  const W = 216, rowH = 24, topPad = 16, axisH = 22;
+  const H = topPad + hours.length * rowH + axisH;
+  const labelX = W - 2;          /* inline-start edge in RTL = the right of an LTR viewBox */
+  const barX0  = W - 34;         /* bars grow leftward from here                            */
+  const barMax = 148;
+
+  let g = "";
+
+  /* gridlines at 0 / half / max */
+  [0, .5, 1].forEach(f=>{
+    const gx = (barX0 - f * barMax).toFixed(1);
+    g += '<line x1="' + gx + '" y1="' + (topPad - 6) + '" x2="' + gx + '" y2="' + (topPad + hours.length*rowH) +
+         '" stroke="' + (f === 0 ? 'var(--line)' : 'var(--line-2)') + '" stroke-width="1"/>';
+    g += '<text x="' + gx + '" y="' + (H - 7) + '" fill="var(--ink-3)" font-size="12" text-anchor="middle" ' +
+         'style="direction:ltr;unicode-bidi:isolate">' + (f === 0 ? '0' : axisFmt(max*f)) + '</text>';
+  });
+
+  hours.forEach((h,i)=>{
+    const v  = s.total[h];
+    const w  = Math.max(v > 0 ? 2 : 0, (v / max) * barMax);
+    const yc = topPad + i * rowH + rowH/2;
+    const by = yc - 5;
+    const isPeak = v === Math.max(...vals);
+    const sel    = state.hour === h;
+    const hitW   = s.wanted[h];
+
+    const fill = sel ? 'var(--accent)'
+               : isPeak ? 'rgba(110,196,155,.55)'
+               : 'rgba(241,246,243,.30)';
+
+    g += '<g class="thr-row" data-hour="' + h + '" tabindex="0" role="button" ' +
+         'aria-label="الساعة ' + hh(h) + ' — ' + nf(v) + ' عملية مسح">';
+    g += '<rect class="hitbox" x="0" y="' + (topPad + i*rowH) + '" width="' + W + '" height="' + rowH +
+         '" fill="' + (sel ? 'rgba(255,255,255,.07)' : 'transparent') + '" rx="4"/>';
+    g += '<text x="' + labelX + '" y="' + (yc + 4) + '" fill="' + (sel ? 'var(--ink)' : 'var(--ink-3)') +
+         '" font-size="12" text-anchor="end" style="direction:ltr;unicode-bidi:isolate">' + hh(h) + '</text>';
+    g += '<rect class="bar" x="' + (barX0 - w).toFixed(1) + '" y="' + by + '" width="' + w.toFixed(1) +
+         '" height="10" rx="2" fill="' + fill + '"/>';
+    if(hitW > 0){
+      g += '<rect x="' + (barX0 - w - 5).toFixed(1) + '" y="' + by + '" width="3" height="10" rx="1.5" fill="var(--wanted)"/>';
+    }
+    g += '<text x="' + (barX0 - w - (hitW > 0 ? 11 : 5)).toFixed(1) + '" y="' + (yc + 4) +
+         '" fill="' + (sel ? 'var(--ink)' : 'var(--ink-2)') + '" font-size="12" text-anchor="end" ' +
+         'style="direction:ltr;unicode-bidi:isolate">' + nf(v) + '</text>';
+    g += '</g>';
+  });
+
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.innerHTML = g;
+
+  /* grow from the baseline, once per data change */
+  if(canAnimate()){
+    const bars = svg.querySelectorAll('rect.bar');
+    bars.forEach((b,i)=>{
+      b.style.transform = 'scaleX(0)';
+      b.style.transition = 'transform 620ms cubic-bezier(.22,.61,.36,1)';
+      b.style.transitionDelay = (i * 14) + 'ms';
+    });
+    requestAnimationFrame(()=>bars.forEach(b => b.style.transform = 'scaleX(1)'));
+  }
+
+  svg.querySelectorAll('.thr-row').forEach(row=>{
+    const h = Number(row.dataset.hour);
+    /* same story as the gate rows: the whole <svg> is re-authored on render */
+    const pick = ()=>{
+      state.hour = (state.hour === h) ? null : h;
+      render();
+      const again = document.querySelector('#thrSvg .thr-row[data-hour="' + h + '"]');
+      if(again) again.focus();
+    };
+    row.addEventListener('click', pick);
+    row.addEventListener('keydown', e=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); }
+    });
+  });
+
+  const peakV = Math.max(...vals);
+  const peakH = hours[vals.indexOf(peakV)];
+  document.getElementById('thrPeak').innerHTML =
+    nf(peakV) + '<small>الذروة عند الساعة <span class="ltr">' + hh(peakH) + '</span></small>';
+}
+
+/* ==========================================================
+   7 — RENDER: LEDGER 2×3
+   ========================================================== */
+function renderLedger(){
+  const hours = scopeHours();
+  const t     = totalsFor(state.gate, hours);
+  const full  = state.gate === "all" && state.range === 24 && state.hour === null;
+  const ms    = state.gate === "all" ? KPI.latency.v : (GATE_BY_ID[state.gate].ms || 0);
+  const unreadRate = t.total ? (t.unread / t.total * 100) : 0;
+  const active = GATES.filter(g => g.status === 'online' || g.status === 'degraded').length;
+
+  const inScope = '<span class="d flat">ضمن النطاق المحدد</span>';
+  const cells = [
+    { k: KPI.total.label,  v: t.total,  d: full ? deltaText(KPI.total.delta,  false) : inScope, lit:false },
+    { k: KPI.clean.label,  v: t.clean,  d: full ? deltaText(KPI.clean.delta,  false) : inScope, lit: state.verdict === 'clean' },
+    { k: KPI.unread.label, v: t.unread, d: full ? deltaText(KPI.unread.delta, true)  : inScope, lit: state.verdict === 'unread' },
+    { k: KPI.latency.label, v: ms, unit: KPI.latency.unit,
+      d: state.gate === "all" ? deltaText(KPI.latency.delta, true) : '<span class="d flat">متوسط هذه البوابة</span>', lit:false },
+    { k: KPI.gates.label, v: active, unit: "من " + KPI.gates.of,
+      d: '<span class="d flat">بوابتان متوقفتان</span>', lit:false },
+    { k: "نسبة اللوحات غير المقروءة", raw: unreadRate.toFixed(2) + '%',
+      d: '<span class="d flat">من المسح في النطاق</span>', lit: state.verdict === 'unread' }
+  ];
+
+  const nodes = document.getElementById('ledger').querySelectorAll('.cell');
+  cells.forEach((c, i)=>{
+    const el = nodes[i];
+    if(!el) return;
+    el.classList.toggle('lit', !!c.lit);
+    el.querySelector('.k').textContent = c.k;
+
+    const vnum = el.querySelector('.vnum');
+    const em   = el.querySelector('.v em');
+    if(c.raw){
+      vnum.textContent = c.raw;
+    }else{
+      countUp(vnum, c.v);
+      if(em) em.textContent = c.unit || '';
+    }
+    const old = el.querySelector('.d');
+    if(old) old.outerHTML = c.d;
+  });
+}
+
+/* ==========================================================
+   8 — RENDER: OPERATORS
+   ========================================================== */
+function renderOps(){
+  const key    = state.sort;
+  const sorted = OPERATORS.slice().sort((a,b)=> b[key] - a[key]);
+  const max    = Math.max(...sorted.map(o => o[key]));
+  const list   = document.getElementById('opList');
+
+  list.innerHTML = sorted.map((o,i)=>{
+    const w = Math.round(o[key] / max * 100);
+    const figMain = key === 'acc' ? o.acc + '%' : nf(o[key]);
+    const figSub  = key === 'reviews' ? ('دقة <span class="num">' + o.acc + '%</span>')
+                  : key === 'wanted'  ? ('<span class="num">' + nf(o.reviews) + '</span> مراجعة')
+                  : ('<span class="num">' + nf(o.reviews) + '</span> مراجعة');
+    return '<div class="op' + (i === 0 ? ' top' : '') + '">' +
+             '<span class="rk num">' + (i+1) + '</span>' +
+             '<span><span class="nm">' + o.name + '</span>' +
+               '<span class="bar"><i style="width:' + w + '%"></i></span></span>' +
+             '<span class="fig"><span class="num">' + figMain + '</span><small>' + figSub + '</small></span>' +
+           '</div>';
+  }).join('');
+
+  if(canAnimate()){
+    const bars = list.querySelectorAll('.bar i');
+    bars.forEach(b=>{ const w = b.style.width; b.style.width = '0%';
+      requestAnimationFrame(()=>{ b.style.width = w; }); });
+  }
+}
+
+/* ==========================================================
+   9 — RENDER: EVENT LOG + TICKER
+   ========================================================== */
+function filteredEvents(){
+  const hrs = scopeHours();
+  return EVENTS.filter(e=>{
+    if(state.gate !== "all" && e.gate !== state.gate) return false;
+    if(state.verdict !== "all" && e.verdict !== state.verdict) return false;
+    const h = Number(e.t.slice(0,2));
+    if(!hrs.includes(h)) return false;
+    return true;
+  });
+}
+
+function renderLog(){
+  const rows = filteredEvents();
+  const box  = document.getElementById('logList');
+
+  if(!rows.length){
+    box.innerHTML = '<p class="empty">لا توجد سجلات مطابقة</p>';
+  }else{
+    box.innerHTML = rows.map(e=>{
+      const g = GATE_BY_ID[e.gate];
+      const tail = e.verdict === 'wanted'
+        ? '<span class="rt"><span class="num">' + e.ref + '</span> · ' + e.by + '</span>'
+        : '<span class="rt">' + g.name + '</span>';
+      const why = e.reason
+        ? '<span class="why"> · ' + e.reason + '</span>'
+        : '<span class="why"> · ' + VERDICT_LABEL[e.verdict] + '</span>';
+      return '<div class="ev">' +
+               '<span class="tm">' + e.t + '</span>' +
+               '<span class="vd ' + e.verdict + '" aria-hidden="true"></span>' +
+               '<span><span class="plate">' + e.plate + '</span>' + why + '</span>' +
+               tail +
+             '</div>';
+    }).join('');
+  }
+  document.getElementById('scopeCount').innerHTML = countLabel(rows.length);
+}
+
+/* ==========================================================
+   10 — RENDER: SCOPE STRIP
+   ========================================================== */
+function renderScope(){
+  const gEl = document.getElementById('scopeGate');
+  if(state.gate === "all"){
+    gEl.innerHTML = 'كل البوابات <b class="num">11</b>';
+  }else{
+    const g = GATE_BY_ID[state.gate];
+    gEl.innerHTML = 'البوابة <b>' + g.name + '</b>';
+  }
+  document.getElementById('scopeRange').textContent =
+    state.range === 24 ? 'آخر 24 ساعة' : 'آخر ' + state.range + (state.range === 12 ? ' ساعة' : ' ساعات');
+
+  const hEl = document.getElementById('scopeHour');
+  hEl.hidden = state.hour === null;
+  if(state.hour !== null) hEl.innerHTML = 'الساعة <b class="num ltr">' + hh(state.hour) + '</b>';
+
+  const vEl = document.getElementById('scopeVerdict');
+  vEl.hidden = state.verdict === 'all';
+  if(state.verdict !== 'all') vEl.innerHTML = 'الحكم <b>' + VERDICT_LABEL[state.verdict] + '</b>';
+
+  document.getElementById('clearBtn').hidden =
+    (state.gate === 'all' && state.verdict === 'all' && state.range === 24 && state.hour === null);
+}
+
+/* ==========================================================
+   11 — MASTER RENDER
+   ========================================================== */
+let renderedWhileHidden = false;
+function render(){
+  renderScope();
+  renderHero();
+  renderGates();
+  renderThroughput();
+  renderLedger();
+  renderOps();
+  renderLog();
+  renderedWhileHidden = document.hidden;
+}
+/* a screen painted in a hidden tab skipped its animations — replay them once */
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && renderedWhileHidden) render();
+});
+
+/* ==========================================================
+   12 — CONTROLS
+   ========================================================== */
+function bindSeg(id, attr, apply){
+  const box = document.getElementById(id);
+  box.addEventListener('click', e=>{
+    const b = e.target.closest('button[' + attr + ']');
+    if(!b) return;
+    apply(b.getAttribute(attr));
+    box.querySelectorAll('button').forEach(x =>
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    render();
+  });
+}
+
+bindSeg('rangeSeg', 'data-range', v=>{
+  state.range = Number(v);
+  if(state.hour !== null && !rangeHours().includes(state.hour)) state.hour = null;
+});
+bindSeg('verdictChips', 'data-verdict', v=>{ state.verdict = v; });
+bindSeg('opsSort',      'data-sort',    v=>{ state.sort = v; });
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  state.gate = 'all'; state.verdict = 'all'; state.range = 24; state.hour = null;
+  document.querySelectorAll('#rangeSeg button').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.range === '24' ? 'true' : 'false'));
+  document.querySelectorAll('#verdictChips button').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.verdict === 'all' ? 'true' : 'false'));
+  render();
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){
+    if(state.hour !== null){ state.hour = null; render(); }
+    else if(state.gate !== 'all'){ state.gate = 'all'; render(); }
+  }
+});
+
+/* first paint — the real figures are already in the markup above; this
+   re-renders from state and animates on top of them. */
+render();
+</script>
+</body>
+</html>

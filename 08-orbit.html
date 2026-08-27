@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>المدار — النظرة العامة</title>
+<style>
+/* ==========================================================================
+   المدار — سنبرست متحد المركز لفحص اللوحات
+   الهيكل: عمود قراءة في بداية السطر + مدار حلقي مزاح نحو نهاية السطر
+   ========================================================================== */
+
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --glass:      rgba(255,255,255,.045);
+  --glass-hi:   rgba(255,255,255,.065);
+  --glass-lo:   rgba(255,255,255,.032);
+  --edge:       rgba(255,255,255,.085);
+  --sheen:      0 1px 0 0 rgba(255,255,255,.10) inset;
+  --drop:       0 20px 50px -20px rgba(0,0,0,.55);
+  --ease:       cubic-bezier(.22,.61,.36,1);
+}
+
+*{ box-sizing:border-box; }
+
+html,body{ margin:0; padding:0; }
+
+body{
+  background:#06100c;
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-weight:400;
+  font-size:14px;
+  line-height:1.75;
+  letter-spacing:normal;
+  min-block-size:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- المشهد: كل اللون هنا ---------- */
+.scene{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.lamp{ position:absolute; border-radius:50%; filter:blur(90px); }
+.lamp.l1{ inset-block-start:-14vh; inset-inline-start:-6vw;  inline-size:58vw; block-size:58vw; background:radial-gradient(circle, #0f4d38 0%, rgba(15,77,56,0) 68%); opacity:.16; }
+.lamp.l2{ inset-block-start:26vh;  inset-inline-end:-12vw;   inline-size:52vw; block-size:52vw; background:radial-gradient(circle, #10613f 0%, rgba(16,97,63,0) 66%);  opacity:.13; }
+.lamp.l3{ inset-block-end:-20vh;   inset-inline-start:12vw;  inline-size:60vw; block-size:60vw; background:radial-gradient(circle, #0b3a30 0%, rgba(11,58,48,0) 70%);  opacity:.18; }
+.lamp.l4{ inset-block-start:8vh;   inset-inline-start:34vw;  inline-size:34vw; block-size:34vw; background:radial-gradient(circle, #145a45 0%, rgba(20,90,69,0) 68%);  opacity:.10; }
+.lamp.l5{ inset-block-end:6vh;     inset-inline-end:18vw;    inline-size:40vw; block-size:40vw; background:radial-gradient(circle, #08302a 0%, rgba(8,48,42,0) 70%);   opacity:.15; }
+.vignette{ position:absolute; inset:0; background:radial-gradient(120% 95% at 50% 42%, rgba(0,0,0,0) 38%, rgba(0,0,0,.55) 100%); }
+.grain{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.035; }
+
+/* ---------- زجاج ---------- */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(22px) saturate(1.25);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid var(--edge);
+  border-radius:16px;
+  box-shadow:var(--sheen), var(--drop);
+}
+.glass.near{ background:var(--glass-hi); backdrop-filter:blur(14px) saturate(1.25); -webkit-backdrop-filter:blur(14px) saturate(1.25); }
+.glass.far{  background:var(--glass-lo); backdrop-filter:blur(34px) saturate(1.2);  -webkit-backdrop-filter:blur(34px) saturate(1.2); border-color:var(--line-2); }
+
+/* ---------- أرقام ونصوص ---------- */
+.num{ direction:ltr; unicode-bidi:isolate; font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
+.plate{ direction:rtl; unicode-bidi:isolate; font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; letter-spacing:normal; }
+.k{ font-size:10.5px; letter-spacing:normal; color:var(--ink-3); font-weight:500; line-height:1.6; }
+
+/* ---------- الشريط العلوي ---------- */
+.topbar{
+  position:relative; z-index:3;
+  display:flex; align-items:center; gap:18px;
+  padding:14px clamp(14px,2.4vw,30px) 12px;
+  border-block-end:1px solid var(--line-2);
+}
+.mark{ display:flex; align-items:center; gap:10px; }
+.mark svg{ display:block; color:var(--accent); opacity:.92; }
+.mark .t1{ font-size:15px; font-weight:600; line-height:1.35; }
+.mark .t2{ font-size:11px; color:var(--ink-3); line-height:1.4; }
+.topbar .spacer{ flex:1 1 auto; }
+
+.livechip{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:5px 11px; border-radius:999px;
+  border:1px solid var(--line); background:rgba(255,255,255,.035);
+  font-size:11.5px; color:var(--ink-2);
+}
+/* نقطة الحالة الحية — الاستثناء الوحيد المسموح به في المواصفة §4 */
+.dot{ inline-size:6px; block-size:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 0 rgba(110,196,155,.45); animation:pulse 2.6s ease-out infinite; }
+@keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(110,196,155,.40);} 70%{ box-shadow:0 0 0 7px rgba(110,196,155,0);} 100%{ box-shadow:0 0 0 0 rgba(110,196,155,0);} }
+
+.admin{ display:flex; align-items:center; gap:10px; }
+.admin .who{ text-align:end; }
+.admin .n1{ font-size:12.5px; font-weight:500; line-height:1.4; }
+.admin .n2{ font-size:10.5px; color:var(--ink-3); line-height:1.4; }
+.avatar{
+  inline-size:34px; block-size:34px; border-radius:11px;
+  display:grid; place-items:center; font-size:14px; font-weight:600;
+  background:rgba(255,255,255,.07); border:1px solid var(--edge);
+  box-shadow:var(--sheen);
+}
+
+/* ---------- المسرح ---------- */
+.stage{
+  position:relative; z-index:2;
+  display:grid;
+  grid-template-columns:minmax(340px,0.94fr) minmax(420px,1.06fr);
+  gap:18px;
+  padding:18px clamp(14px,2.4vw,30px) 10px;
+  align-items:stretch;
+}
+
+/* ---------- عمود القراءة ---------- */
+.reading{ display:flex; flex-direction:column; gap:14px; min-inline-size:0; }
+
+.scopebar{ padding:14px 16px 13px; display:flex; flex-direction:column; gap:10px; }
+.scopebar .top{ display:flex; align-items:flex-start; gap:12px; }
+.scopebar h2{ margin:0; font-size:18px; font-weight:600; line-height:1.45; }
+.scopebar .sub{ font-size:11.5px; color:var(--ink-3); line-height:1.6; }
+.crumbs{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.crumb{
+  font:inherit; font-size:11px; color:var(--ink-2);
+  background:rgba(255,255,255,.04); border:1px solid var(--line-2);
+  border-radius:8px; padding:3px 9px; cursor:pointer;
+  transition:background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
+}
+.crumb:hover{ background:rgba(255,255,255,.08); color:var(--ink); }
+.crumb[aria-current="true"]{ color:var(--ink); border-color:var(--edge); background:rgba(255,255,255,.075); }
+.crumbsep{ color:var(--ink-3); font-size:11px; }
+.btn{
+  font:inherit; font-size:11.5px; color:var(--ink-2); cursor:pointer;
+  background:rgba(255,255,255,.045); border:1px solid var(--line);
+  border-radius:9px; padding:5px 11px; white-space:nowrap;
+  transition:background .16s var(--ease), color .16s var(--ease), transform .16s var(--ease);
+}
+.btn:hover{ background:rgba(255,255,255,.09); color:var(--ink); }
+.btn:active{ transform:translateY(1px); }
+.btn[disabled]{ opacity:.35; cursor:default; }
+.btn.on{ color:var(--ink); background:rgba(255,255,255,.10); border-color:var(--edge); }
+.btn.hasx{ display:inline-flex; align-items:center; gap:6px; }
+.btn .ix{ flex:none; opacity:.8; }
+
+/* ---------- الدفتر المسطّر ---------- */
+.ledger{ padding:12px 16px 14px; }
+.ledger h3, .card h3{
+  margin:0 0 8px; font-size:12px; font-weight:600; color:var(--ink-2);
+  display:flex; align-items:center; gap:8px; line-height:1.6;
+}
+.ledger h3 .k, .card h3 .k{ font-weight:400; }
+.lrow{
+  display:grid;
+  grid-template-columns:auto 1fr auto auto;
+  align-items:baseline; gap:8px;
+  padding:7px 0 6px;
+  border-block-end:1px solid var(--line-2);
+}
+.lrow:last-child{ border-block-end:0; }
+.lrow .lab{ font-size:12.5px; color:var(--ink-2); display:flex; align-items:center; gap:7px; }
+.lrow .leader{ border-block-end:1px dotted rgba(255,255,255,.13); transform:translateY(-4px); }
+.lrow .val{ font-size:16px; font-weight:600; }
+.lrow .val.small{ font-size:13px; font-weight:500; color:var(--ink-2); }
+.lrow .unit{ font-size:10.5px; color:var(--ink-3); margin-inline-start:3px; }
+.lrow .delta{ font-size:11px; color:var(--ink-3); display:inline-flex; align-items:center; gap:3px; min-inline-size:52px; justify-content:flex-end; }
+.lrow .delta svg{ opacity:.75; }
+.swatch{ inline-size:7px; block-size:7px; border-radius:2px; flex:none; }
+.sw-clean{ background:var(--clean); }
+.sw-wanted{ background:var(--wanted); }
+.sw-unread{ background:var(--unread); }
+.sw-glass{ background:rgba(255,255,255,.30); }
+.ledgernote{ font-size:10.5px; color:var(--ink-3); margin-block-start:8px; line-height:1.7; }
+
+/* ---------- البطاقات ---------- */
+.card{ padding:12px 16px 14px; }
+.card .head{ display:flex; align-items:center; gap:10px; margin-block-end:8px; flex-wrap:wrap; }
+.card .head h3{ margin:0; }
+.card .head .spacer{ flex:1 1 auto; }
+.badge{
+  font-size:10px; color:var(--ink-3); padding:2px 7px; border-radius:6px;
+  border:1px dashed rgba(255,255,255,.16); white-space:nowrap;
+}
+
+/* ---------- المخطط ---------- */
+.chartwrap{ inline-size:100%; }
+.chartwrap svg{ display:block; inline-size:100%; block-size:auto; overflow:visible; }
+.axis text{ font-size:9.5px; fill:var(--ink-3); font-family:inherit; direction:ltr; unicode-bidi:isolate; }
+.axis line{ stroke:var(--line-2); }
+.gridline{ stroke:rgba(255,255,255,.055); stroke-width:1; }
+/* non-scaling-stroke: المخطط يتمدد من viewBox عرضه 520، فبدونها يصبح الخط ~2.7px لا 2px */
+.arealine{ fill:none; stroke:rgba(255,255,255,.55); stroke-width:2; vector-effect:non-scaling-stroke; stroke-linejoin:round; stroke-linecap:round; }
+.areafill{ fill:rgba(255,255,255,.07); stroke:none; }
+.bar{ transition:y .55s var(--ease), height .55s var(--ease); }
+.bar.w{ fill:var(--wanted); opacity:.85; }
+.bar.u{ fill:var(--unread); opacity:.85; }
+.hourmark{ fill:rgba(255,255,255,.10); stroke:rgba(255,255,255,.28); stroke-width:1; }
+.plotlabel{ font-size:10px; fill:var(--ink-3); font-family:inherit; }
+
+/* ---------- جدول المشغّلين ---------- */
+.ops{ display:flex; flex-direction:column; gap:2px; }
+.oprow{
+  display:grid; grid-template-columns:1fr 62px 46px 40px; align-items:center; gap:10px;
+  padding:6px 8px; border-radius:10px; cursor:pointer; text-align:start;
+  background:transparent; border:1px solid transparent; color:inherit; font:inherit;
+  transition:background .16s var(--ease), border-color .16s var(--ease);
+}
+.oprow:hover{ background:rgba(255,255,255,.05); }
+.oprow.on{ background:rgba(255,255,255,.085); border-color:var(--edge); }
+.oprow .nm{ font-size:12.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.opbar{ block-size:5px; border-radius:3px; background:rgba(255,255,255,.07); overflow:hidden; }
+.opbar i{ display:block; block-size:100%; background:rgba(255,255,255,.42); border-radius:3px; transition:inline-size .5s var(--ease); }
+.opnum{ font-size:11.5px; color:var(--ink-2); text-align:end; }
+.opacc{ font-size:11px; color:var(--ink-3); text-align:end; }
+.ophead{ display:grid; grid-template-columns:1fr 62px 46px 40px; gap:10px; padding:0 8px 4px; }
+.ophead span{ font-size:10px; color:var(--ink-3); }
+.ophead span:not(:first-child){ text-align:end; }
+
+/* ---------- الأحداث ---------- */
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.evlist{ display:flex; flex-direction:column; gap:1px; margin-block-start:6px; max-block-size:290px; overflow-y:auto; }
+.ev{
+  display:grid; grid-template-columns:44px 92px 1fr auto; align-items:center; gap:10px;
+  padding:7px 8px; border-radius:10px; border-block-end:1px solid var(--line-2);
+}
+.ev:last-child{ border-block-end:0; }
+.ev:hover{ background:rgba(255,255,255,.035); }
+.ev .t{ font-size:11px; color:var(--ink-3); }
+.ev .p{ font-size:12.5px; font-weight:500; }
+.ev .meta{ font-size:11px; color:var(--ink-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.vb{ font-size:10.5px; padding:2px 8px; border-radius:7px; border:1px solid; white-space:nowrap; }
+.vb.wanted{ color:var(--wanted); border-color:rgba(255,107,107,.42); background:rgba(255,107,107,.09); }
+.vb.clean{  color:var(--clean);  border-color:rgba(61,220,151,.30); background:rgba(61,220,151,.07); }
+.vb.unread{ color:var(--unread); border-color:rgba(232,176,85,.36); background:rgba(232,176,85,.08); }
+.empty{ padding:22px 8px; text-align:center; color:var(--ink-3); font-size:12px; }
+
+/* ---------- لوحة المدار ---------- */
+.orbit{ position:relative; display:flex; flex-direction:column; gap:8px; padding:13px 16px 14px; min-inline-size:0; }
+.orbit .obhead{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.orbit .obhead .spacer{ flex:1 1 auto; }
+.orbit h2{ margin:0; font-size:13px; font-weight:600; color:var(--ink-2); }
+
+#sun{ display:block; inline-size:100%; block-size:clamp(330px,50vh,600px); overflow:visible; touch-action:manipulation; }
+
+.arc{ cursor:pointer; stroke:rgba(255,255,255,.11); stroke-width:1; transition:opacity .18s var(--ease), fill .18s var(--ease); }
+.arc.glassfill{ fill:rgba(255,255,255,.075); }
+.arc.r1{ fill:rgba(255,255,255,.085); }
+.arc.r2{ fill:rgba(255,255,255,.062); }
+.arc.r3{ fill:rgba(255,255,255,.045); }
+.arc.wanted{ fill:rgba(255,107,107,.52); stroke:rgba(255,107,107,.75); }
+.arc.unread{ fill:rgba(232,176,85,.48); stroke:rgba(232,176,85,.72); }
+.arc:hover{ fill:rgba(255,255,255,.15); }
+.arc.wanted:hover{ fill:rgba(255,107,107,.68); }
+.arc.unread:hover{ fill:rgba(232,176,85,.64); }
+.arc.nonav{ cursor:default; }
+.arc.dim{ opacity:.22; }
+.arc.lin{ opacity:1; }
+.arc.sel{ fill:rgba(255,255,255,.19); stroke:rgba(255,255,255,.42); }
+.arcedge{ fill:none; stroke:rgba(255,255,255,.26); stroke-width:1; pointer-events:none; }
+.arcedge.wanted{ stroke:rgba(255,107,107,.85); }
+.arcedge.unread{ stroke:rgba(232,176,85,.8); }
+.arcedge.dashed{ stroke-dasharray:3 3; }
+.wtick{ stroke:var(--wanted); stroke-width:2.2; stroke-linecap:round; pointer-events:none; opacity:.9; }
+/* isolate على القاعدة: أسماء مثل "الميناء 3" تخلط عربية برقم غربي داخل SVG */
+.arclab{ font-size:10.5px; fill:rgba(241,246,243,.92); font-family:inherit; pointer-events:none; paint-order:stroke; stroke:rgba(6,16,12,.6); stroke-width:2.6; stroke-linejoin:round; unicode-bidi:isolate; }
+.arclab.n{ direction:ltr; unicode-bidi:isolate; }
+.truetick{ stroke:rgba(255,255,255,.55); stroke-width:1; stroke-dasharray:2 2; pointer-events:none; }
+.leader{ stroke:rgba(255,255,255,.30); stroke-width:1; stroke-dasharray:3 3; fill:none; pointer-events:none; }
+.note{ font-size:10.5px; fill:var(--ink-2); font-family:inherit; pointer-events:none; }
+.note.dimmer{ fill:var(--ink-3); font-size:9.5px; }
+
+/* التوهّج الوحيد على الصفحة — مركز المدار (المواصفة §1: عنصر واحد يستحق التأكيد) */
+.hub{ cursor:pointer; filter:drop-shadow(0 0 22px rgba(110,196,155,.26)); }
+.hub .disc{ fill:rgba(255,255,255,.055); stroke:rgba(255,255,255,.16); stroke-width:1; }
+.hub:hover .disc{ fill:rgba(255,255,255,.09); }
+.hub[aria-disabled="true"]{ cursor:default; }
+.hub[aria-disabled="true"]:hover .disc{ fill:rgba(255,255,255,.055); }
+.hubv{ font-size:30px; font-weight:600; fill:var(--ink); font-family:inherit; direction:ltr; unicode-bidi:isolate; }
+.hubl{ font-size:11px; fill:var(--ink-3); font-family:inherit; }
+.hubc{ font-size:10px; fill:var(--ink-2); font-family:inherit; }
+.hubback{ font-size:9.5px; fill:var(--ink-3); font-family:inherit; }
+
+/* ---------- مفتاح الحلقات + القارئ + صحة البوابات ---------- */
+.ringkey{ display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }
+.ringkey .item{ display:flex; align-items:center; gap:6px; font-size:10px; color:var(--ink-3); line-height:1.5; }
+.ringkey .ridx{
+  inline-size:15px; block-size:15px; border-radius:50%; display:grid; place-items:center;
+  border:1px solid var(--line); font-size:9px; color:var(--ink-2); flex:none;
+  direction:ltr; unicode-bidi:isolate;
+}
+.ringkey .sep{ inline-size:1px; block-size:14px; background:var(--line-2); }
+
+.inspector{
+  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px;
+  padding:8px 12px; border-radius:12px;
+  border:1px solid var(--line-2); background:rgba(255,255,255,.03);
+  min-block-size:40px;
+}
+.inspector > *{ min-inline-size:0; }   /* وإلا تجاوز مسار السلالة الطويل عرض اللوحة عند 390px */
+.inspector .iname{ font-size:12.5px; font-weight:500; }
+.inspector .itrail{ font-size:10.5px; color:var(--ink-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.inspector .ival{ font-size:13px; font-weight:600; }
+.inspector .ishare{ font-size:10.5px; color:var(--ink-3); }
+
+.health{ display:flex; flex-direction:column; gap:6px; }
+.hstrip{ display:flex; flex-wrap:wrap; gap:5px; }
+.gchip{
+  font:inherit; font-size:11px; color:var(--ink-2); cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:3px 8px; border-radius:9px;
+  background:rgba(255,255,255,.035); border:1px solid var(--line-2);
+  transition:background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease);
+}
+.gchip:hover{ background:rgba(255,255,255,.085); color:var(--ink); }
+.gchip.on{ background:rgba(255,255,255,.11); border-color:var(--edge); color:var(--ink); }
+/* بلا opacity: خفضها كانت تُسقط التباين إلى 3.4:1 على الزجاج المركّب */
+.gchip.down{ border-style:dashed; color:var(--ink-3); cursor:not-allowed; }
+.gchip.down:hover{ background:rgba(255,255,255,.035); color:var(--ink-3); }
+.gchip .gs{ inline-size:5px; block-size:5px; border-radius:50%; background:rgba(255,255,255,.45); flex:none; }
+.gchip.deg .gs{ background:var(--unread); }
+.gchip.down .gs{ background:transparent; border:1px solid var(--ink-3); }
+.gchip .gv{ font-size:10.5px; color:var(--ink-3); }
+
+/* ---------- التذييل ---------- */
+.foot{
+  position:relative; z-index:2;
+  text-align:center; color:var(--ink-3); font-size:11px;
+  padding:12px 20px 18px; line-height:1.7;
+}
+
+/* ---------- التركيز ---------- */
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+.arc:focus-visible, .hub:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+path.arc:focus-visible{ stroke:var(--accent); stroke-width:1.8; }
+
+/* ---------- أشرطة التمرير ---------- */
+.evlist::-webkit-scrollbar, .reading::-webkit-scrollbar, .orbit::-webkit-scrollbar{ inline-size:8px; block-size:8px; }
+.evlist::-webkit-scrollbar-thumb, .reading::-webkit-scrollbar-thumb, .orbit::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.12); border-radius:8px;
+}
+.evlist::-webkit-scrollbar-track, .reading::-webkit-scrollbar-track, .orbit::-webkit-scrollbar-track{ background:transparent; }
+.evlist, .reading{ scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.14) transparent; }
+
+/* ---------- دخول الصفحة ---------- */
+.rise{ opacity:0; transform:translateY(14px); animation:rise .58s var(--ease) forwards; }
+@keyframes rise{ to{ opacity:1; transform:none; } }
+
+/* ---------- استجابة ---------- */
+@media (min-width:1120px){
+  .stage{ block-size:calc(100vh - 132px); }
+  .reading{ overflow-y:auto; padding-inline-end:4px; }
+  .orbit{ overflow-y:auto; }
+}
+@media (max-width:1119px){
+  .stage{ grid-template-columns:1fr; }
+  #sun{ block-size:clamp(320px,72vw,520px); }
+}
+@media (max-width:640px){
+  .topbar{ flex-wrap:wrap; gap:10px; }
+  .ev{ grid-template-columns:40px 1fr auto; }
+  .ev .meta{ grid-column:1 / -1; }
+  .lrow{ grid-template-columns:auto 1fr auto; }
+  .lrow .delta{ display:none; }
+  .ophead, .oprow{ grid-template-columns:1fr 46px 38px; }
+  .ophead span:nth-child(4), .oprow .opacc{ display:none; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; }
+  .rise{ opacity:1; transform:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div>
+  <div class="vignette"></div>
+</div>
+<svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+
+<header class="topbar">
+  <div class="mark">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="12" r="6.2" opacity=".62"/><circle cx="12" cy="12" r="10" opacity=".34"/>
+      <path d="M12 2v3.8M12 18.2V22M2 12h3.8M18.2 12H22" opacity=".5"/>
+    </svg>
+    <div>
+      <div class="t1">المدار — النظرة العامة</div>
+      <div class="t2">نظام العربي لفحص اللوحات · التحديث <span class="num" style="unicode-bidi:isolate">14:32</span> اليوم</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <!-- صحة البوابات مذكورة في شريط دائم الظهور، والتفصيل في شريط الرقائق داخل لوحة المدار -->
+  <div class="livechip"><span class="dot" aria-hidden="true"></span> بث مباشر · <span class="num">9</span> بوابات تعمل من <span class="num">11</span> · <span class="num">2</span> متوقفة</div>
+  <div class="admin">
+    <div class="who">
+      <div class="n1">أحمد عماد</div>
+      <div class="n2">مدير النظام</div>
+    </div>
+    <div class="avatar" aria-hidden="true">أ</div>
+  </div>
+</header>
+
+<main class="stage">
+
+  <!-- ============ عمود القراءة (بداية السطر) ============ -->
+  <section class="reading" aria-label="عمود القراءة">
+
+    <div class="glass near scopebar rise" style="animation-delay:40ms">
+      <div class="top">
+        <div style="flex:1 1 auto; min-inline-size:0">
+          <h2 id="scopeName">كل البوابات</h2>
+          <div class="sub" id="scopeSub">كل ما يعرضه المدار مقيّد بهذا النطاق</div>
+        </div>
+        <button class="btn" id="btnUp" type="button">مستوى للأعلى</button>
+        <button class="btn" id="btnReset" type="button">إعادة</button>
+      </div>
+      <div class="crumbs" id="crumbs"></div>
+    </div>
+
+    <div class="glass ledger rise" style="animation-delay:100ms">
+      <h3>الأرقام الستة <span class="k">— دفتر مسطّر، مقيّد بالنطاق</span></h3>
+      <div id="ledger"></div>
+      <div class="ledgernote" id="ledgerNote"></div>
+    </div>
+
+    <div class="glass card rise" style="animation-delay:160ms">
+      <div class="head">
+        <h3>مسار الأربع والعشرين ساعة</h3>
+        <span class="badge" id="serDerived" hidden>قيم الساعة مشتقة من المنحنى العام</span>
+        <div class="spacer"></div>
+        <span class="k" id="serScope"></span>
+      </div>
+      <div class="chartwrap"><svg id="chart" viewBox="0 0 520 262" role="img" aria-label="مخططان فوق بعضهما يتشاركان محور الساعات"></svg></div>
+    </div>
+
+    <div class="glass far card rise" style="animation-delay:220ms">
+      <div class="head">
+        <h3>المراجعون</h3>
+        <span class="badge">مستوى النظام — غير مقيّد بالنطاق</span>
+        <div class="spacer"></div>
+        <button class="btn" data-sort="reviews" type="button">المراجعات</button>
+        <button class="btn" data-sort="wanted" type="button">المطلوبة</button>
+        <button class="btn" data-sort="acc" type="button">الدقة</button>
+      </div>
+      <div class="ophead"><span>الاسم</span><span>الحجم</span><span>مطلوبة</span><span>الدقة</span></div>
+      <div class="ops" id="ops"></div>
+      <div class="ledgernote">اضغط على مراجع لقصر قائمة الأحداث على قراراته.</div>
+    </div>
+
+    <div class="glass card rise" style="animation-delay:280ms">
+      <div class="head">
+        <h3>الأحداث الأخيرة</h3>
+        <div class="spacer"></div>
+        <span class="k" id="evCount"></span>
+      </div>
+      <div class="chips" id="vchips"></div>
+      <div class="evlist" id="events"></div>
+    </div>
+
+  </section>
+
+  <!-- ============ المدار (نهاية السطر) ============ -->
+  <section class="glass orbit rise" style="animation-delay:70ms" aria-label="المدار الحلقي">
+    <div class="obhead">
+      <h2>المدار — الهرم مرسوم شعاعيًا</h2>
+      <div class="spacer"></div>
+      <button class="btn on" id="btnHours" type="button" aria-pressed="true">حلقة الساعات</button>
+    </div>
+
+    <!-- viewBox مقصوص على المحتوى الفعلي (الحلقات + حيّز التعليق) بدل مربع 700×700،
+         حتى لا تُهدر مساحة فارغة وتكبر الحلقات ~15% عند 1440 -->
+    <svg id="sun" viewBox="6 42 694 606" role="application"
+         aria-label="مدار حلقي: الحلقة الداخلية النتيجة، الوسطى البوابات، الخارجية الساعات. الأسهم للتنقل، مسافة أو إدخال للتعمّق."></svg>
+
+    <div class="ringkey" id="ringkey"></div>
+
+    <div class="inspector" id="inspector">
+      <div>
+        <div class="iname" id="iName">مرّر فوق أي قوس</div>
+        <div class="itrail" id="iTrail">الاسم والحجم والنسبة والسلالة تظهر هنا</div>
+      </div>
+      <div></div>
+      <div style="text-align:end">
+        <div class="ival num" id="iVal">—</div>
+        <div class="ishare" id="iShare">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="health">
+      <div class="k" id="healthHead">صحة البوابات</div>
+      <div class="hstrip" id="health"></div>
+      <div class="ledgernote" id="healthNote"></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   1. البيانات — منسوخة حرفيًا من المواصفة
+   ========================================================================= */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+/* =========================================================================
+   2. مساعدات
+   ========================================================================= */
+const SHORT  = { g1:"الشمال", g2:"الميناء 3", g3:"الملك فهد", g4:"الجنوب", g5:"المستودع",
+                 g6:"الشرق", g7:"الوزن", g8:"الحجز", g9:"المطار", g10:"الغرب", g11:"الصيانة" };
+const STATUS = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+const VLAB   = { clean:"سليم", wanted:"مطلوب", unread:"غير مقروء" };
+const VORDER = ["wanted","unread","clean"];
+
+const GBY = {}; GATES.forEach(g => GBY[g.id] = g);
+const ACTIVE = GATES.filter(g => g.total > 0);
+const GRAND  = 12847;
+const HSUM   = HOURLY.total.reduce((a,b)=>a+b,0);            // 12847
+const HCLEAN = HOURLY.total.map((t,i)=> t - HOURLY.wanted[i] - HOURLY.unread[i]);
+
+const fmt   = n => Number(n).toLocaleString('en-US');
+const pad2  = n => String(n).padStart(2,'0');
+const clamp = (v,a,b) => v < a ? a : (v > b ? b : v);
+const $     = s => document.querySelector(s);
+const SVGNS = "http://www.w3.org/2000/svg";
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function el(tag, attrs, text){
+  const n = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function polar(cx, cy, r, deg){
+  const a = (deg - 90) * Math.PI / 180;
+  return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+}
+function arcPath(cx, cy, r0, r1, a0, a1){
+  let sweep = a1 - a0;
+  if (sweep <= 0.001) return "M0 0";
+  if (sweep > 359.999) sweep = 359.999;
+  const b1 = a0 + sweep, big = sweep > 180 ? 1 : 0;
+  const [x0,y0] = polar(cx,cy,r1,a0), [x1,y1] = polar(cx,cy,r1,b1);
+  const [x2,y2] = polar(cx,cy,r0,b1), [x3,y3] = polar(cx,cy,r0,a0);
+  return "M"+x0.toFixed(2)+" "+y0.toFixed(2)+
+         " A"+r1+" "+r1+" 0 "+big+" 1 "+x1.toFixed(2)+" "+y1.toFixed(2)+
+         " L"+x2.toFixed(2)+" "+y2.toFixed(2)+
+         " A"+r0+" "+r0+" 0 "+big+" 0 "+x3.toFixed(2)+" "+y3.toFixed(2)+" Z";
+}
+function edgePath(cx, cy, r1, a0, a1){
+  let sweep = a1 - a0;
+  if (sweep <= 0.001) return "M0 0";
+  if (sweep > 359.999) sweep = 359.999;
+  const b1 = a0 + sweep, big = sweep > 180 ? 1 : 0;
+  const [x0,y0] = polar(cx,cy,r1,a0), [x1,y1] = polar(cx,cy,r1,b1);
+  return "M"+x0.toFixed(2)+" "+y0.toFixed(2)+" A"+r1+" "+r1+" 0 "+big+" 1 "+x1.toFixed(2)+" "+y1.toFixed(2);
+}
+function niceMax(v){
+  if (v <= 0) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(v)));
+  const m = v / e;
+  const s = m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10;
+  return s * e;
+}
+function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+
+/* =========================================================================
+   3. الهندسة
+   ========================================================================= */
+const CX = 300, CY = 356, HUB = 84, RMAX = 286;
+const RADII = {
+  3: [[94,144],[151,220],[227,286]],
+  2: [[96,166],[174,272]],
+  1: [[100,238]]
+};
+const MIN_ANGLE = 14;    // الحد الأدنى المعلن لزوايا الشرائح الدقيقة
+const GAP = 0.5;
+
+/* توزيع زوايا بحد أدنى معلن للشرائح الصغيرة */
+function allocate(values){
+  const tot = values.reduce((a,b)=>a+b,0);
+  const n = values.length;
+  if (tot <= 0) return { spans: values.map(()=>0), minned: [], truth: [] };
+  const raw = values.map(v => v / tot * 360);
+  const minned = [];
+  let reserved = 0, rest = 0;
+  raw.forEach((a,i) => {
+    if (values[i] > 0 && a < MIN_ANGLE && n <= 6){ minned.push(i); reserved += MIN_ANGLE; }
+    else rest += a;
+  });
+  let spans;
+  if (minned.length === 0 || reserved >= 340){
+    spans = raw.slice();
+  } else {
+    const scale = (360 - reserved) / (rest || 1);
+    spans = raw.map((a,i) => minned.indexOf(i) >= 0 ? MIN_ANGLE : a * scale);
+  }
+  // حدود النسبة الحقيقية (للعلامات الصادقة)
+  const truth = []; let acc = 0;
+  raw.forEach(a => { acc += a; truth.push(acc); });
+  return { spans, minned, truth, raw };
+}
+
+/* =========================================================================
+   4. الحالة
+   ========================================================================= */
+const state = {
+  rootId: "root",       // root | v:<kind> | g:<id> | h:<gid>:<hour>
+  verdictFilter: "all",
+  operator: null,
+  showHours: true,
+  hoverKey: null,
+  focusKey: null,
+  sort: "reviews"
+};
+
+/* فك معرّف الجذر إلى نطاق */
+function scopeOf(id){
+  if (id === "root") return { kind:"root", gate:null, verdict:null, hour:null, name:"كل البوابات", short:"الكل" };
+  if (id.startsWith("v:")){
+    const k = id.slice(2);
+    return { kind:"verdict", gate:null, verdict:k, hour:null, name:"النتيجة: " + VLAB[k], short:VLAB[k], vk:k };
+  }
+  if (id.startsWith("g:")){
+    const g = GBY[id.slice(2)];
+    return { kind:"gate", gate:g.id, verdict:null, hour:null, name:g.name, short:SHORT[g.id], g:g };
+  }
+  const p = id.slice(2).split(":");
+  const g = GBY[p[0]], h = +p[1];
+  return { kind:"hour", gate:g.id, verdict:null, hour:h, name:g.name + " · " + pad2(h) + ":00", short:pad2(h)+":00", g:g, h:h };
+}
+function trailOf(id){
+  const out = [{ id:"root", label:"الكل" }];
+  if (id === "root") return out;
+  const sc = scopeOf(id);
+  if (sc.kind === "verdict") out.push({ id:id, label:VLAB[sc.vk] });
+  if (sc.kind === "gate")    out.push({ id:id, label:sc.g.name });
+  if (sc.kind === "hour"){
+    out.push({ id:"g:"+sc.g.id, label:sc.g.name });
+    out.push({ id:id, label:pad2(sc.h)+":00" });
+  }
+  return out;
+}
+function parentOf(id){
+  if (id === "root") return null;
+  if (id.startsWith("h:")) return "g:" + id.slice(2).split(":")[0];
+  return "root";
+}
+
+/* =========================================================================
+   5. تخطيط المدار
+   ========================================================================= */
+/* كل قوس: { key, id, ring, a0, a1, r0, r1, label, tone, node } */
+function layout(){
+  const rootId = state.rootId, sc = scopeOf(rootId);
+  let rings = [];      // كل حلقة: { name, items:[{key,id,value,label,tone,parentKey}] }
+  let minnedNote = null;
+  let derived = false;
+
+  const verdictRing = (vals, ctx, note) => {
+    const a = allocate(VORDER.map(k => vals[k]));
+    const items = [];
+    let cur = 0;
+    VORDER.forEach((k,i) => {
+      const s = a.spans[i];
+      items.push({
+        key: "v:"+k+"@"+ctx, id: "v:"+k, value: vals[k], label: VLAB[k],
+        tone: k, a0: cur, a1: cur + s, parentKey: null,
+        navId: ctx === "root" ? "v:"+k : null
+      });
+      cur += s;
+    });
+    if (a.minned.length) minnedNote = { truth: a.truth, raw: a.raw, vals: vals, tot: VORDER.reduce((s,k)=>s+vals[k],0) };
+    return { name: note || "حسب النتيجة", items: items, kind:"verdict" };
+  };
+
+  const gateRing = (vk) => {
+    const vals = ACTIVE.map(g => vk ? (vk === "clean" ? g.total - g.wanted - g.unread : g[vk]) : g.total);
+    const tot = vals.reduce((a,b)=>a+b,0);
+    const items = []; let cur = 0;
+    ACTIVE.forEach((g,i) => {
+      const s = tot > 0 ? vals[i]/tot*360 : 0;
+      items.push({
+        key: "g:"+g.id+"@"+(vk||"all"), id: "g:"+g.id, value: vals[i], label: SHORT[g.id], full: g.name,
+        tone: vk === "wanted" ? "wanted-edge" : vk === "unread" ? "unread-edge" : "glass",
+        a0: cur, a1: cur + s, parentKey: null, gate: g, navId: "g:"+g.id,
+        wantedCount: vk ? 0 : g.wanted, degraded: g.status === "degraded"
+      });
+      cur += s;
+    });
+    return { name:"حسب البوابة", items: items, kind:"gate" };
+  };
+
+  const hourRing = (parents, shape, vk) => {
+    const items = [];
+    const shsum = shape.reduce((a,b)=>a+b,0) || 1;
+    parents.forEach(p => {
+      const span = p.a1 - p.a0;
+      let cur = p.a0;
+      for (let h = 0; h < 24; h++){
+        const frac = shape[h] / shsum;
+        const s = span * frac;
+        if (s > 0.0005){
+          items.push({
+            key: "h:"+p.gate.id+":"+h+"@"+(vk||"all"), id: "h:"+p.gate.id+":"+h,
+            value: Math.round(p.value * frac), label: pad2(h),
+            full: p.gate.name + " · " + pad2(h) + ":00",
+            tone: vk === "wanted" ? "wanted-edge" : vk === "unread" ? "unread-edge" : "glass",
+            a0: cur, a1: cur + s, parentKey: p.key, gate: p.gate, hour: h,
+            navId: "h:"+p.gate.id+":"+h, isNum: true
+          });
+        }
+        cur += s;
+      }
+    });
+    derived = true;
+    return { name:"حسب الساعة", items: items, kind:"hour" };
+  };
+
+  if (sc.kind === "root"){
+    rings.push(verdictRing({ wanted:KPI.wanted.v, unread:KPI.unread.v, clean:KPI.clean.v }, "root"));
+    const gr = gateRing(null);
+    rings.push(gr);
+    if (state.showHours) rings.push(hourRing(gr.items, HOURLY.total, null));
+  }
+  else if (sc.kind === "verdict"){
+    const gr = gateRing(sc.vk);
+    rings.push(gr);
+    const shape = sc.vk === "clean" ? HCLEAN : HOURLY[sc.vk];
+    if (state.showHours) rings.push(hourRing(gr.items, shape, sc.vk));
+  }
+  else if (sc.kind === "gate"){
+    const g = sc.g;
+    rings.push(verdictRing({ wanted:g.wanted, unread:g.unread, clean:g.total-g.wanted-g.unread }, "g:"+g.id));
+    if (state.showHours){
+      const fake = [{ key:"__g", value:g.total, a0:0, a1:360, gate:g }];
+      rings.push(hourRing(fake, HOURLY.total, null));
+      rings[1].items.forEach(it => it.parentKey = null);
+    }
+  }
+  else { // hour — حلقة نتيجة مشتقة + حلقة ساعات شقيقة للتنقّل الجانبي
+    const g = sc.g, h = sc.h;
+    const w = Math.round(HOURLY.wanted[h] * g.wanted / (KPI.wanted.v || 1));
+    const u = Math.round(HOURLY.unread[h] * g.unread / (KPI.unread.v || 1));
+    const t = Math.round(HOURLY.total[h] * g.total / GRAND);
+    rings.push(verdictRing({ wanted:w, unread:u, clean:Math.max(0, t-w-u) }, "h:"+g.id+":"+h, "حسب النتيجة (مشتقة)"));
+    const sib = [{ key:"__g", value:g.total, a0:0, a1:360, gate:g }];
+    rings.push(hourRing(sib, HOURLY.total, null));
+    rings[1].name = "ساعات " + SHORT[g.id] + " — للتنقّل";
+    rings[1].items.forEach(it => it.parentKey = null);
+    derived = true;
+  }
+
+  const R = RADII[rings.length] || RADII[3];
+  const arcs = [];
+  rings.forEach((ring, ri) => {
+    ring.items.forEach(it => {
+      arcs.push(Object.assign({}, it, { ring: ri, r0: R[ri][0], r1: R[ri][1] }));
+    });
+  });
+
+  return { arcs, rings, minnedNote, derived, rootId };
+}
+
+/* =========================================================================
+   6. رسم المدار
+   ========================================================================= */
+const sun = $("#sun");
+let gArcs, gEdges, gLabels, gAnno, gHub;
+let CURRENT = null;
+let prevGeom = new Map();
+let rafId = null, finishTimer = null;
+
+function initSvg(){
+  sun.textContent = "";
+  gArcs   = el("g", { class:"arcs" });
+  gEdges  = el("g", { class:"edges" });
+  gLabels = el("g", { class:"labels" });
+  gAnno   = el("g", { class:"anno" });
+  gHub    = el("g", { class:"hub", tabindex:"0", role:"button" });
+  sun.appendChild(gArcs); sun.appendChild(gEdges);
+  sun.appendChild(gLabels); sun.appendChild(gAnno); sun.appendChild(gHub);
+
+  gHub.appendChild(el("circle", { class:"disc", cx:CX, cy:CY, r:HUB }));
+  gHub.appendChild(el("text",   { class:"hubc",    x:CX, y:CY-30, "text-anchor":"middle" }));
+  gHub.appendChild(el("text",   { class:"hubv",    x:CX, y:CY+4,  "text-anchor":"middle" }));
+  gHub.appendChild(el("text",   { class:"hubl",    x:CX, y:CY+26, "text-anchor":"middle" }));
+  gHub.appendChild(el("text",   { class:"hubback", x:CX, y:CY+48, "text-anchor":"middle" }));
+
+  gHub.addEventListener("click", goUp);
+  gHub.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar"){ e.preventDefault(); goUp(); }
+  });
+  sun.addEventListener("keydown", onSunKey);
+  sun.addEventListener("mouseleave", () => { state.hoverKey = null; applyHighlight(); paintInspector(null); });
+}
+
+function drawOrbit(animate){
+  const view = layout();
+  const before = prevGeom;
+  CURRENT = view;
+
+  gArcs.textContent = ""; gEdges.textContent = ""; gLabels.textContent = ""; gAnno.textContent = "";
+
+  const sel = state.rootId;
+
+  view.arcs.forEach(a => {
+    const g = Math.min(GAP, (a.a1 - a.a0) * 0.28);
+    a.da0 = a.a0 + g/2; a.da1 = a.a1 - g/2;
+
+    const cls = ["arc", "r" + (a.ring + 1)];
+    if (a.tone === "wanted") cls.push("wanted");
+    else if (a.tone === "unread") cls.push("unread");
+    if (!a.navId) cls.push("nonav");
+    if (a.id === sel) cls.push("sel");
+
+    const p = el("path", {
+      class: cls.join(" "),
+      d: arcPath(CX, CY, a.r0, a.r1, a.da0, a.da1),
+      tabindex: "-1", role: a.navId ? "button" : "img",
+      "aria-label": (a.full || a.label) + " — " + fmt(a.value) + " عملية"
+        + (a.id === sel ? " — النطاق الحالي" : "")
+    });
+    p.dataset.key = a.key;
+    p.dataset.nav = a.navId || "";
+    a.node = p;
+    gArcs.appendChild(p);
+
+    // حافة خارجية أفتح للحلقتين الداخليتين
+    if (a.ring < 2){
+      const ecls = ["arcedge"];
+      if (a.tone === "wanted" || a.tone === "wanted-edge") ecls.push("wanted");
+      if (a.tone === "unread" || a.tone === "unread-edge") ecls.push("unread");
+      if (a.degraded) ecls.push("dashed");
+      const e = el("path", { class: ecls.join(" "), d: edgePath(CX, CY, a.r1, a.da0, a.da1) });
+      a.edge = e;
+      gEdges.appendChild(e);
+    }
+
+    // علامة حمراء رفيعة: بالبوابة مركبات مطلوبة
+    if (a.wantedCount > 0){
+      const [tx0,ty0] = polar(CX,CY,a.r1-3,a.da0+0.8);
+      const [tx1,ty1] = polar(CX,CY,a.r0+3,a.da0+0.8);
+      const t = el("line", { class:"wtick", x1:tx0.toFixed(2), y1:ty0.toFixed(2), x2:tx1.toFixed(2), y2:ty1.toFixed(2) });
+      a.tick = t;
+      gEdges.appendChild(t);
+    }
+  });
+
+  drawLabels(view);
+  drawAnnotation(view);
+  paintHub(view);
+  applyHighlight();
+
+  // تحديث دوران التركيز
+  const first = view.arcs[0];
+  if (first) first.node.setAttribute("tabindex", "0");
+  state.focusKey = first ? first.key : null;
+
+  const geom = new Map();
+  view.arcs.forEach(a => geom.set(a.key, { a0:a.da0, a1:a.da1, r0:a.r0, r1:a.r1 }));
+
+  if (animate && !REDUCED && !document.hidden) tween(view, before);
+  prevGeom = geom;
+}
+
+function drawLabels(view){
+  view.arcs.forEach(a => {
+    const mid = (a.da0 + a.da1) / 2;
+    const sweep = a.da1 - a.da0;
+    const rm = (a.r0 + a.r1) / 2;
+    const arcLen = sweep * Math.PI / 180 * rm;
+    const needed = a.isNum ? 22 : (a.label.length * 6.1 + 8);
+    if (arcLen < needed || sweep < 5) return;
+    let rot = mid;
+    if (mid > 90 && mid < 270) rot = mid + 180;
+    const [x,y] = polar(CX, CY, rm, mid);
+    const t = el("text", {
+      class: "arclab" + (a.isNum ? " n" : ""),
+      x: 0, y: 3.4, "text-anchor":"middle",
+      transform: "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ") rotate(" + rot.toFixed(2) + ")"
+    }, a.label);
+    gLabels.appendChild(t);
+  });
+}
+
+function drawAnnotation(view){
+  const mn = view.minnedNote;
+  if (!mn) return;
+  const r1 = view.arcs[0].r1;
+
+  // خطوط النسبة الحقيقية على حافة الحلقة الأولى
+  mn.truth.slice(0, 2).forEach(deg => {
+    const [x0,y0] = polar(CX, CY, view.arcs[0].r0, deg);
+    const [x1,y1] = polar(CX, CY, r1 + 5, deg);
+    gAnno.appendChild(el("line", { class:"truetick", x1:x0.toFixed(2), y1:y0.toFixed(2), x2:x1.toFixed(2), y2:y1.toFixed(2) }));
+  });
+
+  const anchor = MIN_ANGLE;                 // بين القوسين المصغّرين
+  const [lx0,ly0] = polar(CX, CY, r1, anchor);
+  const [lx1,ly1] = polar(CX, CY, RMAX + 16, anchor);
+  gAnno.appendChild(el("path", { class:"leader",
+    d: "M"+lx0.toFixed(1)+" "+ly0.toFixed(1)+" L"+lx1.toFixed(1)+" "+ly1.toFixed(1)+" L475 62" }));
+
+  gAnno.appendChild(el("text", { class:"note", x:560, y:58, "text-anchor":"middle" }, "حد أدنى للزوايا الصغيرة"));
+  const pw = (mn.vals.wanted / mn.tot * 100), pu = (mn.vals.unread / mn.tot * 100);
+  // النسب تُبنى بـ tspan معزول: نصّ عربي يحيط بأرقام غربية داخل SVG (المواصفة §8)
+  const t2 = el("text", { class:"note dimmer", x:560, y:75, "text-anchor":"middle" });
+  const seg = (s, iso) => t2.appendChild(el("tspan", iso ? { style:"unicode-bidi:isolate" } : null, s));
+  seg("المطلوب ");            seg(pw.toFixed(2) + "٪", true);
+  seg(" · غير المقروء ");     seg(pu.toFixed(2) + "٪", true);
+  seg(" — القوسان مكبَّران للرؤية");
+  gAnno.appendChild(t2);
+  gAnno.appendChild(el("text", { class:"note dimmer", x:560, y:90, "text-anchor":"middle" },
+    "الخط المتقطع = موضع الحد الحقيقي"));
+}
+
+function paintHub(view){
+  const sc = scopeOf(view.rootId);
+  const st = statsFor(view.rootId);
+  const trail = trailOf(view.rootId);
+  const tx = gHub.querySelectorAll("text");
+  // مسار المركز يخلط عربية بأرقام ("… · 08:00") — كل جزء رقمي يُعزل بـ tspan (المواصفة §8)
+  tx[0].textContent = "";
+  if (trail.length > 1){
+    trail.forEach((t, i) => {
+      if (i) tx[0].appendChild(el("tspan", null, "  ·  "));
+      const digity = /[0-9]/.test(t.label);
+      tx[0].appendChild(el("tspan", digity ? { style:"unicode-bidi:isolate" } : null, t.label));
+    });
+  }
+  tx[1].textContent = fmt(st.total);
+  tx[2].textContent = "عملية مسح";
+  tx[3].textContent = view.rootId === "root" ? "" : "اضغط للعودة لأعلى";
+  gHub.setAttribute("aria-disabled", view.rootId === "root" ? "true" : "false");
+  gHub.setAttribute("aria-label", view.rootId === "root"
+    ? "المركز: إجمالي عمليات المسح " + fmt(st.total)
+    : "العودة إلى " + trail[trail.length-2].label);
+}
+
+/* الانتقال المتحرك بين التخطيطات */
+function tween(view, before){
+  if (rafId) cancelAnimationFrame(rafId);
+  if (finishTimer) clearTimeout(finishTimer);
+  const isEntrance = before.size === 0;
+  const DUR = isEntrance ? 700 : 460;
+  const STAG = isEntrance ? 150 : 70;
+  const t0 = performance.now();
+
+  view.arcs.forEach(a => {
+    const b = before.get(a.key);
+    a.from = b ? b : { a0:a.da0, a1:a.da0, r0:a.r0, r1:a.r1 };
+  });
+
+  const step = now => {
+    let done = true;
+    view.arcs.forEach(a => {
+      const d = clamp((now - t0 - a.ring * STAG) / DUR, 0, 1);
+      if (d < 1) done = false;
+      const k = easeOut(d);
+      const a0 = a.from.a0 + (a.da0 - a.from.a0) * k;
+      const a1 = a.from.a1 + (a.da1 - a.from.a1) * k;
+      const r0 = a.from.r0 + (a.r0 - a.from.r0) * k;
+      const r1 = a.from.r1 + (a.r1 - a.from.r1) * k;
+      a.node.setAttribute("d", arcPath(CX, CY, r0, r1, a0, a1));
+      if (a.edge) a.edge.setAttribute("d", edgePath(CX, CY, r1, a0, a1));
+      if (a.tick) a.tick.setAttribute("opacity", k);
+    });
+    gLabels.setAttribute("opacity", clamp((now - t0 - DUR*0.45) / 320, 0, 1));
+    if (!done) rafId = requestAnimationFrame(step); else finalize(view);
+  };
+  gLabels.setAttribute("opacity", 0);
+  rafId = requestAnimationFrame(step);
+  finishTimer = setTimeout(() => finalize(view), DUR + STAG*3 + 900);
+}
+function finalize(view){
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  view.arcs.forEach(a => {
+    a.node.setAttribute("d", arcPath(CX, CY, a.r0, a.r1, a.da0, a.da1));
+    if (a.edge) a.edge.setAttribute("d", edgePath(CX, CY, a.r1, a.da0, a.da1));
+    if (a.tick) a.tick.setAttribute("opacity", 1);
+  });
+  gLabels.setAttribute("opacity", 1);
+}
+
+/* السلالة الشعاعية */
+function lineageKeys(key){
+  if (!key || !CURRENT) return null;
+  const byKey = new Map(CURRENT.arcs.map(a => [a.key, a]));
+  const set = new Set([key]);
+  let cur = byKey.get(key);
+  while (cur && cur.parentKey){ set.add(cur.parentKey); cur = byKey.get(cur.parentKey); }
+  const push = k => { CURRENT.arcs.forEach(a => { if (a.parentKey === k && !set.has(a.key)){ set.add(a.key); push(a.key); } }); };
+  push(key);
+  return set;
+}
+function applyHighlight(){
+  if (!CURRENT) return;
+  const lin = lineageKeys(state.hoverKey);
+  CURRENT.arcs.forEach(a => {
+    a.node.classList.toggle("dim", !!lin && !lin.has(a.key));
+    a.node.classList.toggle("lin", !!lin && lin.has(a.key));
+    if (a.edge) a.edge.setAttribute("opacity", (!lin || lin.has(a.key)) ? 1 : .18);
+  });
+}
+
+/* قارئ المدار */
+function paintInspector(key){
+  const n = $("#iName"), tr = $("#iTrail"), v = $("#iVal"), s = $("#iShare");
+  if (!key || !CURRENT){
+    n.textContent = "مرّر فوق أي قوس";
+    tr.textContent = "الاسم والحجم والنسبة والسلالة تظهر هنا";
+    v.textContent = "—"; s.innerHTML = "&nbsp;";
+    return;
+  }
+  const a = CURRENT.arcs.find(x => x.key === key);
+  if (!a) return;
+  const rootTotal = statsFor(state.rootId).total || 1;
+  n.textContent = a.full || a.label;
+  const parts = trailOf(state.rootId).map(t => t.label);
+  if (a.parentKey){
+    const p = CURRENT.arcs.find(x => x.key === a.parentKey);
+    if (p) parts.push(p.full || p.label);
+  }
+  parts.push(a.full || a.label);
+  tr.textContent = parts.join("  ·  ");
+  v.textContent = fmt(a.value);
+  const share = a.value / rootTotal * 100;
+  s.textContent = (share < 0.01 ? "<0.01" : share.toFixed(share < 1 ? 2 : 1)) + "٪ من النطاق";
+}
+
+/* تفاعل الأقواس */
+sun.addEventListener("mouseover", e => {
+  const p = e.target.closest("path.arc"); if (!p) return;
+  state.hoverKey = p.dataset.key; applyHighlight(); paintInspector(state.hoverKey);
+});
+sun.addEventListener("click", e => {
+  const p = e.target.closest("path.arc"); if (!p) return;
+  const nav = p.dataset.nav;
+  if (nav) setRoot(nav);
+});
+sun.addEventListener("focusin", e => {
+  const p = e.target.closest("path.arc"); if (!p) return;
+  state.hoverKey = p.dataset.key; applyHighlight(); paintInspector(state.hoverKey);
+});
+
+function onSunKey(e){
+  const p = document.activeElement && document.activeElement.closest ? document.activeElement.closest("path.arc") : null;
+  if (!p){
+    if ((e.key === "Enter" || e.key === " ") && document.activeElement === gHub) return;
+    return;
+  }
+  const arcs = CURRENT.arcs;
+  const a = arcs.find(x => x.key === p.dataset.key);
+  if (!a) return;
+  const ringArcs = arcs.filter(x => x.ring === a.ring);
+  const i = ringArcs.indexOf(a);
+  let target = null;
+  if (e.key === "ArrowLeft")        target = ringArcs[(i + 1) % ringArcs.length];
+  else if (e.key === "ArrowRight")  target = ringArcs[(i - 1 + ringArcs.length) % ringArcs.length];
+  else if (e.key === "ArrowDown"){
+    const kids = arcs.filter(x => x.parentKey === a.key);
+    target = kids.length ? kids[Math.floor(kids.length/2)] : arcs.filter(x => x.ring === a.ring + 1)[0];
+  }
+  else if (e.key === "ArrowUp"){
+    if (a.parentKey) target = arcs.find(x => x.key === a.parentKey);
+    else if (a.ring > 0) target = arcs.filter(x => x.ring === a.ring - 1)[0];
+    else { e.preventDefault(); gHub.focus(); return; }
+  }
+  else if (e.key === "Enter" || e.key === " " || e.key === "Spacebar"){
+    e.preventDefault(); if (a.navId) setRoot(a.navId); return;
+  }
+  else if (e.key === "Escape" || e.key === "Backspace"){ e.preventDefault(); goUp(); return; }
+  else return;
+
+  if (target){
+    e.preventDefault();
+    arcs.forEach(x => x.node.setAttribute("tabindex", "-1"));
+    target.node.setAttribute("tabindex", "0");
+    target.node.focus();
+    state.focusKey = target.key;
+  }
+}
+
+/* =========================================================================
+   7. إحصاءات النطاق
+   ========================================================================= */
+function statsFor(id){
+  const sc = scopeOf(id);
+  if (sc.kind === "root"){
+    return { total:KPI.total.v, wanted:KPI.wanted.v, clean:KPI.clean.v, unread:KPI.unread.v,
+             ms:KPI.latency.v, gates:KPI.gates.v, of:KPI.gates.of, deltas:true, derived:false, note:null };
+  }
+  if (sc.kind === "verdict"){
+    const k = sc.vk;
+    const v = k === "wanted" ? KPI.wanted.v : k === "unread" ? KPI.unread.v : KPI.clean.v;
+    return { total:v,
+             wanted: k === "wanted" ? v : 0,
+             clean:  k === "clean"  ? v : 0,
+             unread: k === "unread" ? v : 0,
+             ms:null, gates:KPI.gates.v, of:KPI.gates.of, deltas:false, derived:false,
+             note:"النطاق نتيجة واحدة، لذا تنطفئ بقية صفوف النتائج." };
+  }
+  if (sc.kind === "gate"){
+    const g = sc.g;
+    return { total:g.total, wanted:g.wanted, unread:g.unread, clean:g.total-g.wanted-g.unread,
+             ms:g.ms, gates:1, of:KPI.gates.of, deltas:false, derived:false,
+             gateStatus:STATUS[g.status],
+             note:"المؤشرات المقارنة متاحة على مستوى النظام فقط." };
+  }
+  const g = sc.g, h = sc.h;
+  const t = Math.round(HOURLY.total[h] * g.total / GRAND);
+  return { total:t, wanted:null, unread:null, clean:null, ms:g.ms, gates:1, of:KPI.gates.of,
+           deltas:false, derived:true, gateStatus:STATUS[g.status],
+           note:"حجم الساعة لبوابة بعينها مشتق من المنحنى العام × حصة البوابة؛ تفصيل النتائج غير متاح على هذا المستوى." };
+}
+
+/* السلسلة الزمنية للنطاق */
+function seriesFor(id){
+  const sc = scopeOf(id);
+  if (sc.kind === "root")
+    return { total:HOURLY.total.slice(), wanted:HOURLY.wanted.slice(), unread:HOURLY.unread.slice(),
+             derived:false, mark:null, label:"كل البوابات" };
+  if (sc.kind === "verdict"){
+    const k = sc.vk;
+    const t = k === "clean" ? HCLEAN.slice() : HOURLY[k].slice();
+    return { total:t,
+             wanted: k === "wanted" ? HOURLY.wanted.slice() : new Array(24).fill(0),
+             unread: k === "unread" ? HOURLY.unread.slice() : new Array(24).fill(0),
+             derived:false, mark:null, label:"النتيجة: " + VLAB[k] };
+  }
+  const g = sc.g;
+  const t = HOURLY.total.map(v => Math.round(v * g.total / GRAND));
+  const w = HOURLY.wanted.map(v => v * g.wanted / (KPI.wanted.v || 1));
+  const u = HOURLY.unread.map(v => v * g.unread / (KPI.unread.v || 1));
+  return { total:t, wanted:w, unread:u, derived:true,
+           mark: sc.kind === "hour" ? sc.h : null, label:g.name };
+}
+
+/* =========================================================================
+   8. عمود القراءة
+   ========================================================================= */
+const TRI_UP   = '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 1.5 7 6.5H1z"/></svg>';
+const TRI_DOWN = '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6.5 1 1.5h6z"/></svg>';
+/* أيقونة إزالة: SVG مضمّن بدلًا من محرف نصي (المواصفة §9: لا رموز/إيموجي كواجهة) */
+const ICON_X   = '<svg class="ix" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 2 8 8M8 2 2 8"/></svg>';
+
+function renderScope(){
+  const sc = scopeOf(state.rootId), st = statsFor(state.rootId);
+  $("#scopeName").textContent = sc.name;
+  $("#scopeSub").textContent = sc.kind === "root"
+    ? "الدفتر والمنحنى والأحداث كلها على مستوى النظام"
+    : "الدفتر والمنحنى والأحداث مقيّدة بهذا القوس" + (st.gateStatus ? " · الحالة: " + st.gateStatus : "");
+
+  const trail = trailOf(state.rootId);
+  const c = $("#crumbs"); c.textContent = "";
+  trail.forEach((t, i) => {
+    if (i){ const s = document.createElement("span"); s.className = "crumbsep"; s.textContent = "·"; c.appendChild(s); }
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "crumb"; b.textContent = t.label;
+    if (i === trail.length - 1) b.setAttribute("aria-current", "true");
+    b.addEventListener("click", () => setRoot(t.id));
+    c.appendChild(b);
+  });
+  $("#btnUp").disabled = state.rootId === "root";
+  $("#btnReset").disabled = state.rootId === "root" && state.verdictFilter === "all" && !state.operator;
+}
+
+function renderLedger(){
+  const st = statsFor(state.rootId);
+  const tot = st.total || 1;
+  const rows = [
+    { lab:KPI.total.label,   v:st.total,  d:st.deltas ? KPI.total.delta  : null, sw:"glass" },
+    { lab:KPI.wanted.label,  v:st.wanted, d:st.deltas ? KPI.wanted.delta : null, sw:"wanted", share:true },
+    { lab:KPI.clean.label,   v:st.clean,  d:st.deltas ? KPI.clean.delta  : null, sw:"clean",  share:true },
+    { lab:KPI.unread.label,  v:st.unread, d:st.deltas ? KPI.unread.delta : null, sw:"unread", share:true },
+    { lab:KPI.latency.label, v:st.ms,     d:st.deltas ? KPI.latency.delta: null, sw:"glass", unit:KPI.latency.unit },
+    { lab:KPI.gates.label,   v:st.gates,  d:null, sw:"glass", of:st.of }
+  ];
+  let html = "";
+  rows.forEach(r => {
+    const has = r.v !== null && r.v !== undefined;
+    const valTxt = has ? fmt(r.v) : "—";
+    const share = (r.share && has && r.v > 0) ? " <span class=\"k num\" style=\"margin-inline-start:6px\">" +
+      (r.v / tot * 100).toFixed(r.v / tot * 100 < 1 ? 2 : 1) + "٪</span>" : "";
+    let delta = "";
+    if (r.d !== null && r.d !== undefined){
+      delta = "<span class=\"delta\">" + (r.d >= 0 ? TRI_UP : TRI_DOWN) +
+              "<span class=\"num\">" + Math.abs(r.d).toFixed(1) + "٪</span></span>";
+    } else {
+      delta = "<span class=\"delta\">—</span>";
+    }
+    html += "<div class=\"lrow\">" +
+      "<span class=\"lab\"><i class=\"swatch sw-" + r.sw + "\"></i>" + r.lab + "</span>" +
+      "<span class=\"leader\"></span>" +
+      "<span class=\"val" + (has ? "" : " small") + "\"><span class=\"num\" data-count=\"" + (has ? r.v : "") + "\">" + valTxt + "</span>" +
+        (r.of ? "<span class=\"unit\"> من <span class=\"num\">" + r.of + "</span></span>" : "") +
+        (r.unit ? "<span class=\"unit\">" + r.unit + "</span>" : "") + share + "</span>" +
+      delta + "</div>";
+  });
+  $("#ledger").innerHTML = html;
+  const note = [];
+  if (st.note) note.push(st.note);
+  if (state.rootId === "root") note.push("النسب المئوية محسوبة من إجمالي النطاق الحالي.");
+  $("#ledgerNote").textContent = note.join(" ");
+  countUp($("#ledger"));
+}
+
+function countUp(scopeEl){
+  if (REDUCED || document.hidden) return;
+  const nodes = scopeEl.querySelectorAll("[data-count]");
+  nodes.forEach(n => {
+    const to = parseFloat(n.dataset.count);
+    if (!isFinite(to) || to === 0) return;
+    const t0 = performance.now(), D = 620;
+    const step = now => {
+      // لو خُبِّئ التبويب أثناء العدّ، rAF يتوقف والرقم يتجمّد — نقفز للقيمة النهائية
+      if (document.hidden){ n.textContent = fmt(to); return; }
+      const k = easeOut(clamp((now - t0) / D, 0, 1));
+      n.textContent = fmt(Math.round(to * k));
+      if (k < 1) requestAnimationFrame(step); else n.textContent = fmt(to);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+/* ---- المخطط: لوحتان فوق بعضهما تتشاركان محور الساعات ---- */
+function renderChart(){
+  const s = seriesFor(state.rootId);
+  const svg = $("#chart");
+  svg.textContent = "";
+  $("#serDerived").hidden = !s.derived;
+  $("#serScope").textContent = s.label + (s.mark !== null ? " · الساعة " + pad2(s.mark) : "");
+
+  const W = 520, PAD_S = 12, PAD_E = 42;          // بداية/نهاية بالمعنى البصري LTR
+  const TOP_Y = 12, TOP_H = 118, BOT_Y = 162, BOT_H = 62, AX_Y = 244;
+  const plotW = W - PAD_S - PAD_E;
+  // الساعة 0 عند اليمين (اتجاه القراءة العربي)
+  const X = i => W - PAD_E - (i / 23) * plotW;
+
+  const maxT = niceMax(Math.max.apply(null, s.total));
+  const maxB = niceMax(Math.max(1, Math.max.apply(null, s.wanted), Math.max.apply(null, s.unread)));
+
+  // شبكة اللوحة العليا
+  [0, .5, 1].forEach(f => {
+    const y = TOP_Y + TOP_H - f * TOP_H;
+    svg.appendChild(el("line", { class:"gridline", x1:PAD_S, y1:y, x2:W-PAD_E, y2:y }));
+    svg.appendChild(el("text", { class:"plotlabel", x:W-PAD_E+6, y:y+3.5, "text-anchor":"start",
+      style:"direction:ltr;unicode-bidi:isolate" }, fmt(Math.round(maxT*f))));
+  });
+  // النصوص العربية داخل SVG ترث direction:rtl، لذا "end" هو ما يثبّتها عند الحافة اليسرى بصريًا
+  svg.appendChild(el("text", { class:"plotlabel", x:PAD_S, y:TOP_Y-1, "text-anchor":"end" }, "حجم المسح / ساعة"));
+
+  // المساحة والخط
+  let dLine = "", dArea = "";
+  s.total.forEach((v, i) => {
+    const x = X(i), y = TOP_Y + TOP_H - (v / maxT) * TOP_H;
+    dLine += (i ? " L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+  });
+  dArea = dLine + " L" + X(23).toFixed(1) + " " + (TOP_Y+TOP_H) + " L" + X(0).toFixed(1) + " " + (TOP_Y+TOP_H) + " Z";
+  svg.appendChild(el("path", { class:"areafill", d:dArea }));
+  const line = el("path", { class:"arealine", d:dLine });
+  svg.appendChild(line);
+
+  // علامة الساعة المختارة
+  if (s.mark !== null){
+    const x = X(s.mark);
+    svg.appendChild(el("line", { class:"truetick", x1:x, y1:TOP_Y, x2:x, y2:BOT_Y+BOT_H }));
+    const y = TOP_Y + TOP_H - (s.total[s.mark] / maxT) * TOP_H;
+    svg.appendChild(el("circle", { class:"hourmark", cx:x, cy:y, r:4 }));
+  }
+
+  // اللوحة السفلى
+  svg.appendChild(el("line", { class:"gridline", x1:PAD_S, y1:BOT_Y+BOT_H, x2:W-PAD_E, y2:BOT_Y+BOT_H }));
+  svg.appendChild(el("text", { class:"plotlabel", x:W-PAD_E+6, y:BOT_Y+4, "text-anchor":"start",
+    style:"direction:ltr;unicode-bidi:isolate" }, fmt(maxB)));
+  svg.appendChild(el("text", { class:"plotlabel", x:PAD_S, y:BOT_Y-3, "text-anchor":"end" }, "مطلوب · غير مقروء / ساعة"));
+
+  const step = plotW / 23;
+  const bw = Math.min(8, Math.max(3, step/2 - 1.5));
+  const bars = [];
+  for (let i = 0; i < 24; i++){
+    const xc = X(i);
+    [["w", s.wanted[i]], ["u", s.unread[i]]].forEach((pair, j) => {
+      const v = pair[1];
+      if (!v) return;
+      const h = Math.max(1.5, (v / maxB) * BOT_H);
+      const x = xc - (j === 0 ? bw + 1 : -1);
+      const r = el("rect", { class:"bar " + pair[0], x:x.toFixed(1), width:bw.toFixed(1),
+        y:(BOT_Y+BOT_H), height:0, rx:1.5 });
+      svg.appendChild(r);
+      bars.push([r, BOT_Y + BOT_H - h, h]);
+    });
+  }
+
+  // المحور المشترك
+  const ax = el("g", { class:"axis" });
+  ax.appendChild(el("line", { x1:PAD_S, y1:AX_Y-16, x2:W-PAD_E, y2:AX_Y-16 }));
+  [0,4,8,12,16,20,23].forEach(i => {
+    ax.appendChild(el("text", { x:X(i), y:AX_Y-4, "text-anchor":"middle" }, pad2(i)));
+  });
+  ax.appendChild(el("text", { x:PAD_S, y:AX_Y+10, "text-anchor":"end",
+    style:"direction:rtl", class:"plotlabel" }, "الساعة — من 00 يمينًا إلى 23 يسارًا"));
+  svg.appendChild(ax);
+
+  if (!REDUCED && !document.hidden){
+    const len = line.getTotalLength ? line.getTotalLength() : 0;
+    if (len){
+      line.style.strokeDasharray = len; line.style.strokeDashoffset = len;
+      requestAnimationFrame(() => {
+        line.style.transition = "stroke-dashoffset .8s cubic-bezier(.22,.61,.36,1)";
+        line.style.strokeDashoffset = 0;
+      });
+    }
+    requestAnimationFrame(() => bars.forEach(b => { b[0].setAttribute("y", b[1].toFixed(1)); b[0].setAttribute("height", b[2].toFixed(1)); }));
+  } else {
+    bars.forEach(b => { b[0].setAttribute("y", b[1].toFixed(1)); b[0].setAttribute("height", b[2].toFixed(1)); });
+  }
+}
+
+/* ---- المراجعون ---- */
+function renderOps(){
+  const key = state.sort;
+  const list = OPERATORS.slice().sort((a,b) => b[key] - a[key]);
+  const max = Math.max.apply(null, list.map(o => o[key]));
+  const box = $("#ops"); box.textContent = "";
+  list.forEach(o => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "oprow" + (state.operator === o.name ? " on" : "");
+    b.setAttribute("aria-pressed", state.operator === o.name ? "true" : "false");
+    b.innerHTML = "<span class=\"nm\">" + o.name + "</span>" +
+      "<span class=\"opbar\"><i style=\"inline-size:" + (o[key]/max*100).toFixed(1) + "%\"></i></span>" +
+      "<span class=\"opnum num\">" + fmt(key === "acc" ? o.acc : o[key]) + (key === "acc" ? "٪" : "") + "</span>" +
+      "<span class=\"opacc num\">" + o.acc + "٪</span>";
+    b.addEventListener("click", () => {
+      state.operator = state.operator === o.name ? null : o.name;
+      // renderChips كانت ناقصة: رقاقة "المراجع: …" لم تكن تظهر أبدًا عند الاختيار من القائمة
+      renderOps(); renderChips(); renderEvents(); renderScope();
+    });
+    box.appendChild(b);
+  });
+  document.querySelectorAll("[data-sort]").forEach(btn => {
+    btn.classList.toggle("on", btn.dataset.sort === key);
+    btn.setAttribute("aria-pressed", btn.dataset.sort === key ? "true" : "false");
+  });
+}
+
+/* ---- الأحداث ---- */
+function renderChips(){
+  const box = $("#vchips"); box.textContent = "";
+  const opts = [["all","الكل"],["wanted","مطلوب"],["clean","سليم"],["unread","غير مقروء"]];
+  opts.forEach(o => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn" + (state.verdictFilter === o[0] ? " on" : "");
+    b.setAttribute("aria-pressed", state.verdictFilter === o[0] ? "true" : "false");
+    b.textContent = o[1];
+    b.addEventListener("click", () => { state.verdictFilter = o[0]; renderChips(); renderEvents(); renderScope(); });
+    box.appendChild(b);
+  });
+  if (state.operator){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn on hasx";
+    b.innerHTML = "المراجع: " + state.operator + ICON_X;
+    b.setAttribute("aria-label", "إزالة تصفية المراجع " + state.operator);
+    b.addEventListener("click", () => { state.operator = null; renderOps(); renderChips(); renderEvents(); renderScope(); });
+    box.appendChild(b);
+  }
+}
+function filteredEvents(){
+  const sc = scopeOf(state.rootId);
+  return EVENTS.filter(e =>
+    (!sc.gate || e.gate === sc.gate) &&
+    (!sc.verdict || e.verdict === sc.verdict) &&
+    (sc.hour === null || parseInt(e.t.slice(0,2), 10) === sc.hour) &&
+    (state.verdictFilter === "all" || e.verdict === state.verdictFilter) &&
+    (!state.operator || e.by === state.operator)
+  );
+}
+function renderEvents(){
+  const rows = filteredEvents();
+  const box = $("#events");
+  $("#evCount").textContent = fmt(rows.length) + " من " + fmt(EVENTS.length) + " سجلًا";
+  if (!rows.length){
+    box.innerHTML = "<div class=\"empty\">لا توجد سجلات مطابقة</div>";
+    return;
+  }
+  let html = "";
+  rows.forEach(e => {
+    const g = GBY[e.gate];
+    const meta = [g.name];
+    if (e.reason) meta.push(e.reason);
+    if (e.ref)    meta.push("<span class=\"num\">" + e.ref + "</span>");
+    if (e.by)     meta.push(e.by);
+    html += "<div class=\"ev\">" +
+      "<span class=\"t num\">" + e.t + "</span>" +
+      "<span class=\"p plate\">" + e.plate + "</span>" +
+      "<span class=\"meta\">" + meta.join(" · ") + "</span>" +
+      "<span class=\"vb " + e.verdict + "\">" + VLAB[e.verdict] + "</span>" +
+      "</div>";
+  });
+  box.innerHTML = html;
+}
+
+/* ---- صحة البوابات ---- */
+function renderHealth(){
+  const box = $("#health"); box.textContent = "";
+  GATES.forEach(g => {
+    const down = g.total === 0;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "gchip" + (down ? " down" : "") + (g.status === "degraded" ? " deg" : "") +
+                  (state.rootId === "g:" + g.id ? " on" : "");
+    b.disabled = down;
+    // "num" (direction:ltr) يُطبَّق فقط على الأرقام؛ نصّ الحالة عربي ولا يُعزَل بـ ltr
+    // اسم مختصر (نفس تسميات حلقة البوابات) ليتّسع الشريط في صفّين — الاسم الكامل في aria-label
+    b.innerHTML = "<i class=\"gs\"></i>" + SHORT[g.id] +
+      "<span class=\"gv" + (down ? "" : " num") + "\">" + (down ? STATUS[g.status] : fmt(g.total)) + "</span>";
+    b.setAttribute("aria-label", g.name + " — " + STATUS[g.status] + " — " + fmt(g.total) + " عملية");
+    if (!down) b.addEventListener("click", () => setRoot("g:" + g.id));
+    box.appendChild(b);
+  });
+  const down = GATES.filter(g => g.total === 0);
+  const deg = GATES.filter(g => g.status === "degraded");
+  $("#healthHead").textContent = "صحة البوابات — " + KPI.gates.v + " تعمل من " + KPI.gates.of;
+  $("#healthNote").textContent =
+    "خارج الحلقات (بلا حجم): " + down.map(g => g.name).join(" · ") + "." +
+    (deg.length ? " " + deg[0].name + " بطيئة — حافتها في المدار متقطعة." : "");
+}
+
+/* ---- مفتاح الحلقات ---- */
+function renderRingKey(){
+  const box = $("#ringkey"); box.textContent = "";
+  const names = CURRENT.rings.map(r => r.name);
+  names.forEach((n, i) => {
+    const d = document.createElement("div");
+    d.className = "item";
+    d.innerHTML = "<span class=\"ridx\">" + (i+1) + "</span>" + n;
+    box.appendChild(d);
+  });
+  const sep = document.createElement("div"); sep.className = "sep"; box.appendChild(sep);
+  [["sw-wanted","مطلوب"],["sw-unread","غير مقروء"],["sw-glass","سليم / زجاج محايد"]].forEach(p => {
+    const d = document.createElement("div"); d.className = "item";
+    d.innerHTML = "<i class=\"swatch " + p[0] + "\"></i>" + p[1];
+    box.appendChild(d);
+  });
+  const d2 = document.createElement("div"); d2.className = "item";
+  d2.innerHTML = "<i class=\"swatch sw-wanted\" style=\"inline-size:2px;block-size:11px;border-radius:1px\"></i>خط أحمر = بوابة بها مطلوبة";
+  box.appendChild(d2);
+  if (CURRENT.rings.some(r => r.kind === "hour")){
+    const d3 = document.createElement("div");
+    d3.className = "item";
+    d3.textContent = "حلقة الساعة مشتقة: منحنى الساعات × حجم البوابة";
+    box.appendChild(d3);
+  }
+}
+
+/* =========================================================================
+   9. التحكم
+   ========================================================================= */
+function setRoot(id){
+  if (id === state.rootId) return;
+  state.rootId = id;
+  state.hoverKey = null;
+  renderAll(true);
+}
+function goUp(){
+  const p = parentOf(state.rootId);
+  if (p) setRoot(p);
+}
+function renderAll(animate){
+  drawOrbit(animate);
+  renderRingKey();
+  renderScope();
+  renderLedger();
+  renderChart();
+  renderEvents();
+  renderChips();
+  renderHealth();
+  paintInspector(null);
+}
+
+$("#btnUp").addEventListener("click", goUp);
+$("#btnReset").addEventListener("click", () => {
+  state.verdictFilter = "all"; state.operator = null;
+  if (state.rootId !== "root"){ setRoot("root"); }
+  else { renderAll(true); }
+});
+$("#btnHours").addEventListener("click", () => {
+  state.showHours = !state.showHours;
+  const b = $("#btnHours");
+  b.classList.toggle("on", state.showHours);
+  b.setAttribute("aria-pressed", state.showHours ? "true" : "false");
+  b.textContent = state.showHours ? "حلقة الساعات" : "حلقة الساعات (مخفية)";
+  drawOrbit(true); renderRingKey();
+});
+document.querySelectorAll("[data-sort]").forEach(btn => {
+  btn.addEventListener("click", () => { state.sort = btn.dataset.sort; renderOps(); });
+});
+document.addEventListener("visibilitychange", settleAnimations);
+function settleAnimations(){
+  if (CURRENT) finalize(CURRENT);
+  // شبكة أمان للعدّادات: القيمة الحقيقية محفوظة في data-count دائمًا
+  document.querySelectorAll("#ledger [data-count]").forEach(n => {
+    const to = parseFloat(n.dataset.count);
+    if (isFinite(to)) n.textContent = fmt(to);
+  });
+}
+
+/* =========================================================================
+   10. الإقلاع
+   ========================================================================= */
+initSvg();
+renderAll(true);
+renderOps();
+</script>
+</body>
+</html>

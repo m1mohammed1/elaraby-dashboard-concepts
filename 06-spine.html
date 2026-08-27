@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>العمود الفقري — سجل الفحص</title>
+<style>
+/* ============================================================
+   العمود الفقري — commit-log spine
+   tokens
+   ============================================================ */
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --glass-1: rgba(255,255,255,.062);
+  --glass-2: rgba(255,255,255,.045);
+  --glass-3: rgba(255,255,255,.030);
+
+  --r-lg: 16px;
+  --r-md: 12px;
+  --r-sm: 9px;
+
+  --gap: 22px;
+  --stub: 38px;          /* connector stub length */
+  --mid: 76px;           /* width of the spine column */
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+*{ box-sizing: border-box; }
+
+html{
+  scroll-behavior: smooth;
+  scrollbar-color: rgba(255,255,255,.16) transparent;
+  scrollbar-width: thin;
+}
+html::-webkit-scrollbar{ inline-size: 10px; }
+html::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.14); border-radius: 20px; }
+html::-webkit-scrollbar-track{ background: transparent; }
+
+body{
+  margin: 0;
+  background: #06100c;
+  color: var(--ink);
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.75;
+  letter-spacing: normal;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.num, .fig{
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ============================================================
+   the scene — the only colour on the page
+   ============================================================ */
+.scene{ position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; }
+.lume{ position: absolute; border-radius: 50%; filter: blur(90px); }
+.l1{ inline-size: 62vw; block-size: 62vw; inset-block-start: -18vw; inset-inline-start: -12vw;
+     background: radial-gradient(circle, #10613f 0%, rgba(16,97,63,0) 70%); opacity: .20; }
+.l2{ inline-size: 54vw; block-size: 54vw; inset-block-start: 24vh;  inset-inline-end: -14vw;
+     background: radial-gradient(circle, #0f4d38 0%, rgba(15,77,56,0) 70%); opacity: .17; }
+.l3{ inline-size: 46vw; block-size: 46vw; inset-block-start: 78vh;  inset-inline-start: 22vw;
+     background: radial-gradient(circle, #145a45 0%, rgba(20,90,69,0) 70%); opacity: .14; }
+.l4{ inline-size: 40vw; block-size: 40vw; inset-block-start: 128vh; inset-inline-end: 4vw;
+     background: radial-gradient(circle, #0b3a30 0%, rgba(11,58,48,0) 70%); opacity: .16; }
+.l5{ inline-size: 52vw; block-size: 52vw; inset-block-start: 178vh; inset-inline-start: -8vw;
+     background: radial-gradient(circle, #08302a 0%, rgba(8,48,42,0) 70%); opacity: .18; }
+.l6{ inline-size: 34vw; block-size: 34vw; inset-block-start: 236vh; inset-inline-end: 18vw;
+     background: radial-gradient(circle, #10613f 0%, rgba(16,97,63,0) 70%); opacity: .11; }
+.vignette{
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 34%, rgba(6,16,12,0) 40%, rgba(4,10,8,.72) 100%);
+}
+.grain{
+  position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  opacity: .035; inline-size: 100%; block-size: 100%;
+}
+
+/* ============================================================
+   glass
+   ============================================================ */
+.glass{
+  background: var(--glass-2);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  border: 1px solid rgba(255,255,255,.085);
+  border-radius: var(--r-lg);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.10) inset,
+              0 20px 50px -20px rgba(0,0,0,.55);
+}
+.glass.near{
+  background: var(--glass-1);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+}
+.glass.far{
+  background: var(--glass-3);
+  backdrop-filter: blur(34px) saturate(1.15);
+  -webkit-backdrop-filter: blur(34px) saturate(1.15);
+  border-color: rgba(255,255,255,.06);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.06) inset,
+              0 20px 50px -24px rgba(0,0,0,.5);
+}
+
+/* ============================================================
+   layout
+   ============================================================ */
+.page{
+  max-inline-size: 1240px;
+  margin-inline: auto;
+  padding-inline: 26px;
+  padding-block: 34px 0;
+}
+
+/* ---------- masthead ---------- */
+.masthead{ margin-block-end: 34px; }
+
+.brandrow{
+  display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  margin-block-end: 20px;
+}
+.mark{
+  inline-size: 42px; block-size: 42px; flex: none;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  color: var(--accent);
+}
+.brandtext{ display: flex; flex-direction: column; gap: 1px; min-inline-size: 0; }
+.kicker{ font-size: 11px; color: var(--ink-3); line-height: 1.4; }
+.brandtext h1{ margin: 0; font-size: 19px; font-weight: 600; line-height: 1.4; }
+.brandspacer{ flex: 1 1 40px; }
+
+.livechip{
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(255,255,255,.03);
+  font-size: 11.5px; color: var(--ink-2);
+}
+/* The one element on the page that carries a glow — SPEC §1 asks for exactly
+   this, palette-tinted and non-neon, on the single element that deserves
+   emphasis. Kept low-alpha with negative spread so it reads as light, not neon. */
+.livedot{
+  inline-size: 7px; block-size: 7px; border-radius: 50%;
+  background: var(--clean); box-shadow: 0 0 14px -4px rgba(61,220,151,.45);
+}
+.who{ display: flex; align-items: center; gap: 10px; }
+.avatar{
+  inline-size: 38px; block-size: 38px; border-radius: 11px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  font-weight: 600; font-size: 15px;
+}
+.who .nm{ font-size: 13px; font-weight: 500; line-height: 1.4; }
+.who .rl{ font-size: 11px; color: var(--ink-3); line-height: 1.4; }
+
+/* ---------- ledger ---------- */
+.ledger{ padding: 6px 22px 10px; }
+.ledger h2, .block h2, .loghead h2{
+  margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-3);
+}
+.ledger-head{
+  display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap;
+  padding-block: 14px 8px;
+  border-block-end: 1px solid var(--line);
+}
+.ledger-head h2{ flex: none; }
+.ledger-head .hint{ font-size: 11px; line-height: 1.7; color: var(--ink-3);
+  margin-inline-start: auto; text-align: end; }
+
+.lrow{
+  display: flex; align-items: center; gap: 14px;
+  padding-block: 15px;
+  border-block-end: 1px solid var(--line-2);
+}
+.lrow:last-child{ border-block-end: 0; }
+.lrow .dot{ inline-size: 8px; block-size: 8px; border-radius: 50%; flex: none; background: var(--ink-3); }
+.lrow .lbl{ font-size: 13.5px; color: var(--ink-2); white-space: nowrap; }
+.leader{
+  flex: 1 1 24px; min-inline-size: 18px;
+  border-block-end: 1px dotted rgba(255,255,255,.13);
+  transform: translateY(-3px);
+}
+.spark{ flex: none; inline-size: 132px; block-size: 30px; opacity: .9; }
+.spark path.ln{ fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lval{
+  font-size: 34px; font-weight: 500; line-height: 1;
+  min-inline-size: 138px; text-align: end;
+}
+.lval .unit{ font-size: 12px; color: var(--ink-3); font-weight: 400; margin-inline-start: 6px; }
+.lval .of{ font-size: 18px; color: var(--ink-3); font-weight: 400; }
+.ldelta{
+  min-inline-size: 84px; text-align: end;
+  font-size: 12px; color: var(--ink-3);
+  display: flex; align-items: center; gap: 5px; justify-content: flex-end;
+}
+.ldelta svg{ flex: none; }
+
+/* ---------- gate health strip ---------- */
+.health{ margin-block-start: 18px; padding: 16px 20px 18px; }
+.health-head{
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-block-end: 12px; border-block-end: 1px solid var(--line);
+}
+.health-head .sub{ font-size: 11.5px; color: var(--ink-3); }
+.health-head .warn{ margin-inline-start: auto; font-size: 11.5px; color: var(--ink-2); }
+.hstrip{
+  display: grid; grid-template-columns: repeat(11, minmax(0,1fr));
+  gap: 6px; margin-block-start: 14px;
+}
+.hcell{
+  border: 1px solid var(--line-2); border-radius: var(--r-sm);
+  background: rgba(255,255,255,.028);
+  padding: 9px 8px 10px; min-inline-size: 0;
+}
+.hcell .hn{ font-size: 10.5px; color: var(--ink-2); line-height: 1.45;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hcell .hs{ font-size: 10px; color: var(--ink-3); line-height: 1.6; }
+.hbar{ block-size: 3px; border-radius: 3px; background: rgba(255,255,255,.10); margin-block-start: 7px; overflow: hidden; }
+.hbar > i{ display: block; block-size: 100%; border-radius: 3px; background: var(--ink-3);
+  inline-size: 0; transition: inline-size 700ms var(--ease); }
+/* volume is length only; colour is reserved for the two exceptions, so a
+   healthy gate never spends a status token on being ordinary */
+.hcell[data-st="online"]   .hbar > i{ background: rgba(255,255,255,.30); }
+.hcell[data-st="degraded"] .hbar > i{ background: rgba(232,176,85,.75); }
+.hcell[data-st="degraded"] .hs{ color: var(--unread); }
+.hcell[data-st="offline"]{ border-color: rgba(255,107,107,.28); background: rgba(255,107,107,.05); }
+.hcell[data-st="offline"] .hs{ color: var(--wanted); }
+.hcell[data-st="maint"]{ border-style: dashed; }
+
+/* ============================================================
+   the log shell — spine + rail
+   ============================================================ */
+.log-shell{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 246px;
+  gap: 26px;
+  align-items: start;
+}
+
+.loghead{
+  padding: 16px 20px 14px;
+  margin-block-end: 10px;
+  position: relative; z-index: 6;
+}
+.loghead-top{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.loghead h2{ font-size: 13px; color: var(--ink); font-weight: 600; }
+.loghead .meta{ font-size: 11.5px; color: var(--ink-3); }
+.count{ margin-inline-start: auto; font-size: 11.5px; color: var(--ink-2); }
+
+.chips{ display: flex; gap: 7px; flex-wrap: wrap; margin-block-start: 13px; }
+.chip{
+  font: inherit; font-size: 12px; color: var(--ink-2);
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 13px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: background 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease);
+}
+.chip:hover{ background: rgba(255,255,255,.075); color: var(--ink); }
+.chip[aria-pressed="true"]{
+  background: rgba(255,255,255,.13); color: var(--ink);
+  border-color: rgba(255,255,255,.22);
+}
+.chip .cdot{ inline-size: 7px; block-size: 7px; border-radius: 50%; flex: none; }
+.chip .cn{ font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+  direction: ltr; unicode-bidi: isolate; }
+
+.scopes{ display: flex; gap: 8px; flex-wrap: wrap; margin-block-start: 11px; }
+.scope{
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px; color: var(--ink-2);
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  border-radius: 8px; padding: 4px 6px 4px 6px;
+}
+.scope b{ font-weight: 500; color: var(--ink); }
+.xbtn{
+  font: inherit; cursor: pointer; color: var(--ink-3);
+  background: transparent; border: 0; border-radius: 6px;
+  padding: 3px; line-height: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color 150ms var(--ease), background 150ms var(--ease);
+}
+.xbtn:hover{ color: var(--ink); background: rgba(255,255,255,.10); }
+.note{ font-size: 11px; color: var(--ink-3); margin-block-start: 9px; }
+
+/* ---------- spine ---------- */
+.spine{ position: relative; padding-block-end: 8px; }
+.spine::before{
+  content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%;
+  margin-inline-start: -.5px; inline-size: 1px;
+  background: linear-gradient(to bottom,
+      rgba(255,255,255,0) 0%, rgba(255,255,255,.16) 3%,
+      rgba(255,255,255,.16) 97%, rgba(255,255,255,0) 100%);
+}
+
+/* hour marker — interrupts the spine */
+.hourbar{
+  position: sticky; inset-block-start: 0; z-index: 5;
+  display: block; inline-size: 100%;
+  font: inherit; text-align: start; cursor: pointer;
+  border: 0; background: linear-gradient(to bottom,
+      rgba(6,16,12,.94) 0%, rgba(6,16,12,.88) 62%, rgba(6,16,12,0) 100%);
+  padding: 12px 0 16px;
+  color: inherit;
+  transition: filter 150ms var(--ease);
+}
+.hourbar:hover .hb-line{ background: rgba(255,255,255,.22); }
+.hourbar:hover .hb-h{ color: var(--ink); }
+.hb-inner{ display: flex; align-items: center; gap: 12px; }
+.hb-h{
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  flex: none; letter-spacing: normal;
+  transition: color 150ms var(--ease);
+}
+.hb-line{ flex: 1 1 auto; block-size: 1px; background: rgba(255,255,255,.13); }
+.hb-figs{ display: flex; gap: 14px; flex: none; }
+.hb-fig{ font-size: 11px; color: var(--ink-3); display: inline-flex; gap: 5px; align-items: baseline; }
+.hb-fig b{ font-weight: 600; font-size: 12.5px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.hb-fig.w b{ color: var(--wanted); }
+.hb-fig.u b{ color: var(--unread); }
+.hourblock{ scroll-margin-block-start: 8px; }
+.hourblock.is-focus .hb-line{ background: rgba(110,196,155,.5); }
+.hourblock.is-focus .hb-h{ color: var(--accent); }
+
+.daymark{
+  display: flex; align-items: center; gap: 14px;
+  padding-block: 26px 6px;
+  font-size: 11px; color: var(--ink-3);
+}
+.daymark .dl{ flex: 1 1 auto; block-size: 1px; background: rgba(255,255,255,.07); }
+
+/* ---------- event row ---------- */
+.ev{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) var(--mid) minmax(0,1fr);
+  align-items: start;
+  padding-block: 7px;
+}
+/* 44px box centres every node size on the stub's y (22px), whatever its diameter */
+.ev .mid{
+  display: flex; justify-content: center; align-items: center;
+  block-size: 44px; grid-column: 2; grid-row: 1;
+}
+.ev.side-a .card{ grid-column: 1; grid-row: 1; }
+.ev.side-b .card{ grid-column: 3; grid-row: 1; }
+
+.nodebtn{
+  position: relative; padding: 0; border: 0; background: transparent;
+  cursor: pointer; display: block; line-height: 0;
+  transition: transform 160ms var(--ease);
+}
+.nodebtn:hover{ transform: scale(1.18); }
+.nodebtn .n{
+  display: block; border-radius: 50%;
+  transition: box-shadow 160ms var(--ease), background 160ms var(--ease);
+}
+/* clean — small quiet dot */
+.n-clean{
+  inline-size: 8px; block-size: 8px;
+  background: rgba(61,220,151,.55);
+  box-shadow: 0 0 0 3px rgba(61,220,151,.09);
+}
+.nodebtn:hover .n-clean{ background: var(--clean); box-shadow: 0 0 0 5px rgba(61,220,151,.14); }
+/* unread — medium amber ring */
+.n-unread{
+  inline-size: 13px; block-size: 13px;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--unread), 0 0 0 4px rgba(232,176,85,.10);
+}
+/* wanted — large node. Flat halo at rest; the blurred glow is an
+   interaction state only, so at most two elements glow at once. */
+.n-wanted{
+  inline-size: 18px; block-size: 18px;
+  background: var(--wanted);
+  box-shadow: 0 0 0 5px rgba(255,107,107,.13), 0 2px 6px -2px rgba(0,0,0,.6);
+}
+.nodebtn:hover .n-wanted,
+.nodebtn:focus-visible .n-wanted{
+  box-shadow: 0 0 0 6px rgba(255,107,107,.18), 0 0 22px -6px rgba(255,107,107,.55);
+}
+/* digest — hollow neutral */
+.n-digest{
+  inline-size: 11px; block-size: 11px;
+  background: rgba(6,16,12,.9);
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.28);
+}
+.nodebtn[aria-expanded="true"] .n-digest{ box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+.card{ position: relative; min-inline-size: 0; }
+/* the connector stub */
+.card::before{
+  content: ""; position: absolute; inset-block-start: 22px;
+  inline-size: var(--stub); block-size: 1px;
+  background: rgba(255,255,255,.16);
+}
+.side-a .card::before{ inset-inline-end: calc(var(--stub) * -1); }
+.side-b .card::before{ inset-inline-start: calc(var(--stub) * -1); }
+.ev[data-v="wanted"] .card::before{ background: rgba(255,107,107,.42); }
+.ev[data-v="unread"] .card::before{ background: rgba(232,176,85,.36); }
+
+/* compact one-liner (clean) */
+.line{
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 13px;
+  border: 1px solid var(--line-2); border-radius: var(--r-md);
+  background: rgba(255,255,255,.022);
+  transition: background 150ms var(--ease), border-color 150ms var(--ease);
+}
+.side-a .line, .side-a .fullcard{ margin-inline-end: 0; }
+.card:hover .line{ background: rgba(255,255,255,.05); border-color: var(--line); }
+.line .tm{ font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+  direction: ltr; unicode-bidi: isolate; }
+.line .pl{ font-size: 13px; font-weight: 500; }
+.line .gt{ font-size: 11.5px; color: var(--ink-3); margin-inline-start: auto; }
+
+.plate{
+  unicode-bidi: isolate; direction: rtl;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+}
+
+/* full glass card (wanted / unread / digest) */
+.fullcard{
+  padding: 15px 17px 16px;
+  border-radius: var(--r-md);
+  background: var(--glass-2);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255,255,255,.085);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.09) inset, 0 18px 44px -22px rgba(0,0,0,.6);
+  transition: border-color 160ms var(--ease), transform 160ms var(--ease);
+}
+.card:hover .fullcard{ transform: translateY(-1px); }
+.fullcard.w{ border-color: rgba(255,107,107,.30); }
+.fullcard.u{ border-color: rgba(232,176,85,.26); }
+.fc-top{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.verdict{
+  font-size: 10.5px; padding: 3px 9px; border-radius: 999px; flex: none;
+  border: 1px solid currentColor;
+}
+.verdict.w{ color: var(--wanted); }
+.verdict.u{ color: var(--unread); }
+.verdict.n{ color: var(--ink-3); }
+.fc-plate{ font-size: 20px; font-weight: 600; line-height: 1.5; }
+.fc-time{ margin-inline-start: auto; font-size: 11.5px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+/* a mixed Arabic+digit run needs an rtl base with the figure isolated inside */
+.fc-time.mix{ direction: rtl; }
+.kv{
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 12px;
+  margin-block-start: 12px; padding-block-start: 12px;
+  border-block-start: 1px solid var(--line-2);
+  font-size: 12px;
+}
+.kv dt{ color: var(--ink-3); }
+.kv dd{ margin: 0; color: var(--ink-2); }
+.kv dd .iso{ unicode-bidi: isolate; direction: ltr; display: inline-block;
+  font-variant-numeric: tabular-nums; }
+
+.dg-cap{ margin: 13px 0 0; font-size: 10.5px; line-height: 1.7; color: var(--ink-3); }
+.dg-bars{ display: flex; flex-direction: column; gap: 7px; margin-block-start: 8px; }
+.dg-row{ display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--ink-3); }
+.dg-row .dg-l{ inline-size: 74px; flex: none; }
+.dg-row .dg-t{
+  inline-size: 40px; flex: none; text-align: end; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate;
+}
+.track{ flex: 1 1 auto; block-size: 5px; border-radius: 4px;
+  background: rgba(255,255,255,.075); overflow: hidden; }
+.track > i{ display: block; block-size: 100%; border-radius: 4px; inline-size: 0;
+  background: rgba(255,255,255,.4); transition: inline-size 700ms var(--ease); }
+.track.w > i{ background: var(--wanted); }
+.track.u > i{ background: var(--unread); }
+.track.c > i{ background: rgba(61,220,151,.7); }
+
+.emptystate{
+  display: none; text-align: center; padding: 60px 20px;
+  color: var(--ink-3); font-size: 13.5px;
+}
+.emptystate.on{ display: block; }
+
+.terminalcap{
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding-block: 34px 4px; position: relative;
+}
+/* the column does not just stop — it runs down into its own end-cap */
+.terminalcap::before{
+  content: ""; position: absolute; inset-block-start: 0; block-size: 34px;
+  inset-inline-start: 50%; margin-inline-start: -.5px; inline-size: 1px;
+  background: linear-gradient(to bottom, rgba(255,255,255,.16), rgba(255,255,255,.06));
+}
+.terminalcap .cap{
+  inline-size: 12px; block-size: 12px; border-radius: 50%;
+  background: rgba(6,16,12,.95); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.22);
+}
+.terminalcap .lb{ font-size: 11px; color: var(--ink-3); }
+
+/* ---------- rail ---------- */
+.rail{
+  position: sticky; inset-block-start: 18px;
+  padding: 16px 16px 18px;
+  align-self: start;
+}
+.rail h3{ margin: 0 0 2px; font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.rail .rh{
+  font-size: 22px; font-weight: 600; line-height: 1.3;
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate;
+}
+.rail .rday{ font-size: 11px; color: var(--ink-3); }
+.rfigs{ display: flex; flex-direction: column; gap: 0; margin-block: 12px 4px; }
+.rfig{
+  display: flex; align-items: baseline; gap: 10px;
+  padding-block: 8px; border-block-start: 1px solid var(--line-2);
+  font-size: 11.5px; color: var(--ink-3);
+}
+.rfig b{
+  margin-inline-start: auto; font-size: 17px; font-weight: 600; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate;
+  transition: color 150ms var(--ease);
+}
+.rfig.w b{ color: var(--wanted); }
+.rfig.u b{ color: var(--unread); }
+.axiswrap{ margin-block-start: 12px; padding-block-start: 12px; border-block-start: 1px solid var(--line-2); }
+.axiswrap .cap{ font-size: 10.5px; color: var(--ink-3); margin-block-end: 6px; }
+.axis{ inline-size: 100%; block-size: auto; display: block; }
+.axis text{ font-family: inherit; }
+.axis .hl{ font-size: 8.6px; fill: var(--ink-3); direction: ltr; unicode-bidi: isolate; }
+/* the two scales are named in HTML, not inside the viewBox: SVG text-anchor
+   flips with direction and the numerals were splitting under bidi */
+.axkey{ list-style: none; margin: 0 0 8px; padding: 0; }
+.axkey li{ display: flex; align-items: center; gap: 7px;
+  font-size: 10.5px; line-height: 1.6; color: var(--ink-3); }
+.axkey .sw{ inline-size: 14px; block-size: 3px; border-radius: 2px; flex: none; }
+.axkey .sw.a{ background: rgba(255,255,255,.34); }
+.axkey .sw.w{ background: var(--wanted); }
+.axkey .sw.u{ background: var(--unread); }
+.axkey .sc{ margin-inline-start: auto; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.axis .barA{ fill: rgba(255,255,255,.34); }
+.axis .barW{ fill: var(--wanted); }
+.axis .barU{ fill: var(--unread); }
+.axis .rowhit{ fill: transparent; cursor: pointer; }
+.axis g.row:hover .rowhit{ fill: rgba(255,255,255,.05); }
+.axis g.row:focus-visible .rowhit{ fill: rgba(110,196,155,.14); outline: none; }
+.axis g.row:focus-visible .rowfocus{ stroke: var(--accent); stroke-width: 1; }
+.axis .cursorbox{ fill: rgba(255,255,255,.075); stroke: rgba(255,255,255,.16); stroke-width: .6; }
+#railCursor{ transition: transform 200ms var(--ease); }
+.axis .gridline{ stroke: rgba(255,255,255,.07); stroke-width: .6; }
+.rail .totop{
+  margin-block-start: 14px; inline-size: 100%;
+  font: inherit; font-size: 11.5px; color: var(--ink-2); cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: 9px; padding: 7px 10px;
+  transition: background 150ms var(--ease), color 150ms var(--ease);
+}
+.rail .totop:hover{ background: rgba(255,255,255,.09); color: var(--ink); }
+
+/* ============================================================
+   terminus
+   ============================================================ */
+.terminus{
+  margin-block-start: 10px;
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: var(--gap);
+}
+.block{ padding: 18px 20px 20px; }
+.block-head{
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block-end: 12px; border-block-end: 1px solid var(--line);
+}
+.block-head .sub{ font-size: 11px; color: var(--ink-3); }
+.sortset{ display: flex; gap: 5px; margin-inline-start: auto; }
+.sortbtn{
+  font: inherit; font-size: 11px; color: var(--ink-3); cursor: pointer;
+  background: transparent; border: 1px solid var(--line-2); border-radius: 7px;
+  padding: 3px 9px;
+  transition: color 150ms var(--ease), background 150ms var(--ease), border-color 150ms var(--ease);
+}
+.sortbtn:hover{ color: var(--ink-2); background: rgba(255,255,255,.05); }
+.sortbtn[aria-pressed="true"]{ color: var(--ink); border-color: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.10); }
+
+.grow{
+  inline-size: 100%; text-align: start; font: inherit; cursor: pointer;
+  background: transparent; border: 0; border-block-end: 1px solid var(--line-2);
+  padding: 11px 8px; border-radius: 8px; color: inherit;
+  display: grid; grid-template-columns: 116px minmax(0,1fr) 54px 40px 40px;
+  gap: 12px; align-items: center;
+  transition: background 150ms var(--ease);
+}
+.grow:hover{ background: rgba(255,255,255,.05); }
+.grow[aria-pressed="true"]{ background: rgba(255,255,255,.09); }
+.grow .gn{ font-size: 12.5px; color: var(--ink-2); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.grow[aria-pressed="true"] .gn{ color: var(--ink); }
+.grow .gv{ font-size: 12px; text-align: end; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.grow .gw{ color: var(--wanted); }
+.grow .gu{ color: var(--unread); }
+/* a dead gate is dimmed by colour, not by opacity — blanket opacity dropped
+   the row under 3.3:1 on the glass composite */
+.grow.dead .gn,
+.grow.dead .gv{ color: var(--ink-3); }
+.grow.dead .track{ opacity: .5; }
+.tbl-head{
+  display: grid; gap: 12px; align-items: center;
+  padding: 8px; font-size: 10.5px; color: var(--ink-3);
+  border-block-end: 1px solid var(--line-2);
+}
+.tbl-head.g{ grid-template-columns: 116px minmax(0,1fr) 54px 40px 40px; }
+.tbl-head.o{ grid-template-columns: 118px minmax(0,1fr) 54px 44px 52px; }
+.tbl-head span:not(:first-child):not(:nth-child(2)){ text-align: end; }
+.orow{ grid-template-columns: 118px minmax(0,1fr) 54px 44px 52px; }
+.acc{ font-size: 12px; text-align: end; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+.footer{
+  text-align: center; color: var(--ink-3); font-size: 11.5px;
+  padding-block: 40px 34px; margin-block-start: 26px;
+  border-block-start: 1px solid var(--line-2);
+}
+
+/* focus */
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* ============================================================
+   entrance — runs once
+   ============================================================ */
+@keyframes rise{
+  from{ opacity: 0; transform: translateY(14px); }
+  to{ opacity: 1; transform: none; }
+}
+.anim{ opacity: 0; animation: rise 560ms var(--ease) forwards; }
+
+/* ============================================================
+   responsive
+   ============================================================ */
+@media (max-width: 1080px){
+  .log-shell{ grid-template-columns: minmax(0,1fr); }
+  .rail{ position: static; order: -1; margin-block-end: 12px; }
+  .axiswrap{ display: none; }
+  .rfigs{ flex-direction: row; gap: 18px; flex-wrap: wrap; }
+  .rfig{ border-block-start: 0; }
+  .hstrip{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+}
+@media (max-width: 900px){
+  .terminus{ grid-template-columns: minmax(0,1fr); }
+  .lval{ font-size: 27px; min-inline-size: 104px; }
+  .spark{ display: none; }
+}
+@media (max-width: 720px){
+  :root{ --mid: 34px; --stub: 17px; }
+  .page{ padding-inline: 15px; }
+  .spine::before{ inset-inline-start: 17px; margin-inline-start: 0; }
+  .ev{ grid-template-columns: var(--mid) minmax(0,1fr); }
+  .ev .mid{ grid-column: 1; justify-content: flex-start; }
+  .ev.side-a .card, .ev.side-b .card{ grid-column: 2; }
+  .side-a .card::before, .side-b .card::before{
+    inset-inline-end: auto; inset-inline-start: calc(var(--stub) * -1);
+  }
+  .terminalcap{ align-items: flex-start; padding-inline-start: 11px; }
+  .terminalcap::before{ inset-inline-start: 17px; margin-inline-start: 0; }
+  .hb-figs{ gap: 9px; }
+  .hb-fig{ font-size: 10px; }
+  .hstrip{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .lrow{ flex-wrap: wrap; }
+  .grow{ grid-template-columns: 92px minmax(0,1fr) 44px 34px 34px; gap: 8px; }
+  .tbl-head.g{ grid-template-columns: 92px minmax(0,1fr) 44px 34px 34px; gap: 8px; }
+  .tbl-head.o, .orow{ grid-template-columns: 96px minmax(0,1fr) 44px 36px 42px; gap: 8px; }
+  .ledger-head .hint{ display: none; }
+}
+@media (max-width: 430px){
+  .lval{ font-size: 23px; min-inline-size: 84px; }
+  .ldelta{ min-inline-size: 62px; }
+  .fc-plate{ font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto; }
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <span class="lume l1"></span>
+  <span class="lume l2"></span>
+  <span class="lume l3"></span>
+  <span class="lume l4"></span>
+  <span class="lume l5"></span>
+  <span class="lume l6"></span>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true" focusable="false">
+  <filter id="grainf"><feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/></filter>
+  <rect width="100%" height="100%" filter="url(#grainf)"/>
+</svg>
+
+<div class="page">
+
+  <!-- ==================== MASTHEAD ==================== -->
+  <header class="masthead">
+
+    <div class="brandrow glass near anim" style="animation-delay:0ms">
+      <span class="mark" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" focusable="false">
+          <path d="M12 3v18"/><circle cx="12" cy="7" r="2.2"/><circle cx="12" cy="17" r="2.2"/>
+          <path d="M12 7h4a2 2 0 0 1 2 2v1"/><path d="M12 17H8a2 2 0 0 1-2-2v-1"/>
+        </svg>
+      </span>
+      <span class="brandtext">
+        <span class="kicker">نظام العربي لفحص اللوحات · لوحة الإدارة</span>
+        <h1>العمود الفقري — سجل الفحص</h1>
+      </span>
+      <span class="brandspacer"></span>
+      <span class="livechip">
+        <span class="livedot" aria-hidden="true"></span>
+        التغذية نشطة · آخر تحديث <span class="num">14:32</span>
+      </span>
+      <span class="who">
+        <span class="avatar" aria-hidden="true">أ</span>
+        <span>
+          <span class="nm">أحمد عماد</span><br>
+          <span class="rl">مدير النظام</span>
+        </span>
+      </span>
+    </div>
+
+    <!-- ledger of the six headline figures -->
+    <section class="ledger glass anim" style="animation-delay:60ms" aria-labelledby="ledger-t">
+      <div class="ledger-head">
+        <h2 id="ledger-t">الأرقام الرئيسية — آخر 24 ساعة</h2>
+        <span class="hint">النسبة مقارنة بالفترة السابقة · الخط البياني يقرأ من اليمين (الساعة 0) إلى اليسار (الساعة 23) · لكل خط مقياسه المستقل: الإجمالي والسليمة 0–1000 · المطلوبة وغير المقروءة 0–5</span>
+      </div>
+
+      <div class="lrow">
+        <span class="dot" style="background:rgba(255,255,255,.34)"></span>
+        <span class="lbl">إجمالي عمليات المسح</span>
+        <span class="leader"></span>
+        <svg class="spark" viewBox="0 0 132 30" preserveAspectRatio="none" aria-hidden="true"
+             style="color:rgba(255,255,255,.42)" data-spark="total" data-max="1000"><path class="ln"></path></svg>
+        <span class="lval fig" data-count="12847">12,847</span>
+        <span class="ldelta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg><span class="num">6.2%</span></span>
+      </div>
+
+      <div class="lrow">
+        <span class="dot" style="background:var(--clean)"></span>
+        <span class="lbl">مركبات سليمة</span>
+        <span class="leader"></span>
+        <svg class="spark" viewBox="0 0 132 30" preserveAspectRatio="none" aria-hidden="true"
+             style="color:rgba(61,220,151,.6)" data-spark="clean" data-max="1000"><path class="ln"></path></svg>
+        <span class="lval fig" data-count="12782">12,782</span>
+        <span class="ldelta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg><span class="num">6.3%</span></span>
+      </div>
+
+      <div class="lrow">
+        <span class="dot" style="background:var(--wanted)"></span>
+        <span class="lbl">مركبات مطلوبة</span>
+        <span class="leader"></span>
+        <svg class="spark" viewBox="0 0 132 30" preserveAspectRatio="none" aria-hidden="true"
+             style="color:rgba(255,107,107,.8)" data-spark="wanted" data-max="5"><path class="ln"></path></svg>
+        <span class="lval fig" data-count="38">38</span>
+        <span class="ldelta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg><span class="num">11.6%</span></span>
+      </div>
+
+      <div class="lrow">
+        <span class="dot" style="background:var(--unread)"></span>
+        <span class="lbl">لوحات غير مقروءة</span>
+        <span class="leader"></span>
+        <svg class="spark" viewBox="0 0 132 30" preserveAspectRatio="none" aria-hidden="true"
+             style="color:rgba(232,176,85,.8)" data-spark="unread" data-max="5"><path class="ln"></path></svg>
+        <span class="lval fig" data-count="27">27</span>
+        <span class="ldelta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg><span class="num">2.4%</span></span>
+      </div>
+
+      <div class="lrow">
+        <span class="dot" style="background:rgba(255,255,255,.2)"></span>
+        <span class="lbl">متوسط زمن المعالجة</span>
+        <span class="leader"></span>
+        <span class="spark" aria-hidden="true"></span>
+        <span class="lval"><span class="fig" data-count="412">412</span><span class="unit">مللي/ث</span></span>
+        <span class="ldelta"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m5 12 7 7 7-7"/></svg><span class="num">8.0%</span></span>
+      </div>
+
+      <div class="lrow">
+        <span class="dot" style="background:rgba(110,196,155,.8)"></span>
+        <span class="lbl">بوابات نشطة</span>
+        <span class="leader"></span>
+        <span class="spark" aria-hidden="true"></span>
+        <span class="lval"><span class="num"><span class="fig" data-count="9">9</span><span class="of"> / 11</span></span></span>
+        <span class="ldelta">بوابتان متوقفتان</span>
+      </div>
+    </section>
+
+    <!-- gate health strip -->
+    <section class="health glass far anim" style="animation-delay:120ms" aria-labelledby="health-t">
+      <div class="health-head">
+        <h2 id="health-t">حالة البوابات</h2>
+        <span class="sub">11 بوابة · الشريط يمثل الحصة من حجم اليوم</span>
+        <span class="warn">
+          <span style="color:var(--wanted)">بوابة الغرب — خارج الخدمة</span> ·
+          <span style="color:var(--ink-3)">مدخل الصيانة — صيانة</span>
+        </span>
+      </div>
+      <div class="hstrip" id="hstrip"></div>
+    </section>
+  </header>
+
+  <!-- ==================== LOG ==================== -->
+  <div class="log-shell">
+
+    <main class="log">
+      <div class="loghead glass near anim" style="animation-delay:180ms">
+        <div class="loghead-top">
+          <h2>سجل الأحداث — من الأحدث إلى الأقدم</h2>
+          <span class="meta">الساعة الجارية مفصّلة · الساعات السابقة مجمّعة</span>
+          <span class="count" id="count" aria-live="polite">24 ساعة · 16 سجلاً مفصّلاً · 39 عقدة</span>
+        </div>
+
+        <div class="chips" id="verdictChips" role="group" aria-label="تصفية حسب النتيجة"></div>
+        <div class="scopes" id="scopes"></div>
+        <p class="note" id="scopeNote" hidden></p>
+      </div>
+
+      <div class="spine" id="spine"></div>
+      <p class="emptystate" id="empty">لا توجد سجلات مطابقة</p>
+
+      <div class="terminalcap">
+        <span class="cap" aria-hidden="true"></span>
+        <span class="lb">نهاية السجل — بداية الملخّص</span>
+      </div>
+    </main>
+
+    <!-- scroll-linked summary rail -->
+    <aside class="rail glass anim" style="animation-delay:230ms" aria-label="ملخّص الساعة الجارية أثناء التمرير">
+      <h3>الساعة المعروضة</h3>
+      <div class="rh" id="railHour">14:00</div>
+      <div class="rday" id="railDay">اليوم</div>
+
+      <div class="rfigs">
+        <div class="rfig"><span>عمليات المسح</span><b id="railTotal">691</b></div>
+        <div class="rfig w"><span>مطلوبة</span><b id="railWanted">2</b></div>
+        <div class="rfig u"><span>غير مقروءة</span><b id="railUnread">1</b></div>
+        <div class="rfig"><span>الحصة من الذروة</span><b id="railPeak">79%</b></div>
+      </div>
+
+      <div class="axiswrap">
+        <p class="cap">محور الـ 24 ساعة — بترتيب السجل · مقياسان مستقلان</p>
+        <ul class="axkey">
+          <li><span class="sw a" aria-hidden="true"></span>المسح<span class="sc">0–1000</span></li>
+          <li><span class="sw w" aria-hidden="true"></span>مطلوب<span class="sc">0–5</span></li>
+          <li><span class="sw u" aria-hidden="true"></span>غير مقروء<span class="sc">0–5</span></li>
+        </ul>
+        <svg class="axis" id="axis" viewBox="0 0 200 306" role="group"
+             aria-label="مخططان يتشاركان محور الساعات: حجم المسح بمقياس 0 إلى 1000، والمطلوب وغير المقروء بمقياس 0 إلى 5">
+        </svg>
+      </div>
+
+      <button class="totop" type="button" id="toTop">العودة إلى أعلى السجل</button>
+    </aside>
+  </div>
+
+  <!-- ==================== TERMINUS ==================== -->
+  <section class="terminus">
+
+    <div class="block glass" aria-labelledby="gates-t">
+      <div class="block-head">
+        <h2 id="gates-t">إجماليات البوابات</h2>
+        <span class="sub">اضغط بوابة لقصر السجل عليها</span>
+        <div class="sortset" role="group" aria-label="ترتيب البوابات">
+          <button class="sortbtn" type="button" data-sort="total" aria-pressed="true">المسح</button>
+          <button class="sortbtn" type="button" data-sort="wanted" aria-pressed="false">المطلوبة</button>
+          <button class="sortbtn" type="button" data-sort="ms" aria-pressed="false">الزمن</button>
+        </div>
+      </div>
+      <div class="tbl-head g">
+        <span>البوابة</span><span id="gateBarHead">الحجم — نسبة إلى أكبر بوابة</span><span id="gateValHead">المسح</span><span>مطلوب</span><span>غ.مقروء</span>
+      </div>
+      <div id="gateList"></div>
+    </div>
+
+    <div class="block glass" aria-labelledby="ops-t">
+      <div class="block-head">
+        <h2 id="ops-t">المراجعون</h2>
+        <span class="sub">اضغط مراجعاً لقصر السجل على مراجعاته</span>
+      </div>
+      <div class="tbl-head o">
+        <span>المراجع</span><span>المراجعات — مقياس <span class="num">0–500</span></span><span>عدد</span><span>مطلوب</span><span>الدقة</span>
+      </div>
+      <div id="opList"></div>
+      <p class="note">الدقة = نسبة القرارات المطابقة للمراجعة الثانية.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== dataset (verbatim) ===================== */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+/* ===================== derived ===================== */
+const STATUS_AR  = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+const VERDICT_AR = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+const GATE_BY_ID = {};
+GATES.forEach(function(g){ GATE_BY_ID[g.id] = g; });
+
+const fmt  = function(n){ return Number(n).toLocaleString('en-US'); };
+const pad2 = function(n){ return (n < 10 ? "0" : "") + n; };
+const hourOf = function(t){ return parseInt(t.slice(0,2), 10); };
+
+/* Arabic counted-noun agreement: 1 · 2 · 3–10 (plural) · 11+ (singular) */
+function arCount(n, f){
+  if (n === 1) return f.one;
+  if (n === 2) return f.two;
+  if (n >= 3 && n <= 10) return n + " " + f.few;
+  return n + " " + f.many;
+}
+const N_HOUR   = { one:"ساعة واحدة", two:"ساعتان", few:"ساعات",  many:"ساعة" };
+const N_RECORD = { one:"سجل مفصّل واحد", two:"سجلان مفصّلان", few:"سجلات مفصّلة", many:"سجلاً مفصّلاً" };
+const N_NODE   = { one:"عقدة واحدة", two:"عقدتان", few:"عقد",    many:"عقدة" };
+
+/* log order: the current hour first, back through today, then yesterday's tail */
+const HOUR_ORDER = [];
+for (var h = 14; h >= 0; h--)  HOUR_ORDER.push({ h: h, day: "today" });
+for (var h2 = 23; h2 >= 15; h2--) HOUR_ORDER.push({ h: h2, day: "yesterday" });
+
+const PEAK = Math.max.apply(null, HOURLY.total);
+const GATE_MAX = Math.max.apply(null, GATES.map(function(g){ return g.total; }));
+
+/* ===================== state ===================== */
+const state = {
+  verdict: "all",       // all | wanted | clean | unread
+  gate: "all",          // all | gate id
+  operator: "all",      // all | operator name
+  hour: "all",          // all | 0..23
+  sort: "total",        // total | wanted | ms
+  expanded: {},         // key -> true
+  activeHour: 14
+};
+
+const $  = function(s){ return document.querySelector(s); };
+const el = function(tag, cls){ var n = document.createElement(tag); if (cls) n.className = cls; return n; };
+
+/* ===================== gate health strip ===================== */
+function renderHealth(){
+  var wrap = $("#hstrip");
+  wrap.innerHTML = "";
+  GATES.forEach(function(g){
+    var c = el("div", "hcell");
+    c.setAttribute("data-st", g.status);
+    var share = GATE_MAX ? Math.round((g.total / GATE_MAX) * 100) : 0;
+    c.innerHTML =
+      '<div class="hn">' + g.name + '</div>' +
+      '<div class="hs">' + STATUS_AR[g.status] + '</div>' +
+      '<div class="hbar"><i data-w="' + share + '"></i></div>';
+    wrap.appendChild(c);
+  });
+  growBars(wrap);
+}
+
+/* ===================== sparklines ===================== */
+function drawSparks(){
+  document.querySelectorAll("svg.spark[data-spark]").forEach(function(svg){
+    var key = svg.getAttribute("data-spark");
+    var max = parseFloat(svg.getAttribute("data-max"));
+    var series = (key === "clean")
+      ? HOURLY.total.map(function(v, i){ return v - HOURLY.wanted[i] - HOURLY.unread[i]; })
+      : HOURLY[key];
+    var W = 132, H = 30, pad = 3;
+    var d = "";
+    for (var i = 0; i < 24; i++){
+      // RTL reading: hour 0 sits at the right edge, hour 23 at the left
+      var x = W - (i / 23) * W;
+      var y = H - pad - (Math.min(series[i], max) / max) * (H - pad * 2);
+      d += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+    }
+    var p = svg.querySelector("path.ln");
+    p.setAttribute("d", d.trim());
+    var len = 0;
+    try { len = p.getTotalLength(); } catch (e) { len = 400; }
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+    requestAnimationFrame(function(){
+      p.style.transition = "stroke-dashoffset 900ms cubic-bezier(.22,.61,.36,1)";
+      p.style.strokeDashoffset = 0;
+    });
+    setTimeout(function(){ p.style.strokeDashoffset = 0; }, 1400);
+  });
+}
+
+/* ===================== counters ===================== */
+function runCounters(){
+  document.querySelectorAll("[data-count]").forEach(function(node, i){
+    var target = parseFloat(node.getAttribute("data-count"));
+    var final  = fmt(target);
+    var start  = null, dur = 900, delay = 120 + i * 55;
+    setTimeout(function(){ node.textContent = final; }, delay + dur + 400); // rAF-throttle guard
+    setTimeout(function(){
+      function step(ts){
+        if (start === null) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        var e = 1 - Math.pow(1 - p, 3);
+        node.textContent = fmt(Math.round(target * e));
+        if (p < 1) requestAnimationFrame(step); else node.textContent = final;
+      }
+      requestAnimationFrame(step);
+    }, delay);
+  });
+}
+
+/* bars declared with data-w grow from their baseline once painted */
+function growBars(scope){
+  var bars = (scope || document).querySelectorAll("[data-w]");
+  requestAnimationFrame(function(){
+    bars.forEach(function(b){ b.style.inlineSize = b.getAttribute("data-w") + "%"; });
+  });
+  setTimeout(function(){
+    bars.forEach(function(b){ b.style.inlineSize = b.getAttribute("data-w") + "%"; });
+  }, 900);
+}
+
+/* ===================== filters ===================== */
+function eventsForHour(h){
+  return EVENTS.filter(function(e){ return hourOf(e.t) === h; });
+}
+function passes(e){
+  if (state.verdict !== "all" && e.verdict !== state.verdict) return false;
+  if (state.gate !== "all" && e.gate !== state.gate) return false;
+  if (state.operator !== "all" && e.by !== state.operator) return false;
+  return true;
+}
+function digestVisible(h){
+  // aggregates exist only at day level: any gate/operator scope hides them
+  if (state.gate !== "all" || state.operator !== "all") return false;
+  if (state.verdict === "wanted") return HOURLY.wanted[h] > 0;
+  if (state.verdict === "unread") return HOURLY.unread[h] > 0;
+  return true;
+}
+
+/* ===================== verdict chips ===================== */
+const CHIP_DEFS = [
+  { k: "all",    label: "كل النتائج", color: "rgba(255,255,255,.4)" },
+  { k: "wanted", label: "مطلوب",      color: "var(--wanted)" },
+  { k: "clean",  label: "سليم",       color: "var(--clean)" },
+  { k: "unread", label: "غير مقروء",  color: "var(--unread)" }
+];
+function renderChips(){
+  var wrap = $("#verdictChips");
+  wrap.innerHTML = "";
+  CHIP_DEFS.forEach(function(c){
+    var n = EVENTS.filter(function(e){
+      if (c.k !== "all" && e.verdict !== c.k) return false;
+      if (state.gate !== "all" && e.gate !== state.gate) return false;
+      if (state.operator !== "all" && e.by !== state.operator) return false;
+      return true;
+    }).length;
+    var b = el("button", "chip");
+    b.type = "button";
+    b.setAttribute("aria-pressed", state.verdict === c.k ? "true" : "false");
+    b.innerHTML = '<span class="cdot" style="background:' + c.color + '"></span>' +
+                  c.label + ' <span class="cn">' + n + '</span>';
+    b.addEventListener("click", function(){
+      state.verdict = c.k;
+      renderChips(); renderScopes(); renderLog();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* ===================== active scopes ===================== */
+function renderScopes(){
+  var wrap = $("#scopes");
+  wrap.innerHTML = "";
+  var items = [];
+  if (state.gate !== "all")
+    items.push({ t: "البوابة", v: GATE_BY_ID[state.gate].name, clear: function(){ state.gate = "all"; } });
+  if (state.operator !== "all")
+    items.push({ t: "المراجع", v: state.operator, clear: function(){ state.operator = "all"; } });
+  if (state.hour !== "all")
+    items.push({ t: "الساعة", v: pad2(state.hour) + ":00", clear: function(){ state.hour = "all"; } });
+  if (state.verdict !== "all")
+    items.push({ t: "النتيجة", v: VERDICT_AR[state.verdict], clear: function(){ state.verdict = "all"; } });
+
+  items.forEach(function(it){
+    var s = el("span", "scope");
+    s.innerHTML = it.t + ': <b></b>';
+    s.querySelector("b").textContent = it.v;
+    var x = el("button", "xbtn");
+    x.type = "button";
+    x.setAttribute("aria-label", "إزالة تصفية " + it.t);
+    x.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"' +
+      ' stroke-width="1.5" stroke-linecap="round" aria-hidden="true" focusable="false">' +
+      '<path d="M6 6l12 12M18 6 6 18"/></svg>';
+    x.addEventListener("click", function(){ it.clear(); renderChips(); renderScopes(); renderLog(); renderGates(); renderOps(); });
+    s.appendChild(x);
+    wrap.appendChild(s);
+  });
+
+  var note = $("#scopeNote");
+  if (state.gate !== "all" || state.operator !== "all"){
+    note.hidden = false;
+    note.textContent = "التجميعات الساعية متاحة على مستوى اليوم فقط، لذلك تُخفى الساعات المجمّعة أثناء تضييق النطاق على بوابة أو مراجع.";
+  } else {
+    note.hidden = true;
+  }
+}
+
+/* ===================== the spine ===================== */
+function nodeButton(kind, key, labelText){
+  var b = el("button", "nodebtn");
+  b.type = "button";
+  b.setAttribute("data-key", key);
+  b.setAttribute("aria-expanded", state.expanded[key] ? "true" : "false");
+  b.setAttribute("aria-label", labelText);
+  b.innerHTML = '<span class="n n-' + kind + '"></span>';
+  b.addEventListener("click", function(){
+    if (state.expanded[key]) delete state.expanded[key]; else state.expanded[key] = true;
+    renderLog();
+    var again = document.querySelector('.nodebtn[data-key="' + key + '"]');
+    if (again) again.focus();
+  });
+  return b;
+}
+
+function eventRow(e, idx, side){
+  var key = "ev-" + idx;
+  var open = !!state.expanded[key];
+  var g = GATE_BY_ID[e.gate];
+  var row = el("div", "ev side-" + side);
+  row.setAttribute("data-v", e.verdict);
+
+  var card = el("div", "card");
+  var mid  = el("div", "mid");
+
+  if (e.verdict === "clean" && !open){
+    card.innerHTML =
+      '<div class="line">' +
+        '<span class="tm">' + e.t + '</span>' +
+        '<span class="pl plate">' + e.plate + '</span>' +
+        '<span class="gt">' + g.name + '</span>' +
+      '</div>';
+  } else {
+    var cls = e.verdict === "wanted" ? " w" : (e.verdict === "unread" ? " u" : "");
+    var vcls = e.verdict === "wanted" ? "w" : (e.verdict === "unread" ? "u" : "n");
+    var rows = "";
+    if (e.reason) rows += '<dt>' + (e.verdict === "unread" ? "سبب التعذّر" : "سبب الطلب") + '</dt><dd>' + e.reason + '</dd>';
+    if (e.ref)    rows += '<dt>المرجع</dt><dd><span class="iso">' + e.ref + '</span></dd>';
+    if (e.by)     rows += '<dt>المراجع</dt><dd>' + e.by + '</dd>';
+    rows += '<dt>البوابة</dt><dd>' + g.name + ' · ' + STATUS_AR[g.status] + '</dd>';
+    rows += '<dt>متوسط زمن البوابة</dt><dd><span class="iso">' + g.ms + '</span> مللي/ث</dd>';
+    rows += '<dt>النتيجة</dt><dd>' + VERDICT_AR[e.verdict] + '</dd>';
+
+    card.innerHTML =
+      '<div class="fullcard' + cls + '">' +
+        '<div class="fc-top">' +
+          '<span class="verdict ' + vcls + '">' + VERDICT_AR[e.verdict] + '</span>' +
+          '<span class="fc-plate plate">' + e.plate + '</span>' +
+          '<span class="fc-time">' + e.t + '</span>' +
+        '</div>' +
+        '<dl class="kv">' + rows + '</dl>' +
+      '</div>';
+  }
+
+  var kind = e.verdict === "wanted" ? "wanted" : (e.verdict === "unread" ? "unread" : "clean");
+  mid.appendChild(nodeButton(kind, key, VERDICT_AR[e.verdict] + " — " + e.plate + " — " + e.t));
+
+  row.appendChild(card);
+  row.appendChild(mid);
+  return row;
+}
+
+function digestRow(h, day, side){
+  var key = "dg-" + day + "-" + h;
+  var open = !!state.expanded[key];
+  var t = HOURLY.total[h], w = HOURLY.wanted[h], u = HOURLY.unread[h];
+  var c = t - w - u;
+
+  var row = el("div", "ev side-" + side);
+  row.setAttribute("data-v", "digest");
+  var card = el("div", "card");
+  var mid  = el("div", "mid");
+
+  var detail = "";
+  if (open){
+    detail =
+      /* three magnitudes, two scales — say so rather than let equal-length
+         tracks imply the counts are comparable */
+      '<p class="dg-cap">مقياسان مستقلان — السليمة <span class="num">0–1000</span> · المطلوبة وغير المقروءة <span class="num">0–5</span></p>' +
+      '<div class="dg-bars">' +
+        '<div class="dg-row"><span class="dg-l">سليمة</span>' +
+          '<span class="track c"><i data-w="' + Math.round((c / 1000) * 100) + '"></i></span>' +
+          '<span class="dg-t">' + fmt(c) + '</span></div>' +
+        '<div class="dg-row"><span class="dg-l">مطلوبة</span>' +
+          '<span class="track w"><i data-w="' + Math.round((w / 5) * 100) + '"></i></span>' +
+          '<span class="dg-t">' + w + '</span></div>' +
+        '<div class="dg-row"><span class="dg-l">غير مقروءة</span>' +
+          '<span class="track u"><i data-w="' + Math.round((u / 5) * 100) + '"></i></span>' +
+          '<span class="dg-t">' + u + '</span></div>' +
+      '</div>' +
+      '<dl class="kv">' +
+        '<dt>الحصة من ذروة اليوم</dt><dd><span class="iso">' + Math.round((t / PEAK) * 100) + '%</span> من <span class="iso">' + fmt(PEAK) + '</span></dd>' +
+        '<dt>السجلات المفصّلة</dt><dd>غير محفوظة لهذه الساعة — بيانات مجمّعة فقط</dd>' +
+      '</dl>';
+  }
+
+  card.innerHTML =
+    '<div class="fullcard">' +
+      '<div class="fc-top">' +
+        '<span class="verdict n">ساعة مجمّعة</span>' +
+        '<span class="fc-plate"><span class="num">' + pad2(h) + ':00</span></span>' +
+        '<span class="fc-time mix"><span class="num">' + fmt(t) + '</span> مسح</span>' +
+      '</div>' +
+      detail +
+    '</div>';
+
+  mid.appendChild(nodeButton("digest", key, "ملخّص الساعة " + pad2(h)));
+
+  row.appendChild(card);
+  row.appendChild(mid);
+  return row;
+}
+
+function hourBar(h, day){
+  var b = el("button", "hourbar");
+  b.type = "button";
+  b.setAttribute("aria-label", "قصر السجل على الساعة " + pad2(h));
+  b.innerHTML =
+    '<div class="hb-inner">' +
+      /* one isolate for the whole range: two adjacent isolates would be laid
+         out right-to-left and the range would read backwards */
+      '<span class="hb-h"><span class="num">' + pad2(h) + ':00 – ' + pad2((h + 1) % 24) + ':00</span></span>' +
+      '<span class="hb-line"></span>' +
+      '<span class="hb-figs">' +
+        '<span class="hb-fig">مسح <b>' + fmt(HOURLY.total[h]) + '</b></span>' +
+        '<span class="hb-fig w">مطلوب <b>' + HOURLY.wanted[h] + '</b></span>' +
+        '<span class="hb-fig u">غ.مقروء <b>' + HOURLY.unread[h] + '</b></span>' +
+      '</span>' +
+    '</div>';
+  b.addEventListener("click", function(){
+    state.hour = (state.hour === h) ? "all" : h;
+    renderScopes(); renderLog();
+  });
+  return b;
+}
+
+function renderLog(){
+  var spine = $("#spine");
+  spine.innerHTML = "";
+  var totalRows = 0, hoursShown = 0, detailed = 0, yesterdayMarked = false;
+  var side = "a";
+
+  HOUR_ORDER.forEach(function(entry){
+    var h = entry.h, day = entry.day;
+    if (state.hour !== "all" && state.hour !== h) return;
+
+    var evs = eventsForHour(h).filter(passes);
+    var showDigest = (evs.length === 0) && digestVisible(h);
+    if (evs.length === 0 && !showDigest) return;
+
+    if (day === "yesterday" && !yesterdayMarked){
+      yesterdayMarked = true;
+      var dm = el("div", "daymark");
+      dm.innerHTML = '<span class="dl"></span><span>أمس</span><span class="dl"></span>';
+      spine.appendChild(dm);
+    }
+
+    var block = el("section", "hourblock");
+    block.setAttribute("data-hour", h);
+    block.setAttribute("data-day", day);
+    block.appendChild(hourBar(h, day));
+
+    if (evs.length){
+      evs.forEach(function(e){
+        var idx = EVENTS.indexOf(e);
+        block.appendChild(eventRow(e, idx, side));
+        side = (side === "a") ? "b" : "a";
+        totalRows++; detailed++;
+      });
+    } else {
+      block.appendChild(digestRow(h, day, side));
+      side = (side === "a") ? "b" : "a";
+      totalRows++;
+    }
+
+    spine.appendChild(block);
+    hoursShown++;
+  });
+
+  $("#empty").classList.toggle("on", totalRows === 0);
+  $("#count").textContent = totalRows === 0
+    ? "لا سجلات مطابقة"
+    : arCount(hoursShown, N_HOUR) + " · " +
+      (detailed === 0 ? "بلا سجلات مفصّلة" : arCount(detailed, N_RECORD)) + " · " +
+      arCount(totalRows, N_NODE);
+
+  growBars(spine);
+  collectHourBlocks();
+  syncRail(true);
+}
+
+/* ===================== rail — scroll-linked ===================== */
+var hourBlocks = [];
+function collectHourBlocks(){
+  hourBlocks = Array.prototype.slice.call(document.querySelectorAll(".hourblock"));
+}
+
+function railFigures(h, day){
+  $("#railHour").textContent = pad2(h) + ":00";
+  $("#railDay").textContent  = (day === "yesterday" ? "أمس" : "اليوم");
+  $("#railTotal").textContent  = fmt(HOURLY.total[h]);
+  $("#railWanted").textContent = HOURLY.wanted[h];
+  $("#railUnread").textContent = HOURLY.unread[h];
+  $("#railPeak").textContent   = Math.round((HOURLY.total[h] / PEAK) * 100) + "%";
+}
+
+/* geometry of the mini-axis */
+var AX = { W: 200, top: 12, rowH: 12, barH: 7, labelX: 196,
+           aBase: 178, aLen: 90, bBase: 72, bLen: 60 };
+
+function buildAxis(){
+  var svg = $("#axis");
+  var parts = [];
+
+  /* the two column scales are named in the HTML legend above this svg */
+  parts.push('<line class="gridline" x1="' + (AX.aBase + 1) + '" y1="4" x2="' + (AX.aBase + 1) + '" y2="' + (AX.top + 24 * AX.rowH) + '"/>');
+  parts.push('<line class="gridline" x1="' + (AX.bBase + 1) + '" y1="4" x2="' + (AX.bBase + 1) + '" y2="' + (AX.top + 24 * AX.rowH) + '"/>');
+
+  parts.push('<g id="railCursor" transform="translate(0,' + AX.top + ')">' +
+    '<rect class="cursorbox" x="2" y="0" width="196" height="' + AX.rowH + '" rx="3"/></g>');
+
+  HOUR_ORDER.forEach(function(entry, i){
+    var h = entry.h;
+    var y = AX.top + i * AX.rowH;
+    var by = y + (AX.rowH - AX.barH) / 2;
+    var lenA = (Math.min(HOURLY.total[h], 1000) / 1000) * AX.aLen;
+    var lenW = (Math.min(HOURLY.wanted[h], 5) / 5) * AX.bLen;
+    var lenU = (Math.min(HOURLY.unread[h], 5) / 5) * AX.bLen;
+
+    parts.push('<g class="row" role="button" tabindex="0" data-hour="' + h + '" data-i="' + i + '"' +
+      ' aria-label="الساعة ' + pad2(h) + ' — ' + HOURLY.total[h] + ' مسح، ' + HOURLY.wanted[h] + ' مطلوب، ' + HOURLY.unread[h] + ' غير مقروء">' +
+      '<rect class="rowhit rowfocus" x="2" y="' + y + '" width="196" height="' + AX.rowH + '" rx="3" fill="transparent" stroke="none"/>' +
+      '<text class="hl" x="' + AX.labelX + '" y="' + (y + AX.rowH - 3.4) + '" text-anchor="end">' + pad2(h) + '</text>' +
+      '<rect class="barA" x="' + (AX.aBase - lenA) + '" y="' + by + '" width="' + Math.max(lenA, .8) + '" height="' + AX.barH + '" rx="1.5"/>' +
+      '<rect class="barW" x="' + (AX.bBase - lenW) + '" y="' + by + '" width="' + Math.max(lenW, .8) + '" height="3" rx="1"/>' +
+      '<rect class="barU" x="' + (AX.bBase - lenU) + '" y="' + (by + 5) + '" width="' + Math.max(lenU, .8) + '" height="3" rx="1"/>' +
+    '</g>');
+  });
+
+  svg.setAttribute("viewBox", "0 0 " + AX.W + " " + (AX.top + 24 * AX.rowH + 6));
+  svg.innerHTML = parts.join("");
+
+  svg.querySelectorAll("g.row").forEach(function(g){
+    var h = parseInt(g.getAttribute("data-hour"), 10);
+    var act = function(){
+      state.hour = (state.hour === h) ? "all" : h;
+      renderScopes(); renderLog();
+      var blk = document.querySelector('.hourblock[data-hour="' + h + '"]');
+      if (blk) blk.scrollIntoView({ block: "start" });
+    };
+    g.addEventListener("click", act);
+    g.addEventListener("keydown", function(ev){
+      if (ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); act(); }
+    });
+  });
+}
+
+function moveCursor(index){
+  var c = document.getElementById("railCursor");
+  if (c) c.setAttribute("transform", "translate(0," + (AX.top + index * AX.rowH) + ")");
+}
+
+function syncRail(force){
+  if (!hourBlocks.length){
+    railFigures(state.activeHour, "today");
+    return;
+  }
+  var line = 130; // the reading line, below the sticky marker
+  var current = hourBlocks[0];
+  for (var i = 0; i < hourBlocks.length; i++){
+    var r = hourBlocks[i].getBoundingClientRect();
+    if (r.top <= line) current = hourBlocks[i]; else break;
+  }
+  var h = parseInt(current.getAttribute("data-hour"), 10);
+  var day = current.getAttribute("data-day");
+  if (force || h !== state.activeHour){
+    state.activeHour = h;
+    railFigures(h, day);
+    var idx = 0;
+    for (var j = 0; j < HOUR_ORDER.length; j++){
+      if (HOUR_ORDER[j].h === h && HOUR_ORDER[j].day === day){ idx = j; break; }
+    }
+    moveCursor(idx);
+    document.querySelectorAll(".hourblock").forEach(function(b){
+      b.classList.toggle("is-focus", b === current);
+    });
+  }
+}
+
+/* Scroll driver. rAF alone is not safe here: it is throttled in a background
+   tab, and a boolean "ticking" latch would then stay raised forever and freeze
+   the rail. A timer acts as the fallback so the rail always catches up. */
+var rafId = 0, scrollFallback = 0;
+function onScroll(){
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(function(){ rafId = 0; syncRail(false); });
+  clearTimeout(scrollFallback);
+  scrollFallback = setTimeout(function(){
+    if (rafId){ cancelAnimationFrame(rafId); rafId = 0; }
+    syncRail(false);
+  }, 110);
+}
+window.addEventListener("scroll", onScroll, { passive: true });
+window.addEventListener("resize", onScroll, { passive: true });
+
+/* ===================== terminus — gates ===================== */
+function renderGates(){
+  var list = $("#gateList");
+  list.innerHTML = "";
+  var rows = GATES.slice();
+  if (state.sort === "total") rows.sort(function(a,b){ return b.total - a.total; });
+  if (state.sort === "wanted") rows.sort(function(a,b){ return b.wanted - a.wanted || b.total - a.total; });
+  if (state.sort === "ms") rows.sort(function(a,b){ return b.ms - a.ms; });
+
+  var maxT = Math.max.apply(null, rows.map(function(g){ return g.total; })) || 1;
+  var maxMs = 600;
+
+  /* the bar changes meaning with the sort, so the header has to say which
+     quantity and which scale it is drawing right now */
+  var head = $("#gateBarHead");
+  if (head){
+    head.innerHTML =
+      state.sort === "wanted" ? 'المطلوبة — مقياس <span class="num">0–10</span>' :
+      state.sort === "ms"     ? 'الزمن — مقياس <span class="num">0–600</span> مللي/ث' :
+                                'الحجم — نسبة إلى أكبر بوابة';
+  }
+  var vhead = $("#gateValHead");
+  if (vhead) vhead.textContent = state.sort === "ms" ? "مللي/ث" : "المسح";
+
+  rows.forEach(function(g){
+    var b = el("button", "grow" + (g.total === 0 ? " dead" : ""));
+    b.type = "button";
+    b.setAttribute("aria-pressed", state.gate === g.id ? "true" : "false");
+    var barVal = state.sort === "ms" ? g.ms : g.total;
+    var barMax = state.sort === "ms" ? maxMs : maxT;
+    var barCls = state.sort === "wanted" ? "track w" : "track";
+    var pct = Math.round((barVal / barMax) * 100);
+    var mid = state.sort === "wanted"
+      ? '<span class="track w"><i data-w="' + Math.round((g.wanted / 10) * 100) + '"></i></span>'
+      : '<span class="' + barCls + '"><i data-w="' + pct + '"></i></span>';
+
+    b.innerHTML =
+      '<span class="gn">' + g.name + '</span>' +
+      mid +
+      '<span class="gv">' + (state.sort === "ms" ? (g.ms || "—") : fmt(g.total)) + '</span>' +
+      '<span class="gv gw">' + g.wanted + '</span>' +
+      '<span class="gv gu">' + g.unread + '</span>';
+    b.setAttribute("aria-label", g.name + " — " + STATUS_AR[g.status] + " — " + g.total + " مسح");
+    b.addEventListener("click", function(){
+      state.gate = (state.gate === g.id) ? "all" : g.id;
+      state.hour = "all";
+      renderGates(); renderChips(); renderScopes(); renderLog();
+      document.querySelector(".loghead").scrollIntoView({ block: "start" });
+    });
+    list.appendChild(b);
+  });
+  growBars(list);
+}
+
+/* ===================== terminus — operators ===================== */
+function renderOps(){
+  var list = $("#opList");
+  list.innerHTML = "";
+  var maxR = 500;
+  OPERATORS.forEach(function(o){
+    var b = el("button", "grow orow");
+    b.type = "button";
+    b.setAttribute("aria-pressed", state.operator === o.name ? "true" : "false");
+    b.innerHTML =
+      '<span class="gn">' + o.name + '</span>' +
+      '<span class="track"><i data-w="' + Math.round((o.reviews / maxR) * 100) + '"></i></span>' +
+      '<span class="gv">' + fmt(o.reviews) + '</span>' +
+      '<span class="gv gw">' + o.wanted + '</span>' +
+      '<span class="acc">' + o.acc + '%</span>';
+    b.setAttribute("aria-label", o.name + " — " + o.reviews + " مراجعة — دقة " + o.acc + "%");
+    b.addEventListener("click", function(){
+      state.operator = (state.operator === o.name) ? "all" : o.name;
+      state.hour = "all";
+      if (state.operator !== "all" && state.verdict === "clean") state.verdict = "all";
+      renderOps(); renderChips(); renderScopes(); renderLog();
+      document.querySelector(".loghead").scrollIntoView({ block: "start" });
+    });
+    list.appendChild(b);
+  });
+  growBars(list);
+}
+
+/* ===================== sort control ===================== */
+document.querySelectorAll(".sortbtn").forEach(function(b){
+  b.addEventListener("click", function(){
+    state.sort = b.getAttribute("data-sort");
+    document.querySelectorAll(".sortbtn").forEach(function(x){
+      x.setAttribute("aria-pressed", x === b ? "true" : "false");
+    });
+    renderGates();
+  });
+});
+
+$("#toTop").addEventListener("click", function(){
+  document.querySelector(".loghead").scrollIntoView({ block: "start" });
+});
+
+/* ===================== boot ===================== */
+renderHealth();
+buildAxis();
+renderChips();
+renderScopes();
+renderLog();
+renderGates();
+renderOps();
+drawSparks();
+runCounters();
+railFigures(14, "today");
+setTimeout(function(){ syncRail(true); }, 60);
+
+/* staggered entrance for the log sections — runs once */
+requestAnimationFrame(function(){
+  var blocks = document.querySelectorAll(".terminus .block");
+  blocks.forEach(function(b, i){
+    b.classList.add("anim");
+    b.style.animationDelay = (280 + i * 60) + "ms";
+  });
+});
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>الفرز</title>
+<style>
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --glass:    rgba(255,255,255,.045);
+  --glass-2:  rgba(255,255,255,.03);
+  --glass-3:  rgba(255,255,255,.065);
+  --r:        16px;
+  --ease:     cubic-bezier(.22,.61,.36,1);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:#06100c;
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-weight:400;
+  font-size:14px;
+  line-height:1.75;
+  letter-spacing:normal;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+
+/* ───────────── scene ───────────── */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.light{position:absolute;border-radius:50%;filter:blur(90px)}
+.l1{inline-size:780px;block-size:680px;inset-block-start:-220px;inset-inline-end:-170px;
+    background:radial-gradient(circle,#10613f 0%,rgba(16,97,63,0) 70%);opacity:.15}
+.l2{inline-size:700px;block-size:600px;inset-block-end:-230px;inset-inline-start:-190px;
+    background:radial-gradient(circle,#0f4d38 0%,rgba(15,77,56,0) 70%);opacity:.14}
+.l3{inline-size:600px;block-size:520px;inset-block-start:34%;inset-inline-start:34%;
+    background:radial-gradient(circle,#145a45 0%,rgba(20,90,69,0) 70%);opacity:.11}
+.l4{inline-size:500px;block-size:460px;inset-block-start:-80px;inset-inline-start:24%;
+    background:radial-gradient(circle,#0b3a30 0%,rgba(11,58,48,0) 70%);opacity:.12}
+.l5{inline-size:560px;block-size:440px;inset-block-end:-140px;inset-inline-end:12%;
+    background:radial-gradient(circle,#08302a 0%,rgba(8,48,42,0) 70%);opacity:.12}
+.l6{inline-size:420px;block-size:380px;inset-block-start:48%;inset-inline-end:-110px;
+    background:radial-gradient(circle,#10613f 0%,rgba(16,97,63,0) 70%);opacity:.10}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 42%, rgba(0,0,0,0) 32%, rgba(0,0,0,.42) 76%, rgba(0,0,0,.72) 100%)}
+.grain{position:fixed;inset:0;z-index:2;opacity:.035;pointer-events:none}
+
+/* ───────────── shell ───────────── */
+.shell{position:relative;z-index:3;display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+  block-size:100vh;block-size:100dvh;padding:14px 18px 8px;gap:12px}
+
+.panel{
+  background:var(--glass);
+  backdrop-filter:blur(22px) saturate(1.25);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid rgba(255,255,255,.085);
+  border-radius:var(--r);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset, 0 20px 50px -20px rgba(0,0,0,.55);
+}
+.panel--far{background:var(--glass-2);backdrop-filter:blur(14px) saturate(1.15);
+  -webkit-backdrop-filter:blur(14px) saturate(1.15);border-color:rgba(255,255,255,.06)}
+.panel--near{background:var(--glass-3);backdrop-filter:blur(34px) saturate(1.3);
+  -webkit-backdrop-filter:blur(34px) saturate(1.3)}
+
+/* entrance */
+.rise{opacity:0;transform:translateY(14px);animation:rise .58s var(--ease) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ───────────── topbar ───────────── */
+.topbar{display:flex;align-items:center;gap:18px;padding:10px 16px;min-block-size:58px}
+.brand{display:flex;align-items:center;gap:11px;min-inline-size:0}
+.brand-mark{inline-size:34px;block-size:34px;border-radius:10px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);flex:none;color:var(--accent)}
+.brand-t{display:flex;flex-direction:column;line-height:1.35}
+.brand-t b{font-size:15px;font-weight:600}
+.brand-t span{font-size:11.5px;color:var(--ink-3)}
+.tsep{inline-size:1px;block-size:30px;background:var(--line);flex:none}
+
+.live{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-2)}
+.live-dot{inline-size:7px;block-size:7px;border-radius:50%;background:var(--clean);
+  box-shadow:0 0 0 0 rgba(61,220,151,.45);animation:blip 2.4s ease-out infinite}
+@keyframes blip{0%{box-shadow:0 0 0 0 rgba(61,220,151,.40)}70%{box-shadow:0 0 0 7px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+
+.sess{flex:1;display:flex;align-items:center;gap:12px;min-inline-size:0}
+.sess-l{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.bar{position:relative;flex:1;max-inline-size:320px;block-size:6px;border-radius:99px;
+  background:rgba(255,255,255,.07);overflow:hidden}
+.bar>i{position:absolute;inset-block:0;inset-inline-start:0;display:block;border-radius:99px;
+  background:linear-gradient(to left,rgba(110,196,155,.85),rgba(110,196,155,.35));
+  inline-size:0;transition:inline-size .7s var(--ease)}
+.sess-n{font-size:12.5px;color:var(--ink);white-space:nowrap}
+
+.warn{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:rgba(255,255,255,.03);white-space:nowrap}
+.warn svg{color:var(--unread)}
+
+.admin{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.admin-av{inline-size:32px;block-size:32px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.06);border:1px solid var(--line);font-weight:600;font-size:13px}
+.admin-t{display:flex;flex-direction:column;line-height:1.35}
+.admin-t b{font-size:12.5px;font-weight:600}
+.admin-t span{font-size:11px;color:var(--ink-3)}
+
+/* ───────────── stage ───────────── */
+.stage{display:grid;grid-template-columns:282px minmax(0,1fr) 326px;gap:12px;min-block-size:0}
+.col{display:flex;flex-direction:column;gap:12px;min-block-size:0;min-inline-size:0}
+
+.p-h{display:flex;align-items:baseline;gap:8px;padding:11px 14px 9px;border-block-end:1px solid var(--line-2)}
+.p-h h2{margin:0;font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:normal}
+.p-h .p-sub{font-size:11px;color:var(--ink-3);margin-inline-start:auto}
+
+.scroll{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.16) transparent}
+.scroll::-webkit-scrollbar,.card::-webkit-scrollbar{inline-size:7px;block-size:7px}
+.scroll::-webkit-scrollbar-thumb,.card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
+.scroll::-webkit-scrollbar-track,.card::-webkit-scrollbar-track{background:transparent}
+
+/* handled today */
+.done{padding:6px 8px 8px}
+.done-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;
+  padding:7px 8px;border-radius:10px}
+.done-row+.done-row{border-block-start:1px solid var(--line-2)}
+.vd{inline-size:6px;block-size:6px;border-radius:50%;flex:none}
+.vd-confirm{background:var(--wanted)}
+.vd-refer{background:var(--unread)}
+.vd-exclude{background:var(--clean)}
+.done-p{font-size:12.5px;color:var(--ink-2);unicode-bidi:isolate;direction:rtl}
+.done-v{font-size:10.5px;color:var(--ink-3)}
+
+/* queue */
+.qfilters{display:flex;gap:6px;padding:9px 10px;border-block-end:1px solid var(--line-2);flex-wrap:wrap}
+.chip{font:inherit;font-size:11px;color:var(--ink-2);background:rgba(255,255,255,.035);
+  border:1px solid var(--line);border-radius:99px;padding:4px 10px;cursor:pointer;
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.chip:hover{background:rgba(255,255,255,.075);color:var(--ink)}
+.chip[aria-pressed="true"]{background:rgba(110,196,155,.14);border-color:rgba(110,196,155,.42);color:var(--ink)}
+.qlist{padding:5px 7px 10px;flex:1}
+.qrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;inline-size:100%;
+  text-align:start;font:inherit;color:inherit;background:transparent;border:0;cursor:pointer;
+  padding:8px 9px;border-radius:11px;border-inline-start:2px solid transparent;
+  transition:background .15s var(--ease),border-color .15s var(--ease)}
+.qrow:hover{background:rgba(255,255,255,.055)}
+.qrow .idx{font-size:10.5px;color:var(--ink-3);inline-size:20px;direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums}
+.qrow .qp{font-size:13px;color:var(--ink);unicode-bidi:isolate;direction:rtl;font-weight:500}
+.qrow .qg{font-size:10.5px;color:var(--ink-3);display:block;margin-block-start:-4px}
+.qrow .qt{font-size:11px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums}
+.qrow.is-current{background:rgba(110,196,155,.10);border-inline-start-color:var(--accent)}
+.qrow.is-current .qp{color:var(--ink)}
+.qrow.is-low .qp::after{content:"";display:inline-block;inline-size:5px;block-size:5px;border-radius:50%;
+  background:var(--unread);margin-inline-start:7px;vertical-align:middle}
+
+.empty{padding:26px 16px;text-align:center;color:var(--ink-3);font-size:12.5px;line-height:1.9}
+.empty .lnk{margin-block-start:10px}
+
+/* ───────────── centre stack ───────────── */
+.centre{display:grid;grid-template-rows:minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);
+  gap:12px;min-block-size:0;min-inline-size:0}
+.stack{position:relative;min-block-size:0;min-inline-size:0;padding-block-start:26px}
+.stack-back{position:absolute;inset-block-start:0;block-size:calc(100% - 4px);
+  border-radius:var(--r);pointer-events:none;overflow:hidden;
+  display:flex;align-items:flex-start;justify-content:center;padding-block-start:12px}
+.stack-b2{inset-inline:26px;opacity:.55}
+.stack-b3{inset-block-start:-12px;inset-inline:52px;opacity:.32}
+.stack-back .ghost{font-size:15px;color:var(--ink-3);filter:blur(1.4px);unicode-bidi:isolate;direction:rtl}
+.stack-b3 .ghost{filter:blur(2.6px)}
+
+.card{position:relative;block-size:100%;display:flex;flex-direction:column;
+  padding:16px 18px 14px;overflow-x:hidden;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset, 0 26px 60px -24px rgba(0,0,0,.62),
+             0 0 40px -12px rgba(110,196,155,.35)}
+.card.is-in{animation:cardIn .26s var(--ease) both}
+.card.is-out{animation:cardOut .26s var(--ease) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.972)}to{opacity:1;transform:none}}
+@keyframes cardOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-22px) scale(.968)}}
+
+.card-h{display:flex;align-items:center;gap:10px;padding-block-end:12px;border-block-end:1px solid var(--line-2)}
+.tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;
+  border:1px solid rgba(255,107,107,.45);color:#ffb3b3;background:rgba(255,107,107,.10)}
+.ref{font-size:11.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums}
+.pos{margin-inline-start:auto;font-size:11.5px;color:var(--ink-3)}
+.pos b{color:var(--ink-2);font-weight:600}
+
+/* plate */
+.plate{display:flex;align-items:stretch;gap:0;margin-block:16px 14px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.055);overflow:hidden;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.12) inset, 0 14px 34px -18px rgba(0,0,0,.6)}
+.plate-side{inline-size:74px;flex:none;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;padding:8px 4px;border-inline-end:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.035)}
+.plate-side .lat{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-2);direction:ltr}
+.plate-side .ar{font-size:10px;color:var(--ink-3)}
+.plate-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 12px 12px;min-inline-size:0}
+.plate-ar{font-size:clamp(30px,4.6vw,54px);font-weight:600;line-height:1.35;color:var(--ink);
+  unicode-bidi:isolate;direction:rtl;font-variant-numeric:tabular-nums;white-space:nowrap}
+.plate-lat{font-size:14px;letter-spacing:.16em;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  margin-block-start:2px;white-space:nowrap}
+
+/* body grid */
+.card-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:16px;
+  min-block-size:0;flex:1}
+.capture{margin:0;display:flex;flex-direction:column;min-block-size:0}
+.cap-frame{position:relative;flex:1;min-block-size:120px;border-radius:12px;overflow:hidden;
+  border:1px solid var(--line);background:rgba(255,255,255,.022);
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+                   linear-gradient(to left, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size:30px 30px}
+.cap-frame svg{position:absolute;inset:0;inline-size:100%;block-size:100%}
+.cap-cap{display:flex;align-items:baseline;gap:8px;padding-block-start:7px}
+.cap-cap b{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.cap-cap span{font-size:10.5px;color:var(--ink-3);margin-inline-start:auto}
+
+.meta{margin:0;display:flex;flex-direction:column;justify-content:center;gap:0}
+.meta-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:7px 0;
+  border-block-end:1px solid var(--line-2)}
+.meta-row:last-child{border-block-end:0}
+.meta-row dt{font-size:11px;color:var(--ink-3);margin:0}
+.meta-row dd{margin:0;font-size:12.5px;color:var(--ink);line-height:1.7}
+.meta-row dd .sub{color:var(--ink-3);font-size:11px}
+
+/* confidence */
+.conf{margin-block-start:12px;padding-block-start:11px;border-block-start:1px solid var(--line-2)}
+.conf-top{display:flex;align-items:baseline;gap:10px;margin-block-end:6px}
+.conf-top b{font-size:11px;font-weight:500;color:var(--ink-3)}
+.conf-v{margin-inline-start:auto;font-size:17px;font-weight:600;direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums}
+.conf-n{font-size:11px;color:var(--ink-3)}
+.conf svg{display:block;inline-size:100%;block-size:9px}
+
+/* actions */
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-block-start:13px}
+.act{font:inherit;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:12px;
+  padding:11px 10px;display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:background .16s var(--ease),transform .16s var(--ease),border-color .16s var(--ease)}
+.act:hover{background:rgba(255,255,255,.09)}
+.act:active{transform:translateY(1px)}
+.act-1{border-color:rgba(110,196,155,.40);background:rgba(110,196,155,.12)}
+.act-1:hover{background:rgba(110,196,155,.19)}
+.kbd{font-size:10.5px;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;
+  padding:0 5px;line-height:1.6;direction:ltr;unicode-bidi:isolate}
+.hintline{margin:9px 0 0;font-size:10.5px;color:var(--ink-3);text-align:center}
+.hintline .k{border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-inline:2px;
+  direction:ltr;unicode-bidi:isolate;display:inline-block}
+.hintline .k svg{display:block;margin-block:2px}
+
+/* done state */
+.done-state{block-size:100%;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:30px 26px;gap:6px}
+.done-state h3{margin:10px 0 2px;font-size:22px;font-weight:600}
+.done-state p{margin:0;color:var(--ink-3);font-size:12.5px}
+.sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-block-start:22px;
+  inline-size:min(560px,100%)}
+.sum div{border:1px solid var(--line);border-radius:12px;padding:12px 8px;background:rgba(255,255,255,.03)}
+.sum b{display:block;font-size:23px;font-weight:600;direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;line-height:1.4}
+.sum span{font-size:10.5px;color:var(--ink-3)}
+.lnk{font:inherit;font-size:12px;color:var(--ink);background:rgba(255,255,255,.05);
+  border:1px solid var(--line);border-radius:10px;padding:8px 16px;cursor:pointer;
+  transition:background .16s var(--ease)}
+.lnk:hover{background:rgba(255,255,255,.10)}
+
+/* ───────────── event strip ───────────── */
+.strip-wrap{padding:9px 10px 10px}
+.strip-h{display:flex;align-items:baseline;gap:8px;padding:0 4px 8px}
+.strip-h h2{margin:0;font-size:12px;font-weight:600;color:var(--ink-2)}
+.strip-h span{font-size:10.5px;color:var(--ink-3);margin-inline-start:auto}
+.strip{display:flex;gap:8px;overflow-x:auto;padding-block-end:4px;scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.16) transparent}
+.strip::-webkit-scrollbar{block-size:6px}
+.strip::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
+.ev{flex:none;inline-size:154px;text-align:start;font:inherit;color:inherit;cursor:pointer;
+  background:rgba(255,255,255,.032);border:1px solid var(--line-2);border-radius:11px;
+  padding:8px 10px;transition:background .15s var(--ease),border-color .15s var(--ease)}
+.ev:hover{background:rgba(255,255,255,.075);border-color:var(--line)}
+.ev[aria-pressed="true"]{border-color:rgba(110,196,155,.42);background:rgba(110,196,155,.11)}
+.ev-t{display:flex;align-items:center;gap:6px}
+.ev-t .vd{inline-size:6px;block-size:6px}
+.ev-t .tm{font-size:10.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;margin-inline-start:auto}
+.ev-p{display:block;font-size:12.5px;color:var(--ink);unicode-bidi:isolate;direction:rtl;margin-block-start:1px}
+.ev-g{display:block;font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ───────────── inline-end rail ───────────── */
+.rail-sec{padding:10px 13px 13px}
+.chart-t{display:flex;align-items:baseline;gap:8px;margin-block-end:2px}
+.chart-t b{font-size:11px;font-weight:500;color:var(--ink-2)}
+.chart-t span{font-size:10px;color:var(--ink-3);margin-inline-start:auto}
+svg.chart{display:block;inline-size:100%;block-size:auto;overflow:visible}
+svg text{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+.ax{font-size:9px;fill:var(--ink-3);direction:ltr;unicode-bidi:isolate}
+/* gate names carry Western digits ("الميناء 3") — isolate so the digit cannot
+   jump out of the word inside the always-LTR SVG coordinate space */
+.axar{font-size:9.5px;fill:var(--ink-3);direction:rtl;unicode-bidi:isolate}
+.gl{stroke:rgba(255,255,255,.07);stroke-width:1}
+.gl2{stroke:rgba(255,255,255,.12);stroke-width:1;stroke-dasharray:2 3}
+.ln{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.bars rect{transform-box:fill-box;transform-origin:50% 100%;animation:grow .5s var(--ease) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.hbars rect{transform-box:fill-box;transform-origin:100% 50%;animation:growx .55s var(--ease) both}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+.gates{padding:2px 6px 8px}
+.g-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
+  padding:6px 7px;border-radius:9px;inline-size:100%;text-align:start;font:inherit;color:inherit;
+  background:transparent;border:0;cursor:pointer;transition:background .15s var(--ease)}
+.g-row+.g-row{border-block-start:1px solid var(--line-2)}
+.g-row:hover{background:rgba(255,255,255,.055)}
+.g-row.is-current{background:rgba(255,255,255,.06)}
+.g-row[aria-pressed="true"]{background:rgba(110,196,155,.12)}
+.g-dot{inline-size:6px;block-size:6px;border-radius:50%;flex:none;background:var(--clean)}
+.g-dot.degraded{background:var(--unread)}
+.g-dot.offline{background:var(--wanted)}
+.g-dot.maint{background:var(--ink-3)}
+.g-n{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-b{display:block;block-size:4px;border-radius:99px;background:rgba(255,255,255,.07);margin-block-start:3px;
+  overflow:hidden;position:relative}
+.g-b>i{position:absolute;inset-block:0;inset-inline-end:0;display:block;border-radius:99px;
+  background:rgba(255,255,255,.30);inline-size:0;transition:inline-size .65s var(--ease)}
+.g-row.is-current .g-b>i{background:rgba(255,255,255,.62)}
+.g-v{font-size:11.5px;color:var(--ink-2);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.g-s{font-size:10px;color:var(--ink-3)}
+
+.ops{padding:2px 6px 8px}
+.op-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;
+  padding:6px 7px;border-radius:9px}
+.op-row+.op-row{border-block-start:1px solid var(--line-2)}
+.op-row.is-current{background:rgba(255,255,255,.06)}
+.op-n{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.op-m{display:block;font-size:10px;color:var(--ink-3);margin-block-start:-3px}
+.op-b{display:block;block-size:4px;border-radius:99px;background:rgba(255,255,255,.07);margin-block-start:3px;
+  overflow:hidden;position:relative}
+.op-b>i{position:absolute;inset-block:0;inset-inline-end:0;display:block;border-radius:99px;
+  background:rgba(255,255,255,.28);inline-size:0;transition:inline-size .65s var(--ease)}
+.op-row.is-current .op-b>i{background:rgba(255,255,255,.62)}
+.op-a{font-size:12px;color:var(--ink);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums}
+
+.ledger{padding:2px 6px 8px}
+.led{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:baseline;
+  padding:6.5px 7px;border-block-end:1px solid var(--line-2)}
+.led:last-child{border-block-end:0}
+.led-l{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.led-v{font-size:14.5px;font-weight:600;color:var(--ink);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.led-v .u{font-size:10px;font-weight:400;color:var(--ink-3);margin-inline-start:3px;
+  direction:rtl;unicode-bidi:isolate}
+.led-d{font-size:10.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:3px;
+  inline-size:52px;justify-content:flex-end}
+
+/* footer */
+.foot{text-align:center;font-size:11px;color:var(--ink-3);padding-block:2px 6px}
+
+/* focus */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+.num{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ───────────── responsive ───────────── */
+@media (max-width:1280px){
+  .stage{grid-template-columns:250px minmax(0,1fr) 300px}
+  .plate-ar{font-size:34px}
+}
+@media (max-width:1080px){
+  body{overflow:auto}
+  .shell{block-size:auto;min-block-size:100vh}
+  .stage{grid-template-columns:minmax(0,1fr);grid-auto-rows:min-content}
+  .col{min-block-size:0}
+  .stack{min-block-size:640px}
+  /* the case under review stays the first thing you see; the queue caps and
+     scrolls inside itself instead of pushing the card off the screen */
+  .centre{order:-1}
+  .qlist{max-block-size:min(46vh,360px)}
+}
+@media (max-width:720px){
+  .shell{padding:10px 10px 6px}
+  .topbar{flex-wrap:wrap;gap:10px}
+  .sess{order:9;inline-size:100%;flex:none}
+  .card-grid{grid-template-columns:minmax(0,1fr)}
+  .actions{grid-template-columns:minmax(0,1fr)}
+  .sum{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .plate-ar{font-size:27px}
+  /* let the case card size to its own content instead of collapsing to zero */
+  .stack{padding-block-start:20px;min-block-size:0}
+  .card{block-size:auto;overflow-y:visible}
+  .cap-frame{min-block-size:170px}
+  .stack-b2{inset-inline:16px}
+  .stack-b3{inset-inline:32px}
+}
+
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{
+  animation-duration:.01ms !important; animation-iteration-count:1 !important;
+  transition-duration:.01ms !important; } }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="light l1"></div><div class="light l2"></div><div class="light l3"></div>
+  <div class="light l4"></div><div class="light l5"></div><div class="light l6"></div>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <filter id="grainf"><feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/></filter>
+  <rect width="100%" height="100%" filter="url(#grainf)"/>
+</svg>
+
+<div class="shell">
+
+  <!-- ══════════ topbar ══════════ -->
+  <header class="panel panel--near topbar rise" style="animation-delay:0ms">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7.5h18v9H3z"/><path d="M7 10.5v3M11 10.5v3M15 10.5v3M18.5 10.5v3"/>
+        </svg>
+      </span>
+      <span class="brand-t">
+        <b>الفرز</b>
+        <span>محطة مراجعة البلاغات · نظام العربي</span>
+      </span>
+    </div>
+
+    <span class="tsep" aria-hidden="true"></span>
+
+    <span class="live"><span class="live-dot" aria-hidden="true"></span>مباشر · آخر تحديث <span class="num">14:32</span></span>
+
+    <div class="sess">
+      <span class="sess-l">تقدّم الجلسة</span>
+      <span class="bar"><i id="progBar"></i></span>
+      <span class="sess-n" id="progTxt"><span class="num">4</span> من <span class="num">38</span></span>
+    </div>
+
+    <span class="warn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 4.5 21 19H3z"/><path d="M12 10v4M12 16.5v.01"/>
+      </svg>
+      بوابتان خارج الخدمة من <span class="num">11</span>
+    </span>
+
+    <div class="admin">
+      <span class="admin-t" style="text-align:end">
+        <b>أحمد عماد</b>
+        <span>مدير النظام</span>
+      </span>
+      <span class="admin-av" aria-hidden="true">أ</span>
+    </div>
+  </header>
+
+  <!-- ══════════ stage ══════════ -->
+  <main class="stage">
+
+    <!-- ── inline-start rail : the queue ── -->
+    <div class="col">
+      <section class="panel panel--far rise" style="animation-delay:60ms" aria-labelledby="doneH">
+        <div class="p-h">
+          <h2 id="doneH">تم فرزها اليوم</h2>
+          <span class="p-sub" id="doneCount"><span class="num">4</span> بلاغات</span>
+        </div>
+        <div class="done scroll" id="doneList" style="max-block-size:168px"></div>
+      </section>
+
+      <section class="panel rise col" style="animation-delay:110ms;flex:1;min-block-size:0"
+               aria-labelledby="queueH">
+        <div class="p-h">
+          <h2 id="queueH">طابور الفرز</h2>
+          <span class="p-sub" id="queueCount"><span class="num">34</span> بانتظار المراجعة</span>
+        </div>
+        <div class="qfilters" role="group" aria-label="تصفية الطابور">
+          <button type="button" class="chip" data-filter="all" aria-pressed="true">الكل</button>
+          <button type="button" class="chip" data-filter="gate" aria-pressed="false" id="chipGate">هذه البوابة</button>
+          <button type="button" class="chip" data-filter="low" aria-pressed="false">ثقة أقل من <span class="num">90%</span></button>
+        </div>
+        <div class="qlist scroll" id="queueList"></div>
+      </section>
+    </div>
+
+    <!-- ── centre : one case at full size ── -->
+    <div class="centre">
+      <div class="stack" id="stack">
+        <div class="panel panel--far stack-back stack-b3" aria-hidden="true"><span class="ghost" id="ghost3"></span></div>
+        <div class="panel panel--far stack-back stack-b2" aria-hidden="true"><span class="ghost" id="ghost2"></span></div>
+        <div id="cardHost" style="block-size:100%"></div>
+      </div>
+
+      <section class="panel panel--far strip-wrap rise" style="animation-delay:220ms" aria-labelledby="stripH">
+        <div class="strip-h">
+          <h2 id="stripH">التدفّق الخام — آخر <span class="num">16</span> حدثاً على كل البوابات</h2>
+          <span>اضغط أي حدث لحصر الطابور في بوابته</span>
+        </div>
+        <div class="strip" id="strip"></div>
+      </section>
+    </div>
+
+    <!-- ── inline-end rail : the context ── -->
+    <div class="col scroll" style="padding-inline-end:2px">
+      <section class="panel rail-sec rise" style="animation-delay:150ms;flex:none" aria-labelledby="serH">
+        <div class="chart-t"><b id="serH">حركة البوابة — <span id="serGate">—</span></b>
+          <span><span class="num">24</span> ساعة</span></div>
+        <div id="chartHost"></div>
+      </section>
+
+      <section class="panel panel--far rise" style="animation-delay:190ms;flex:none" aria-labelledby="hitH">
+        <div class="p-h"><h2 id="hitH">معدّل الإصابة مقابل الشبكة</h2>
+          <span class="p-sub">لكل <span class="num">1000</span> مسح</span></div>
+        <div class="rail-sec" style="padding-block:8px 0"><div id="hitHost"></div></div>
+        <div class="gates" id="gateList"></div>
+      </section>
+
+      <section class="panel panel--far rise" style="animation-delay:230ms;flex:none" aria-labelledby="opH">
+        <div class="p-h"><h2 id="opH">المراجعون</h2>
+          <span class="p-sub" id="opSub">—</span></div>
+        <div class="ops" id="opList"></div>
+      </section>
+
+      <section class="panel panel--far rise" style="animation-delay:270ms;flex:none" aria-labelledby="ledH">
+        <div class="p-h"><h2 id="ledH">دفتر اليوم</h2><span class="p-sub">حتى <span class="num">14:32</span></span></div>
+        <div class="ledger">
+          <div class="led">
+            <span class="led-l">إجمالي عمليات المسح</span>
+            <span class="led-v" data-count="12847">12,847</span>
+            <span class="led-d"><svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5V2.5M3 5.5 6 2.5l3 3"/></svg>6.2%</span>
+          </div>
+          <div class="led">
+            <span class="led-l">مركبات مطلوبة</span>
+            <span class="led-v" data-count="38">38</span>
+            <span class="led-d"><svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.5v7M3 6.5 6 9.5l3-3"/></svg>11.6%</span>
+          </div>
+          <div class="led">
+            <span class="led-l">مركبات سليمة</span>
+            <span class="led-v" data-count="12782">12,782</span>
+            <span class="led-d"><svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5V2.5M3 5.5 6 2.5l3 3"/></svg>6.3%</span>
+          </div>
+          <div class="led">
+            <span class="led-l">لوحات غير مقروءة</span>
+            <span class="led-v" data-count="27">27</span>
+            <span class="led-d"><svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5V2.5M3 5.5 6 2.5l3 3"/></svg>2.4%</span>
+          </div>
+          <div class="led">
+            <span class="led-l">متوسط زمن المعالجة</span>
+            <span class="led-v" data-count="412">412<span class="u">مللي/ث</span></span>
+            <span class="led-d"><svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.5v7M3 6.5 6 9.5l3-3"/></svg>8.0%</span>
+          </div>
+          <div class="led">
+            <span class="led-l">بوابات نشطة</span>
+            <span class="led-v"><span data-count="9">9</span><span class="u">من <span class="num">11</span></span></span>
+            <span class="led-d">—</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ══════════════════ dataset (spec §7, verbatim) ══════════════════ */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+/* ── the triage queue: 38 مطلوب = 4 already handled + 34 pending.
+      Gate distribution reproduces GATES[].wanted exactly (8/9/5/4/3/3/2/3/1). ── */
+const PENDING = [
+  { id:"q01", t:"14:30", plate:"ب ح ر 3841", gate:"g2", reason:"بلاغ سرقة",             ref:"KSA-2290", by:"خالد المطيري", conf:0.97 },
+  { id:"q02", t:"14:25", plate:"ط م ك 6207", gate:"g1", reason:"أمر ضبط قضائي",         ref:"KSA-2289", by:"نورة السبيعي", conf:0.93 },
+  { id:"q03", t:"14:21", plate:"ع ص د 5192", gate:"g3", reason:"مخالفات متراكمة",       ref:"KSA-2288", by:"فهد القحطاني", conf:0.95 },
+  { id:"q04", t:"14:16", plate:"ل ق ن 8734", gate:"g2", reason:"قائمة مراقبة داخلية",   ref:"KSA-2286", by:"ريم الدوسري",  conf:0.89 },
+  { id:"q05", t:"14:12", plate:"د ه و 2465", gate:"g4", reason:"بلاغ سرقة",             ref:"KSA-2285", by:"خالد المطيري", conf:0.96 },
+  { id:"q06", t:"14:06", plate:"س ب ي 9018", gate:"g1", reason:"رخصة ملغاة",            ref:"KSA-2283", by:"سعود العتيبي", conf:0.91 },
+  { id:"q07", t:"14:01", plate:"ن ك ط 4573", gate:"g6", reason:"مخالفات متراكمة",       ref:"KSA-2282", by:"لطيفة الحربي", conf:0.94 },
+  { id:"q08", t:"13:56", plate:"ح ر أ 1926", gate:"g2", reason:"بلاغ اختطاف",           ref:"KSA-2281", by:"نورة السبيعي", conf:0.98 },
+  { id:"q09", t:"13:49", plate:"ق و م 7340", gate:"g3", reason:"قائمة مراقبة داخلية",   ref:"KSA-2279", by:"فهد القحطاني", conf:0.87 },
+  { id:"q10", t:"13:43", plate:"م ط ص 5681", gate:"g5", reason:"أمر ضبط قضائي",         ref:"KSA-2278", by:"ريم الدوسري",  conf:0.92 },
+  { id:"q11", t:"13:38", plate:"ي ل ع 3204", gate:"g1", reason:"بلاغ سرقة",             ref:"KSA-2277", by:"خالد المطيري", conf:0.95 },
+  { id:"q12", t:"13:31", plate:"ب س ه 8457", gate:"g7", reason:"قائمة تهريب",           ref:"KSA-2276", by:"سعود العتيبي", conf:0.84 },
+  { id:"q13", t:"13:24", plate:"ك أ د 6093", gate:"g2", reason:"مخالفات متراكمة",       ref:"KSA-2275", by:"نورة السبيعي", conf:0.93 },
+  { id:"q14", t:"13:18", plate:"ر ع ن 2718", gate:"g4", reason:"رخصة ملغاة",            ref:"KSA-2274", by:"لطيفة الحربي", conf:0.90 },
+  { id:"q15", t:"13:09", plate:"ص ي ق 9465", gate:"g6", reason:"بلاغ سرقة",             ref:"KSA-2273", by:"خالد المطيري", conf:0.96 },
+  { id:"q16", t:"13:02", plate:"و د ل 4137", gate:"g1", reason:"قائمة مراقبة داخلية",   ref:"KSA-2272", by:"ريم الدوسري",  conf:0.88 },
+  { id:"q17", t:"12:54", plate:"ه ن ب 7826", gate:"g3", reason:"أمر ضبط قضائي",         ref:"KSA-2271", by:"فهد القحطاني", conf:0.94 },
+  { id:"q18", t:"12:47", plate:"ط ق ر 1580", gate:"g2", reason:"بلاغ اختطاف",           ref:"KSA-2270", by:"نورة السبيعي", conf:0.97 },
+  { id:"q19", t:"12:39", plate:"ع م ك 5342", gate:"g8", reason:"مخالفات متراكمة",       ref:"KSA-2269", by:"سعود العتيبي", conf:0.91 },
+  { id:"q20", t:"12:31", plate:"ل ه س 8901", gate:"g5", reason:"بلاغ سرقة",             ref:"KSA-2268", by:"خالد المطيري", conf:0.95 },
+  { id:"q21", t:"12:22", plate:"د ص ي 3674", gate:"g1", reason:"رخصة ملغاة",            ref:"KSA-2267", by:"لطيفة الحربي", conf:0.86 },
+  { id:"q22", t:"12:14", plate:"ن ب ط 6215", gate:"g4", reason:"قائمة مراقبة داخلية",   ref:"KSA-2266", by:"ريم الدوسري",  conf:0.92 },
+  { id:"q23", t:"12:03", plate:"ق ر ح 9758", gate:"g2", reason:"أمر ضبط قضائي",         ref:"KSA-2265", by:"فهد القحطاني", conf:0.93 },
+  { id:"q24", t:"11:52", plate:"س ك و 2430", gate:"g6", reason:"مخالفات متراكمة",       ref:"KSA-2264", by:"نورة السبيعي", conf:0.89 },
+  { id:"q25", t:"11:41", plate:"أ ط م 7169", gate:"g3", reason:"بلاغ سرقة",             ref:"KSA-2263", by:"خالد المطيري", conf:0.96 },
+  { id:"q26", t:"11:29", plate:"ي ح ص 4802", gate:"g7", reason:"قائمة تهريب",           ref:"KSA-2262", by:"سعود العتيبي", conf:0.83 },
+  { id:"q27", t:"11:16", plate:"ب ن ق 1345", gate:"g1", reason:"بلاغ اختطاف",           ref:"KSA-2261", by:"ريم الدوسري",  conf:0.98 },
+  { id:"q28", t:"11:04", plate:"م ل ر 8657", gate:"g8", reason:"قائمة مراقبة داخلية",   ref:"KSA-2260", by:"لطيفة الحربي", conf:0.90 },
+  { id:"q29", t:"10:48", plate:"ك ص أ 5286", gate:"g2", reason:"مخالفات متراكمة",       ref:"KSA-2259", by:"فهد القحطاني", conf:0.94 },
+  { id:"q30", t:"10:33", plate:"ه و د 3971", gate:"g4", reason:"رخصة ملغاة",            ref:"KSA-2258", by:"خالد المطيري", conf:0.87 },
+  { id:"q31", t:"10:19", plate:"ر ي ن 6534", gate:"g3", reason:"بلاغ سرقة",             ref:"KSA-2257", by:"نورة السبيعي", conf:0.95 },
+  { id:"q32", t:"09:57", plate:"ص أ ل 2108", gate:"g9", reason:"أمر ضبط قضائي",         ref:"KSA-2256", by:"سعود العتيبي", conf:0.92 },
+  { id:"q33", t:"09:34", plate:"و ق ه 7462", gate:"g1", reason:"قائمة مراقبة داخلية",   ref:"KSA-2255", by:"ريم الدوسري",  conf:0.88 },
+  { id:"q34", t:"08:58", plate:"ط د ب 9327", gate:"g2", reason:"مخالفات متراكمة",       ref:"KSA-2254", by:"لطيفة الحربي", conf:0.91 }
+];
+
+/* the four already handled today — the مطلوب rows of EVENTS */
+const HANDLED0 = [
+  { id:"h1", t:"14:31", plate:"ر ن ب 4582", gate:"g2", reason:"بلاغ سرقة",           ref:"KSA-2291", by:"نورة السبيعي", conf:0.97, verdict:"confirm" },
+  { id:"h2", t:"14:22", plate:"د ر ق 2708", gate:"g8", reason:"مخالفات متراكمة",     ref:"KSA-2287", by:"فهد القحطاني", conf:0.94, verdict:"confirm" },
+  { id:"h3", t:"14:15", plate:"ق ب ع 7731", gate:"g1", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري",  conf:0.91, verdict:"refer"   },
+  { id:"h4", t:"14:05", plate:"س ق ب 2947", gate:"g5", reason:"بلاغ اختطاف",         ref:"KSA-2280", by:"سعود العتيبي", conf:0.89, verdict:"exclude" }
+];
+
+/* ══════════════════ helpers ══════════════════ */
+const $  = (s, r) => (r || document).querySelector(s);
+const fmt = n => Number(n).toLocaleString('en-US');
+const gateById = id => GATES.find(g => g.id === id);
+const opByName = n => OPERATORS.find(o => o.name === n);
+
+const STATUS_AR = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+const VERDICT_AR = { confirm:"تأكيد المطلوب", refer:"تحويل للمراجعة", exclude:"استبعاد" };
+const LAT = { "أ":"A","ب":"B","ح":"J","د":"D","ر":"R","س":"S","ص":"X","ط":"T","ع":"E",
+              "ق":"G","ك":"K","ل":"L","م":"Z","ن":"N","ه":"H","و":"U","ي":"V" };
+
+function plateLatin(p){
+  const parts = p.split(" ");
+  const digits = parts[parts.length - 1];
+  const letters = parts.slice(0, -1).map(ch => LAT[ch] || ch).join(" ");
+  return letters + "  " + digits;
+}
+function hourOf(t){ return parseInt(t.slice(0,2), 10); }
+function niceMax(v){
+  if (!(v > 0)) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(v)));
+  const n = v / e;
+  const m = [1, 2, 2.5, 5, 10].find(x => n <= x) || 10;
+  return m * e;
+}
+const FLEET_TOTAL = GATES.reduce((s,g) => s + g.total, 0);   // 12,847
+const FLEET_RATE  = (KPI.wanted.v / FLEET_TOTAL) * 1000;     // ≈ 2.96 ‰
+const GATE_MAXVOL = Math.max.apply(null, GATES.map(g => g.total));
+const OP_MAXREV   = Math.max.apply(null, OPERATORS.map(o => o.reviews));
+
+/* per-gate 24-hour series, derived from the fleet curve by the gate's share */
+function gateSeries(g){
+  const share = g.total / FLEET_TOTAL;
+  return HOURLY.total.map(v => Math.round(v * share));
+}
+
+/* ══════════════════ state ══════════════════ */
+const state = {
+  queue:   PENDING.slice(),
+  handled: HANDLED0.slice(),
+  filter:  "all",          // all | gate | low
+  gateFilter: null,
+  currentId: PENDING[0].id,
+  busy: false,
+  tally: { confirm:2, refer:1, exclude:1 }
+};
+
+function current(){ return state.queue.find(c => c.id === state.currentId) || null; }
+function viewList(){
+  if (state.filter === "gate" && state.gateFilter) return state.queue.filter(c => c.gate === state.gateFilter);
+  if (state.filter === "low") return state.queue.filter(c => c.conf < 0.90);
+  return state.queue;
+}
+function ensureCurrentInView(){
+  const v = viewList();
+  if (!v.length) { state.currentId = null; return; }
+  if (!v.some(c => c.id === state.currentId)) state.currentId = v[0].id;
+}
+
+/* ══════════════════ render : queue rails ══════════════════ */
+function renderHandled(){
+  const host = $("#doneList");
+  host.innerHTML = state.handled.map(h => `
+    <div class="done-row">
+      <span class="vd vd-${h.verdict}" aria-hidden="true"></span>
+      <span>
+        <span class="done-p">${h.plate}</span>
+        <span class="done-v" style="display:block;margin-block-start:-4px">${VERDICT_AR[h.verdict]} · ${gateById(h.gate).name}</span>
+      </span>
+      <span class="qt num">${h.t}</span>
+    </div>`).join("");
+  $("#doneCount").innerHTML = `<span class="num">${state.handled.length}</span> بلاغات`;
+}
+
+function renderQueue(){
+  const host = $("#queueList");
+  const v = viewList();
+  $("#queueCount").innerHTML = `<span class="num">${state.queue.length}</span> بانتظار المراجعة`;
+
+  const cur = current();
+  const gateChip = $("#chipGate");
+  const gName = state.gateFilter ? gateById(state.gateFilter).name : (cur ? gateById(cur.gate).name : "هذه البوابة");
+  gateChip.textContent = state.filter === "gate" ? gName : "هذه البوابة";
+
+  document.querySelectorAll(".chip").forEach(c =>
+    c.setAttribute("aria-pressed", String(c.dataset.filter === state.filter)));
+
+  if (!v.length){
+    host.innerHTML = state.queue.length
+      ? `<p class="empty">لا توجد سجلات مطابقة
+           <br><button type="button" class="lnk" data-clear="1">عرض كل البلاغات</button></p>`
+      : `<p class="empty">لم يعد في الطابور أي بلاغ<br>تم فرز البلاغات الـ<span class="num">38</span> كلها</p>`;
+    return;
+  }
+  host.innerHTML = v.map((c, i) => `
+    <button type="button" class="qrow${c.id === state.currentId ? " is-current" : ""}${c.conf < 0.90 ? " is-low" : ""}"
+            data-goto="${c.id}" aria-current="${c.id === state.currentId ? "true" : "false"}">
+      <span class="idx">${String(i + 1).padStart(2, "0")}</span>
+      <span>
+        <span class="qp">${c.plate}</span>
+        <span class="qg">${gateById(c.gate).name} · ${c.reason}</span>
+      </span>
+      <span class="qt">${c.t}</span>
+    </button>`).join("");
+  const active = host.querySelector(".is-current");
+  if (active) active.scrollIntoView({ block:"nearest" });
+}
+
+/* ══════════════════ render : the case card ══════════════════ */
+function ghostPlates(){
+  const v = viewList();
+  const i = v.findIndex(c => c.id === state.currentId);
+  $("#ghost2").textContent = v[i + 1] ? v[i + 1].plate : "";
+  $("#ghost3").textContent = v[i + 2] ? v[i + 2].plate : "";
+}
+
+function captureSVG(){
+  return `<svg viewBox="0 0 400 225" preserveAspectRatio="none" aria-hidden="true">
+    <g stroke="rgba(255,255,255,.28)" stroke-width="1.5" fill="none" stroke-linecap="round">
+      <path d="M14 40V16h26M386 40V16h-26M14 185v24h26M386 185v24h-26"/>
+    </g>
+    <rect x="112" y="88" width="176" height="52" rx="4" fill="rgba(110,196,155,.07)"
+          stroke="rgba(110,196,155,.55)" stroke-width="1.5" stroke-dasharray="7 5"/>
+    <g stroke="rgba(255,255,255,.22)" stroke-width="1">
+      <path d="M200 78v-14M200 150v14M104 114H88M296 114h16"/>
+    </g>
+  </svg>`;
+}
+
+function cardHTML(c){
+  const g = gateById(c.gate);
+  const v = viewList();
+  const pos = v.findIndex(x => x.id === c.id) + 1;
+  const pct = Math.round(c.conf * 100);
+  return `
+  <article class="panel panel--near card" id="cardFront" tabindex="-1"
+           aria-labelledby="plateLbl" aria-describedby="metaLbl">
+    <div class="card-h">
+      <span class="tag">مطلوب</span>
+      <span class="ref">${c.ref}</span>
+      <span class="pos">البلاغ <b class="num">${pos}</b> من <b class="num">${v.length}</b>
+        ${state.filter !== "all" ? " ضمن التصفية" : " في الطابور"}</span>
+    </div>
+
+    <div class="plate">
+      <span class="plate-side" aria-hidden="true">
+        <span class="lat">KSA</span>
+        <span class="ar">السعودية</span>
+      </span>
+      <span class="plate-main">
+        <span class="plate-ar" id="plateLbl">${c.plate}</span>
+        <span class="plate-lat">${plateLatin(c.plate)}</span>
+      </span>
+    </div>
+
+    <div class="card-grid">
+      <figure class="capture">
+        <div class="cap-frame">${captureSVG()}</div>
+        <figcaption class="cap-cap">
+          <b>لقطة الكاميرا</b>
+          <span>كاميرا ${g.name} · <span class="num">${c.t}</span> · إطار <span class="num">2/3</span></span>
+        </figcaption>
+      </figure>
+
+      <dl class="meta" id="metaLbl">
+        <div class="meta-row"><dt>البوابة</dt>
+          <dd>${g.name} <span class="sub">· ${STATUS_AR[g.status]} · <span class="num">${g.ms}</span> مللي/ث</span></dd></div>
+        <div class="meta-row"><dt>وقت الرصد</dt>
+          <dd><span class="num">${c.t}</span> <span class="sub">· ${UPDATED.split(" ")[0]}</span></dd></div>
+        <div class="meta-row"><dt>سبب الإدراج</dt><dd>${c.reason}</dd></div>
+        <div class="meta-row"><dt>رقم المرجع</dt><dd><span class="num">${c.ref}</span></dd></div>
+        <div class="meta-row"><dt>المراجع المكلّف</dt>
+          <dd>${c.by} <span class="sub">· دقة <span class="num">${opByName(c.by).acc}%</span></span></dd></div>
+        <div class="meta-row"><dt>حجم البوابة اليوم</dt>
+          <dd><span class="num">${fmt(g.total)}</span> مسح <span class="sub">· <span class="num">${g.wanted}</span> مطلوب</span></dd></div>
+      </dl>
+    </div>
+
+    <div class="conf">
+      <div class="conf-top">
+        <b>ثقة قراءة اللوحة</b>
+        <span class="conf-n">عتبة المراجعة اليدوية <span class="num">90%</span></span>
+        <span class="conf-v">${pct}%</span>
+      </div>
+      <svg viewBox="0 0 300 9" preserveAspectRatio="none" aria-hidden="true">
+        <rect x="0" y="2.5" width="300" height="4" rx="2" fill="rgba(255,255,255,.08)"/>
+        <rect x="${300 - 300 * c.conf}" y="1.5" width="${300 * c.conf}" height="6" rx="3"
+              fill="${c.conf < 0.90 ? "rgba(232,176,85,.75)" : "rgba(110,196,155,.75)"}"/>
+        <path d="M30 0V9" stroke="rgba(255,255,255,.34)" stroke-width="1" stroke-dasharray="2 2"/>
+      </svg>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="act act-1" data-act="confirm">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6.5 9.5 17 4 11.5"/></svg>
+        تأكيد المطلوب <span class="kbd">1</span></button>
+      <button type="button" class="act" data-act="refer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12h13M12 6.5 17.5 12 12 17.5"/><path d="M20 5v14"/></svg>
+        تحويل للمراجعة <span class="kbd">2</span></button>
+      <button type="button" class="act" data-act="exclude">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>
+        استبعاد <span class="kbd">3</span></button>
+    </div>
+    <p class="hintline">
+      <span class="k" role="img" aria-label="سهم لأعلى"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5V2.5M3 5.5 6 2.5l3 3"/></svg></span><span
+        class="k" role="img" aria-label="سهم لأسفل"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5v7M3 6.5 6 9.5l3-3"/></svg></span>
+      للتنقل في الطابور ·
+      <span class="k">1</span><span class="k">2</span><span class="k">3</span> للإجراءات ·
+      المتبقي بعد هذا البلاغ <span class="num">${state.queue.length - 1}</span>
+    </p>
+  </article>`;
+}
+
+function emptyFilterHTML(){
+  return `
+  <article class="panel card" id="cardFront" tabindex="-1">
+    <div class="done-state">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-3)" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/><path d="M8.5 11h5"/></svg>
+      <h3>لا توجد سجلات مطابقة</h3>
+      <p>لا يوجد بلاغ في الطابور يحقّق شروط التصفية الحالية.</p>
+      <p style="margin-block-start:16px"><button type="button" class="lnk" data-clear="1">عرض كل البلاغات</button></p>
+    </div>
+  </article>`;
+}
+
+function doneStateHTML(){
+  const t = state.tally, n = t.confirm + t.refer + t.exclude;
+  return `
+  <article class="panel panel--near card" id="cardFront" tabindex="-1">
+    <div class="done-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/><path d="m8 12.2 2.7 2.8L16 9.5"/></svg>
+      <h3>تم فرز كل البلاغات</h3>
+      <p>لا توجد بلاغات «مطلوب» بانتظار المراجعة حتى ${UPDATED}.</p>
+      <div class="sum">
+        <div><b class="num">${n}</b><span>بلاغ مفروز</span></div>
+        <div><b class="num">${t.confirm}</b><span>مؤكد مطلوب</span></div>
+        <div><b class="num">${t.refer}</b><span>محوّل للمراجعة</span></div>
+        <div><b class="num">${t.exclude}</b><span>مستبعد</span></div>
+      </div>
+      <p style="margin-block-start:18px">متوسط زمن الفرز <span class="num">1:47</span> لكل بلاغ ·
+        مدة الجلسة <span class="num">01:08</span> ساعة</p>
+      <p style="margin-block-start:16px"><button type="button" class="lnk" data-reset="1">إعادة تعيين الجلسة</button></p>
+    </div>
+  </article>`;
+}
+
+function renderCard(animate){
+  const host = $("#cardHost");
+  let html;
+  if (!state.queue.length)            html = doneStateHTML();
+  else if (!viewList().length)        html = emptyFilterHTML();
+  else                                html = cardHTML(current());
+  host.innerHTML = html;
+  if (animate) $("#cardFront").classList.add("is-in");
+  ghostPlates();
+}
+
+/* ══════════════════ render : inline-end context ══════════════════ */
+/* ONE shared x-axis for both stacked charts: 24 equal hour bands, 00 at the
+   inline-start (right) edge. The line samples the band centres, the bars fill
+   the bands, so a point and its bar sit on exactly the same tick. */
+const CW = 300, PL = 12, PR = 262;
+const BAND = (PR - PL) / 24;
+const xAt = h => PR - (h + 0.5) * BAND;
+
+function seriesChart(g, hl){
+  const data = gateSeries(g);
+  const max  = niceMax(Math.max.apply(null, data));
+  const H = 96, top = 8, base = H - 16;
+  const y = v => base - (v / max) * (base - top);
+  const pts = data.map((v, h) => `${xAt(h).toFixed(1)},${y(v).toFixed(1)}`);
+  const line = "M" + pts.join(" L");
+  const area = line + ` L${xAt(23).toFixed(1)},${base} L${xAt(0).toFixed(1)},${base} Z`;
+  const grid = [0, .5, 1].map(f => `
+      <path class="gl" d="M${PL} ${y(max * f).toFixed(1)}H${PR}"/>
+      <text class="ax" x="${PR + 6}" y="${(y(max * f) + 3).toFixed(1)}">${fmt(Math.round(max * f))}</text>`).join("");
+  const hx = xAt(hl).toFixed(1);
+  const hv = data[hl];
+  return `
+  <svg class="chart" viewBox="0 0 ${CW} ${H}" role="img"
+       aria-label="حركة ${g.name} خلال 24 ساعة، الذروة ${fmt(Math.max.apply(null, data))} مسح">
+    ${grid}
+    <path class="gl2" d="M${hx} ${top}V${base}"/>
+    <defs><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(255,255,255,.14)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>
+    <path d="${area}" fill="url(#fillg)"/>
+    <path class="ln" id="serLine" d="${line}"/>
+    <circle cx="${hx}" cy="${y(hv).toFixed(1)}" r="3.5" fill="#0a1712" stroke="var(--accent)" stroke-width="2"/>
+    <text class="ax" x="${hx}" y="${top - 1}" text-anchor="middle" fill="#bac6c0">${hv}</text>
+  </svg>`;
+}
+
+function wantedChart(hl){
+  const data = HOURLY.wanted;
+  const max = 5, H = 54, top = 6, base = H - 18;
+  const bw = BAND - 3;                       /* ~7.4 units wide, 3-unit gap */
+  const bars = data.map((v, h) => {
+    const bh = (v / max) * (base - top);
+    const bx = xAt(h) - bw / 2;              /* centred on the shared tick */
+    return `<rect x="${bx.toFixed(1)}" y="${(base - bh).toFixed(1)}" width="${bw.toFixed(1)}"
+      height="${Math.max(bh, 0.8).toFixed(1)}" rx="1.5"
+      fill="${h === hl ? "rgba(255,107,107,.95)" : "rgba(255,107,107,.60)"}"
+      style="animation-delay:${(h * 12)}ms"/>`;
+  }).join("");
+  const ticks = [0, 6, 12, 18, 23].map(h =>
+    `<text class="ax" x="${xAt(h).toFixed(1)}" y="${H - 3}" text-anchor="middle">${String(h).padStart(2,"0")}</text>`).join("");
+  return `
+  <svg class="chart" viewBox="0 0 ${CW} ${H}" role="img"
+       aria-label="بلاغات مطلوب على الشبكة لكل ساعة، الحد الأقصى 4 بلاغات">
+    <path class="gl" d="M${PL} ${base}H${PR}"/>
+    <text class="ax" x="${PR + 6}" y="${base + 3}">0</text>
+    <text class="ax" x="${PR + 6}" y="${top + 3}">${max}</text>
+    <g class="bars">${bars}</g>
+    ${ticks}
+  </svg>`;
+}
+
+function hitChart(g){
+  const rate = g.total ? (g.wanted / g.total) * 1000 : 0;
+  const max = niceMax(Math.max(rate, FLEET_RATE) * 1.15);
+  const H = 82, bh = 15;
+  const w = v => (v / max) * (PR - PL);
+  const row = (label, val, yy, fill) => `
+    <text class="axar" x="${PR}" y="${yy - 5}" text-anchor="end" fill="#bac6c0">${label}</text>
+    <rect x="${(PR - w(val)).toFixed(1)}" y="${yy}" width="${Math.max(w(val),1).toFixed(1)}" height="${bh}" rx="3" fill="${fill}"/>
+    <text class="ax" x="${(PR - w(val) - 6).toFixed(1)}" y="${yy + bh - 3.5}" text-anchor="end">${val.toFixed(2)}</text>`;
+  return `
+  <svg class="chart" viewBox="0 0 ${CW} ${H}" role="img"
+       aria-label="معدل الإصابة في ${g.name} ${rate.toFixed(2)} لكل ألف مقابل ${FLEET_RATE.toFixed(2)} للشبكة">
+    <path class="gl" d="M${PR} 8V68"/>
+    <path class="gl2" d="M${PL} 8V68"/>
+    <g class="hbars">
+      ${row(g.name, rate, 14, "rgba(110,196,155,.62)")}
+      ${row("متوسط الشبكة", FLEET_RATE, 50, "rgba(255,255,255,.26)")}
+    </g>
+    <text class="ax" x="${PR}" y="79" text-anchor="middle">0</text>
+    <text class="ax" x="${PL}" y="79" text-anchor="middle">${max}</text>
+  </svg>`;
+}
+
+function renderGateList(curGate){
+  const picked = state.filter === "gate" ? state.gateFilter : null;
+  $("#gateList").innerHTML = GATES.map(g => `
+    <button type="button" class="g-row${g.id === curGate ? " is-current" : ""}"
+            data-gatepick="${g.id}" aria-pressed="${g.id === picked}">
+      <span class="g-dot ${g.status}" aria-hidden="true"></span>
+      <span>
+        <span class="g-n">${g.name}</span>
+        <span class="g-b"><i data-w="${g.total ? (g.total / GATE_MAXVOL) * 100 : 0}"></i></span>
+      </span>
+      <span style="text-align:end">
+        <span class="g-v">${g.total ? fmt(g.total) : "—"}</span>
+        <span class="g-s" style="display:block;margin-block-start:-4px">${
+          g.status === "online" ? `<span class="num">${g.wanted}</span> مطلوب` : STATUS_AR[g.status]}</span>
+      </span>
+    </button>`).join("");
+}
+
+function renderOps(curBy){
+  const me = opByName(curBy);
+  $("#opSub").innerHTML = me
+    ? `المكلّف: ${me.name} · <span class="num">${me.reviews}</span> مراجعة`
+    : `<span class="num">6</span> مراجعين`;
+  $("#opList").innerHTML = OPERATORS.map(o => `
+    <div class="op-row${o.name === curBy ? " is-current" : ""}">
+      <span>
+        <span class="op-n">${o.name}</span>
+        <span class="op-m"><span class="num">${o.reviews}</span> مراجعة · <span class="num">${o.wanted}</span> مطلوب</span>
+        <span class="op-b"><i data-w="${(o.reviews / OP_MAXREV) * 100}"></i></span>
+      </span>
+      <span class="op-a">${o.acc}%</span>
+    </div>`).join("");
+}
+
+function animateBars(){
+  requestAnimationFrame(() => {
+    document.querySelectorAll("[data-w]").forEach(el => { el.style.inlineSize = el.dataset.w + "%"; });
+  });
+}
+
+function renderContext(){
+  const c = current();
+  const g = c ? gateById(c.gate) : gateById(state.gateFilter || "g1");
+  const hl = c ? hourOf(c.t) : 14;
+
+  $("#serGate").textContent = g.name;
+  $("#chartHost").innerHTML =
+    seriesChart(g, hl) +
+    `<div class="chart-t" style="margin-block-start:6px"><b>بلاغات «مطلوب» على الشبكة</b>
+       <span>الذروة <span class="num">4</span> في الساعة</span></div>` +
+    wantedChart(hl);
+
+  const line = $("#serLine");
+  if (line){
+    const len = line.getTotalLength();
+    line.style.strokeDasharray = len;
+    line.style.strokeDashoffset = len;
+    requestAnimationFrame(() => {
+      line.style.transition = "stroke-dashoffset .8s cubic-bezier(.22,.61,.36,1)";
+      line.style.strokeDashoffset = "0";
+    });
+  }
+
+  $("#hitHost").innerHTML = hitChart(g);
+  renderGateList(g.id);
+  renderOps(c ? c.by : null);
+  animateBars();
+}
+
+function renderStrip(){
+  $("#strip").innerHTML = EVENTS.map(e => {
+    const g = gateById(e.gate);
+    const pressed = state.filter === "gate" && state.gateFilter === e.gate;
+    return `<button type="button" class="ev" data-gate="${e.gate}" aria-pressed="${pressed}">
+      <span class="ev-t"><span class="vd vd-${e.verdict === "wanted" ? "confirm" : e.verdict === "clean" ? "exclude" : "refer"}"
+        aria-hidden="true"></span>
+        <span class="ev-g">${e.verdict === "wanted" ? "مطلوب" : e.verdict === "clean" ? "سليم" : "غير مقروء"}</span>
+        <span class="tm">${e.t}</span></span>
+      <span class="ev-p">${e.plate}</span>
+      <span class="ev-g">${g.name}</span>
+    </button>`;
+  }).join("");
+}
+
+function renderSession(){
+  const done = state.handled.length, total = done + state.queue.length;
+  $("#progBar").style.inlineSize = ((done / total) * 100).toFixed(1) + "%";
+  $("#progTxt").innerHTML = `<span class="num">${done}</span> من <span class="num">${total}</span>`;
+}
+
+function renderAll(animateCard){
+  ensureCurrentInView();
+  renderHandled();
+  renderQueue();
+  renderCard(animateCard);
+  renderContext();
+  renderStrip();
+  renderSession();
+}
+
+/* ══════════════════ actions ══════════════════ */
+function applyVerdict(verdict){
+  const c = current();
+  if (!c) return;
+  const v = viewList();
+  const idx = v.findIndex(x => x.id === c.id);
+  state.queue = state.queue.filter(x => x.id !== c.id);
+  state.handled.unshift(Object.assign({}, c, { verdict: verdict }));
+  state.tally[verdict]++;
+  const nv = viewList();
+  state.currentId = nv.length ? (nv[idx] || nv[nv.length - 1]).id : null;
+  if (!state.currentId && state.queue.length && state.filter !== "all"){
+    /* filter emptied but the queue is not — keep the filter, the card shows the honest empty state */
+  }
+}
+
+function act(verdict){
+  if (state.busy || !current()) return;
+  state.busy = true;
+  const card = $("#cardFront");
+  if (card) card.classList.add("is-out");
+  window.setTimeout(() => {
+    applyVerdict(verdict);
+    renderAll(true);
+    state.busy = false;
+  }, 260);
+}
+
+function move(step){
+  if (state.busy) return;
+  const v = viewList();
+  if (!v.length) return;
+  let i = v.findIndex(c => c.id === state.currentId);
+  if (i < 0) i = 0;
+  const n = Math.min(v.length - 1, Math.max(0, i + step));
+  if (n === i) return;
+  state.currentId = v[n].id;
+  renderQueue();
+  renderCard(false);
+  renderContext();
+}
+
+function jumpTo(id){
+  if (state.busy) return;
+  state.currentId = id;
+  renderQueue();
+  renderCard(true);
+  renderContext();
+}
+
+/* clicking the already-active gate clears the scope back to the whole queue */
+function toggleGate(id){
+  const on = state.filter === "gate" && state.gateFilter === id;
+  setFilter(on ? "all" : "gate", id);
+}
+
+function setFilter(f, gate){
+  state.filter = f;
+  state.gateFilter = f === "gate" ? (gate || (current() ? current().gate : state.gateFilter)) : null;
+  ensureCurrentInView();
+  renderAll(false);
+}
+
+/* ══════════════════ events ══════════════════ */
+document.addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (chip){ setFilter(chip.dataset.filter); return; }
+
+  const row = e.target.closest("[data-goto]");
+  if (row){ jumpTo(row.dataset.goto); return; }
+
+  const a = e.target.closest("[data-act]");
+  if (a){ act(a.dataset.act); return; }
+
+  const gp = e.target.closest("[data-gatepick]");
+  if (gp){ toggleGate(gp.dataset.gatepick); return; }
+
+  const ev = e.target.closest(".ev");
+  if (ev){ toggleGate(ev.dataset.gate); return; }
+
+  if (e.target.closest("[data-clear]")){ setFilter("all"); return; }
+
+  if (e.target.closest("[data-reset]")){
+    state.queue = PENDING.slice();
+    state.handled = HANDLED0.slice();
+    state.tally = { confirm:2, refer:1, exclude:1 };
+    state.filter = "all"; state.gateFilter = null;
+    state.currentId = PENDING[0].id;
+    renderAll(true);
+    return;
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "textarea") return;
+  switch (e.key){
+    case "ArrowDown": case "ArrowLeft":  e.preventDefault(); move(1);  break;
+    case "ArrowUp":   case "ArrowRight": e.preventDefault(); move(-1); break;
+    case "1": e.preventDefault(); act("confirm"); break;
+    case "2": e.preventDefault(); act("refer");   break;
+    case "3": e.preventDefault(); act("exclude"); break;
+  }
+});
+
+/* ══════════════════ ledger counters (figures already in the markup) ══════════════════ */
+function runCounters(){
+  document.querySelectorAll("[data-count]").forEach((el, i) => {
+    const to = Number(el.dataset.count);
+    const unit = el.querySelector(".u");
+    const unitHTML = unit ? unit.outerHTML : "";
+    const dur = 900, t0 = performance.now() + i * 55;
+    function tick(now){
+      const p = Math.min(1, Math.max(0, (now - t0) / dur));
+      const e = 1 - Math.pow(1 - p, 3);
+      el.innerHTML = fmt(Math.round(to * e)) + unitHTML;
+      if (p < 1) requestAnimationFrame(tick);
+      else el.innerHTML = fmt(to) + unitHTML;
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+/* ══════════════════ boot ══════════════════ */
+renderAll(false);
+if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) runCounters();
+</script>
+</body>
+</html>

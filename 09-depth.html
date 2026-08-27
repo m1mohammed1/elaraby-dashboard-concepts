@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>الطبقات — النظرة العامة</title>
+<style>
+/* ============================================================
+   الطبقات — depth as the organizing idea
+   Plane 0 scene · Plane 1 far (context) · Plane 2 mid (figures)
+   Plane 3 near (alerts + events)
+   ============================================================ */
+
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --r-lg: 20px;
+  --r-md: 16px;
+  --r-sm: 11px;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --tap: 170ms var(--ease);
+}
+
+*{ box-sizing: border-box; }
+
+html{ background:#06100c; }
+
+body{
+  margin:0;
+  background:#06100c;
+  color: var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-weight:400;
+  line-height:1.75;
+  letter-spacing: normal;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  min-height:100vh;
+}
+
+.num, .figure{
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:"tnum" 1;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ---------- Plane 0 : the lit scene ---------- */
+.scene{ position: fixed; inset:0; z-index:-2; overflow:hidden; pointer-events:none; }
+.lux{ position:absolute; border-radius:50%; filter: blur(90px); }
+.lux.a{ width:920px;  height:820px;  inset-block-start:-260px; inset-inline-start:-180px;
+        background: radial-gradient(circle at 50% 50%, #10613f 0%, rgba(16,97,63,0) 68%); opacity:.16; }
+.lux.b{ width:760px;  height:700px;  inset-block-start:8%;     inset-inline-end:-150px;
+        background: radial-gradient(circle at 50% 50%, #0f4d38 0%, rgba(15,77,56,0) 70%); opacity:.17; }
+.lux.c{ width:1080px; height:760px;  inset-block-start:42%;    inset-inline-start:16%;
+        background: radial-gradient(circle at 50% 50%, #145a45 0%, rgba(20,90,69,0) 72%); opacity:.13; }
+.lux.d{ width:680px;  height:640px;  inset-block-end:-160px;   inset-inline-end:6%;
+        background: radial-gradient(circle at 50% 50%, #0b3a30 0%, rgba(11,58,48,0) 70%); opacity:.16; }
+.lux.e{ width:560px;  height:520px;  inset-block-end:4%;       inset-inline-start:-120px;
+        background: radial-gradient(circle at 50% 50%, #08302a 0%, rgba(8,48,42,0) 70%); opacity:.15; }
+.lux.f{ width:520px;  height:460px;  inset-block-start:24%;    inset-inline-start:44%;
+        background: radial-gradient(circle at 50% 50%, #10613f 0%, rgba(16,97,63,0) 70%); opacity:.10; }
+
+.vignette{
+  position: fixed; inset:0; z-index:-1; pointer-events:none;
+  background: radial-gradient(120% 92% at 50% 34%, rgba(0,0,0,0) 34%, rgba(0,0,0,.42) 76%, rgba(0,0,0,.72) 100%);
+}
+.grain{
+  position: fixed; inset:0; z-index:60; pointer-events:none; opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- shell ---------- */
+.shell{ max-width:1560px; margin-inline:auto; padding-inline:26px; padding-block: 20px 0; }
+
+/* ---------- top bar (plane 0 chrome) ---------- */
+.topbar{
+  display:flex; align-items:center; gap:22px; flex-wrap:wrap;
+  padding-block: 10px 16px;
+}
+.brand{ display:flex; align-items:center; gap:12px; }
+.mark{
+  width:42px; height:42px; display:grid; place-items:center;
+  border-radius:13px;
+  background: rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.10) inset;
+  color: var(--accent);
+}
+.brand-txt b{ display:block; font-weight:600; font-size:15px; line-height:1.5; }
+.brand-txt span{ display:block; font-size:12px; color:var(--ink-3); line-height:1.6; }
+
+.top-spacer{ flex:1 1 auto; }
+
+.depth-ctl{
+  display:flex; align-items:center; gap:10px;
+  padding-block: 6px; padding-inline: 14px 8px;   /* logical — physical L/R flips under RTL */
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  border:1px solid rgba(255,255,255,.085);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.10) inset, 0 14px 34px -18px rgba(0,0,0,.6);
+}
+.depth-ctl > .lbl{ font-size:12px; color:var(--ink-3); padding-inline-start:4px; }
+.seg{ display:flex; gap:4px; }
+.seg button{
+  font-family:inherit; font-size:12.5px; line-height:1;
+  color:var(--ink-3); background:transparent;
+  border:1px solid transparent; border-radius:999px;
+  padding: 8px 13px; cursor:pointer;
+  transition: color var(--tap), background var(--tap), border-color var(--tap);
+}
+.seg button:hover{ color:var(--ink-2); background: rgba(255,255,255,.05); }
+.seg button[aria-pressed="true"]{
+  color: var(--ink); background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.14);
+}
+.depth-rail{ display:flex; flex-direction:column; gap:3px; margin-inline-end:2px; }
+.depth-rail i{ display:block; width:16px; height:2px; border-radius:2px; background: rgba(255,255,255,.16); transition: background var(--tap), width var(--tap); }
+.depth-ctl[data-focus="1"] .depth-rail i:nth-child(1),
+.depth-ctl[data-focus="2"] .depth-rail i:nth-child(2),
+.depth-ctl[data-focus="3"] .depth-rail i:nth-child(3){ background: var(--accent); width:22px; }
+
+.meta-chip{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-3); }
+.live{ position:relative; width:7px; height:7px; border-radius:50%; background:var(--clean); }
+/* the single permitted pulsing "live" dot (spec §4 exception) */
+.live::after{
+  content:""; position:absolute; inset:-5px; border-radius:50%;
+  border:1px solid rgba(61,220,151,.5);
+  animation: livePulse 2.4s ease-out infinite;
+}
+@keyframes livePulse{ 0%{ transform:scale(.55); opacity:.9 } 70%{ transform:scale(1.25); opacity:0 } 100%{ opacity:0 } }
+
+.admin{
+  display:flex; align-items:center; gap:10px;
+  padding: 6px 8px; border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.085);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+.avatar{
+  width:32px; height:32px; border-radius:50%; display:grid; place-items:center;
+  background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12);
+  font-size:14px; font-weight:600; color:var(--ink);
+}
+.admin .who b{ display:block; font-size:13px; font-weight:500; line-height:1.4; }
+.admin .who span{ display:block; font-size:11px; color:var(--ink-3); line-height:1.4; }
+.admin .who{ padding-inline-end:8px; }
+
+/* ---------- scope bar ---------- */
+.scopebar{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding: 10px 14px; margin-block-end:18px;
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,.04);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border:1px solid rgba(255,255,255,.07);
+}
+.scopebar .k{ font-size:12px; color:var(--ink-3); }
+.scope-tag{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:12.5px; color:var(--ink-2);
+  padding: 5px 11px; border-radius:999px;
+  background: rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.08);
+}
+.scope-tag .dot{ width:6px; height:6px; border-radius:50%; background:var(--ink-3); }
+.scope-tag.on{ color:var(--ink); border-color: rgba(110,196,155,.32); background: rgba(110,196,155,.10); }
+.scope-tag.on .dot{ background: var(--accent); }
+.btn-reset{
+  font-family:inherit; font-size:12.5px; color:var(--ink-2);
+  background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+  border-radius:999px; padding:6px 14px; cursor:pointer;
+  margin-inline-start:auto;
+  transition: color var(--tap), background var(--tap), border-color var(--tap);
+}
+.btn-reset:hover{ color:var(--ink); background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.16); }
+
+/* ============================================================
+   THE STAGE — three z-planes
+   ============================================================ */
+.stage{ position:relative; }
+
+.plane{
+  --px: 0px; --py: 0px;
+  transform: translate3d(var(--px), var(--py), 0) scale(var(--pl-scale, 1));
+  transition: transform 200ms var(--ease);
+  will-change: transform;
+}
+.plane-far { z-index:1; }
+.plane-mid { z-index:2; }
+.plane-near{ z-index:3; }
+
+/* every glass surface reads its plane's depth vars */
+.panel{
+  position:relative;
+  border-radius: var(--r-lg);
+  background: rgba(255,255,255, var(--pl-alpha));
+  backdrop-filter: blur(var(--pl-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--pl-blur)) saturate(1.25);
+  border:1px solid var(--pl-border, rgba(255,255,255,.085));
+  box-shadow: var(--pl-shadow);
+  opacity: var(--pl-op, 1);
+  color: var(--pl-ink, var(--ink));
+  transition: backdrop-filter 200ms var(--ease), background-color 200ms var(--ease),
+              opacity 200ms var(--ease), box-shadow 200ms var(--ease),
+              border-color 200ms var(--ease), color 200ms var(--ease);
+  animation: riseIn 600ms var(--ease) var(--d, 0ms) backwards;
+}
+@keyframes riseIn{
+  from{
+    transform: translateY(24px);
+    opacity: 0;
+    backdrop-filter: blur(calc(var(--pl-blur) + 8px)) saturate(1.25);
+    -webkit-backdrop-filter: blur(calc(var(--pl-blur) + 8px)) saturate(1.25);
+  }
+}
+
+/* Depth is carried by blur, glass alpha, border/shadow weight and scale — NOT by
+   fading text below the contrast floor. Un-focused planes never drop below
+   --pl-op .82 and never use --ink-3, so the dimmest body text on screen still
+   composites to ≥ 4.5:1 over the scene. */
+
+/* ---- depth ranking: FAR focused ---- */
+.stage[data-focus="1"] .plane-far{
+  --pl-blur:13px; --pl-alpha:.055; --pl-op:1; --pl-scale:1.006;
+  --pl-ink: var(--ink); --pl-ink2: var(--ink-3); --pl-stroke: .62; --pl-fill:.13;
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.11) inset, 0 30px 68px -26px rgba(0,0,0,.62);
+  --pl-border: rgba(255,255,255,.11);
+}
+.stage[data-focus="1"] .plane-mid{
+  --pl-blur:30px; --pl-alpha:.030; --pl-op:.84; --pl-scale:.984;
+  --pl-ink: var(--ink-2); --pl-ink2: var(--ink-2);
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.05) inset, 0 12px 30px -20px rgba(0,0,0,.4);
+  --pl-border: rgba(255,255,255,.055);
+}
+.stage[data-focus="1"] .plane-near{
+  --pl-blur:26px; --pl-alpha:.034; --pl-op:.82; --pl-scale:.972;
+  --pl-ink: var(--ink-2); --pl-ink2: var(--ink-2);
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.05) inset, 0 12px 32px -22px rgba(0,0,0,.4);
+  --pl-border: rgba(255,255,255,.05);
+}
+
+/* ---- depth ranking: MID focused (default) ---- */
+.stage[data-focus="2"] .plane-far{
+  --pl-blur:34px; --pl-alpha:.026; --pl-op:.84; --pl-scale:.996;
+  --pl-ink: var(--ink-2); --pl-ink2: var(--ink-2); --pl-stroke:.40; --pl-fill:.06;
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.05) inset, 0 12px 34px -22px rgba(0,0,0,.4);
+  --pl-border: rgba(255,255,255,.05);
+}
+.stage[data-focus="2"] .plane-mid{
+  --pl-blur:15px; --pl-alpha:.058; --pl-op:1; --pl-scale:1.004;
+  --pl-ink: var(--ink); --pl-ink2: var(--ink-3);
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.11) inset, 0 26px 58px -22px rgba(0,0,0,.6);
+  --pl-border: rgba(255,255,255,.10);
+}
+.stage[data-focus="2"] .plane-near{
+  --pl-blur:20px; --pl-alpha:.046; --pl-op:.9; --pl-scale:.99;
+  --pl-ink: var(--ink); --pl-ink2: var(--ink-2);
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.07) inset, 0 18px 44px -24px rgba(0,0,0,.48);
+  --pl-border: rgba(255,255,255,.075);
+}
+
+/* ---- depth ranking: NEAR focused ---- */
+.stage[data-focus="3"] .plane-far{
+  --pl-blur:38px; --pl-alpha:.022; --pl-op:.82; --pl-scale:.99;
+  --pl-ink: var(--ink-2); --pl-ink2: var(--ink-2); --pl-stroke:.34; --pl-fill:.05;
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.04) inset, 0 10px 28px -22px rgba(0,0,0,.35);
+  --pl-border: rgba(255,255,255,.045);
+}
+.stage[data-focus="3"] .plane-mid{
+  --pl-blur:28px; --pl-alpha:.032; --pl-op:.86; --pl-scale:.984;
+  --pl-ink: var(--ink-2); --pl-ink2: var(--ink-2);
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.05) inset, 0 12px 32px -22px rgba(0,0,0,.4);
+  --pl-border: rgba(255,255,255,.055);
+}
+.stage[data-focus="3"] .plane-near{
+  --pl-blur:12px; --pl-alpha:.075; --pl-op:1; --pl-scale:1.008;
+  --pl-ink: var(--ink); --pl-ink2: var(--ink-2);
+  --pl-shadow: 0 1px 0 0 rgba(255,255,255,.12) inset, 0 40px 90px -34px rgba(0,0,0,.72);
+  --pl-border: rgba(255,255,255,.11);
+}
+
+/* ---------- FAR plane geometry ---------- */
+.plane-far{ display:grid; gap:20px; }
+/* The far sheets are full-bleed backdrops, but their *content* lives in the
+   gutters the nearer planes leave free — otherwise the mid plane sits on top of
+   the gate buttons and six of nine gates become invisible and unclickable.
+   gates  -> inline-end gutter (mid plane holds the inline-start 66%)
+   series -> inline-start gutter (near plane holds the inline-end 43%) */
+.sheet-gates{ min-height: 620px; padding: 26px 30px 34px; padding-inline-start: 68%; }
+.sheet-series{ min-height: 748px; padding: 26px 30px 30px; padding-block-start: 52px; padding-inline-end: 44%; }
+
+.sheet-gates .far-head{ display:block; margin-block-end:14px; }
+.sheet-gates .far-title{ font-size:19px; }
+.sheet-gates .far-sub{ font-size:12px; }
+/* .num sets direction:ltr, which flips text-align:start to the PHYSICAL left on a
+   block child. Use a column flex box instead so placement follows the RTL parent
+   and the ltr direction only governs the digits inside the box. */
+.sheet-gates .far-big{
+  margin-inline-start:0; margin-block-start:8px;
+  display:flex; flex-direction:column; align-items:flex-start; text-align:start;
+}
+.sheet-gates .far-big b{ font-size:30px; }
+
+.far-head{ display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-block-end:18px; }
+.far-title{ font-size:26px; font-weight:600; line-height:1.5; color: var(--pl-ink); }
+.far-sub{ font-size:13.5px; color: var(--pl-ink2); }
+.far-big{
+  margin-inline-start:auto; text-align:end;
+}
+.far-big b{ display:block; font-size:40px; font-weight:600; line-height:1.2; color:var(--pl-ink); }
+.far-big span{ font-size:12.5px; color:var(--pl-ink2); }
+
+/* gate volumes — large and faint */
+.gate-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+.gate-row{
+  display:block; width:100%; text-align:start;
+  background:transparent; border:1px solid transparent; border-radius:12px;
+  padding: 8px 10px; cursor:pointer; font-family:inherit; color:inherit;
+  transition: background var(--tap), border-color var(--tap);
+}
+.gate-row:hover{ background: rgba(255,255,255,.045); border-color: rgba(255,255,255,.07); }
+.gate-row[aria-pressed="true"]{ background: rgba(110,196,155,.10); border-color: rgba(110,196,155,.28); }
+.gate-row .gr-top{ display:flex; align-items:baseline; gap:8px; }
+.gate-row .gr-top .sdot{ align-self:center; }
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0;
+}
+.gate-row .gr-name{ font-size:14.5px; font-weight:500; color:var(--pl-ink);
+  min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gate-row .gr-val{ margin-inline-start:auto; flex:none; font-size:21px; font-weight:600; color:var(--pl-ink); }
+.track{
+  display:block; position:relative; height:5px; border-radius:3px; margin-block-start:7px;
+  background: rgba(255,255,255,.055); overflow:hidden;
+}
+.track > i{
+  display:block; height:100%; border-radius:3px;
+  background: rgba(255,255,255,.34);
+  transform-origin: 100% 50%;   /* RTL: bars grow from the inline-start (right) edge */
+  animation: growX 620ms var(--ease) backwards;
+}
+/* width lives in the markup; the animation only reveals it, so a throttled
+   tab can never leave a bar stuck at zero */
+@keyframes growX{ from{ transform: scaleX(0); } }
+@keyframes growY{ from{ transform: scaleY(0); } }
+@keyframes drawLine{ from{ stroke-dashoffset: 1; } }
+.gate-row .gr-meta{ display:flex; gap:10px; font-size:10.5px; color:var(--pl-ink2);
+  margin-block-start:5px; white-space:nowrap; overflow:hidden; }
+
+/* charts */
+.chart-wrap{ margin-block-start:6px; }
+.chart-wrap svg{ display:block; width:100%; height:auto; overflow:visible; }
+.gridline{ stroke: rgba(255,255,255,.07); stroke-width:1; }
+.axis-txt{ fill: var(--pl-ink2); font-size:10.5px; direction:ltr; unicode-bidi:isolate; font-family:'IBM Plex Sans Arabic', sans-serif; }
+.dat-txt{ fill: var(--pl-ink2); font-size:9.5px; direction:ltr; unicode-bidi:isolate; font-family:'IBM Plex Sans Arabic', sans-serif; }
+.serie-line{
+  fill:none; stroke: rgba(255,255,255,calc(var(--pl-stroke,.4) + .12));
+  stroke-width:2; stroke-linejoin:round; stroke-linecap:round;
+  stroke-dasharray:1; stroke-dashoffset:0;
+  animation: drawLine 700ms var(--ease) backwards;
+}
+.serie-area{ fill: url(#gFill); opacity: calc(var(--pl-fill,.08) * 8); }
+/* status tokens, so a bar means the same thing as the badge and the dot */
+.bar-w{ fill: rgba(255,107,107, .55); }
+.bar-u{ fill: rgba(232,176,85, .5); }
+.bar{
+  transform-box: fill-box; transform-origin: 50% 100%;
+  animation: growY 620ms var(--ease) backwards;
+}
+.hitcol{ fill: transparent; cursor:pointer; }
+.hitcol:hover{ fill: rgba(255,255,255,.05); }
+.hitcol:focus-visible{ fill: rgba(110,196,155,.14); outline:none; stroke: var(--accent); stroke-width:1; }
+.hitcol.sel{ fill: rgba(110,196,155,.10); }
+.marker{ stroke: var(--accent); stroke-width:1; stroke-dasharray:3 3; }
+.marker-dot{ fill: var(--accent); }
+.legend{ display:flex; gap:18px; align-items:center; font-size:11.5px; color:var(--pl-ink2); margin-block-start:10px; }
+.legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; margin-inline-end:6px; vertical-align:-1px; }
+
+/* ---------- MID plane geometry ---------- */
+.plane-mid{
+  position:absolute; inset-block-start:46px; inset-inline-start:3%;
+  width:63%; display:grid; gap:16px;
+}
+.kpis{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+.tile{ padding:16px 18px 15px; border-radius: var(--r-md); }
+.tile .t-lbl{ font-size:12.5px; color: var(--pl-ink2); line-height:1.6; }
+.t-val{ display:flex; align-items:baseline; gap:7px; margin-block-start:2px; }
+.t-val b{ font-size:31px; font-weight:600; line-height:1.25; color:var(--pl-ink); }
+.t-val .unit{ font-size:11.5px; color:var(--pl-ink2); }
+.t-foot{ display:flex; align-items:center; gap:8px; margin-block-start:8px; }
+.delta{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; color:var(--pl-ink2); }
+.delta svg{ width:11px; height:11px; }
+.spark{ margin-inline-start:auto; display:flex; align-items:flex-end; gap:2px; height:16px; }
+.spark i{ width:3px; border-radius:1px; background: rgba(255,255,255,.22); }
+.pips{ display:flex; gap:3px; margin-inline-start:auto; }
+.pips i{ width:7px; height:7px; border-radius:2px; background: rgba(255,255,255,.30); }
+.pips i.off{ background: rgba(255,107,107,.55); }
+.pips i.mnt{ background: rgba(255,255,255,.12); }
+
+.midrow{ display:grid; grid-template-columns: 1.16fr .84fr; gap:14px; }
+.panel-head{
+  display:flex; align-items:center; gap:10px;
+  padding: 14px 18px 10px;
+}
+.panel-head h2{ margin:0; font-size:14px; font-weight:600; color:var(--pl-ink); line-height:1.6; }
+.panel-head .sub{ font-size:11.5px; color:var(--pl-ink2); margin-inline-start:auto; }
+.health{ padding-block-end:14px; }
+.health-summary{
+  display:flex; align-items:center; gap:10px; padding:0 18px 12px; font-size:12px; color:var(--pl-ink2);
+}
+.hbar{ flex:1 1 auto; height:6px; border-radius:3px; background: rgba(255,255,255,.06); overflow:hidden; display:flex; gap:2px; }
+.hbar i{ display:block; height:100%; }
+.chips{ display:flex; flex-wrap:wrap; gap:7px; padding-inline:18px; }
+.chip{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:inherit; font-size:12px; color:var(--pl-ink2);
+  background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.075);
+  border-radius:999px; padding:6px 11px; cursor:pointer;
+  transition: color var(--tap), background var(--tap), border-color var(--tap), transform var(--tap);
+}
+.chip:hover{ color:var(--pl-ink); background: rgba(255,255,255,.08); transform: translateY(-1px); }
+.chip[aria-pressed="true"]{ color:var(--ink); background: rgba(110,196,155,.12); border-color: rgba(110,196,155,.34); }
+.chip[disabled]{ cursor:not-allowed; opacity:.62; }
+.chip:disabled:hover{ transform:none; background: rgba(255,255,255,.04); }
+.sdot{ width:7px; height:7px; border-radius:50%; flex:none; }
+.sdot.online{ background: var(--clean); }
+.sdot.degraded{ background: var(--unread); }
+.sdot.offline{ background: var(--wanted); }
+.sdot.maint{ background: var(--ink-3); }
+.sdot.v-wanted{ background: var(--wanted); }
+.sdot.v-clean{ background: var(--clean); }
+.sdot.v-unread{ background: var(--unread); }
+.chip .cn{ font-size:11px; color:var(--pl-ink2); }
+
+.ops-list{ padding: 2px 14px 14px; display:grid; gap:2px; }
+.op-row{
+  display:grid; grid-template-columns: 1fr auto; gap:2px 10px; align-items:center;
+  width:100%; text-align:start; font-family:inherit; color:inherit;
+  background:transparent; border:1px solid transparent; border-radius:11px;
+  padding:7px 10px; cursor:pointer;
+  transition: background var(--tap), border-color var(--tap);
+}
+.op-row:hover{ background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.07); }
+.op-row[aria-pressed="true"]{ background: rgba(110,196,155,.10); border-color: rgba(110,196,155,.28); }
+.op-row .on{ font-size:12.5px; color:var(--pl-ink); }
+.op-row .ov{ font-size:11.5px; color:var(--pl-ink2); }
+.op-row .obar{ grid-column: 1 / -1; height:4px; border-radius:2px; background: rgba(255,255,255,.06); overflow:hidden; }
+.op-row .obar > i{
+  display:block; height:100%; background: rgba(255,255,255,.30); border-radius:2px;
+  transform-origin: 100% 50%;
+  animation: growX 620ms var(--ease) backwards;
+}
+
+/* ---------- NEAR plane geometry ---------- */
+.plane-near{
+  position:absolute; inset-block-start:640px; inset-inline-end:3%;
+  inset-block-end:22px; width:40%;
+  display:grid; grid-template-rows: auto minmax(0,1fr); gap:16px;
+}
+.alerts{ overflow:hidden; }
+.stage[data-focus="3"] .alerts{
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.12) inset,
+              0 40px 90px -34px rgba(0,0,0,.72),
+              0 0 40px -12px rgba(110,196,155,.35);
+}
+.alerts .panel-head h2{ display:flex; align-items:center; gap:8px; }
+.wdot{ width:8px; height:8px; border-radius:50%; background: var(--wanted); flex:none; }
+.alert-list{ display:grid; gap:8px; padding: 4px 14px 16px; }
+.alert{
+  display:grid; grid-template-columns:auto 1fr auto; gap:4px 12px; align-items:center;
+  padding:11px 13px; border-radius:13px;
+  background: rgba(255,255,255,.045);
+  border:1px solid rgba(255,107,107,.20);
+  border-inline-start: 2px solid rgba(255,107,107,.5);
+}
+.alert .plate{
+  font-size:14.5px; font-weight:600; color:var(--pl-ink);
+  unicode-bidi: isolate; direction: rtl;
+  padding:4px 9px; border-radius:8px; background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.09);
+}
+.alert .a-mid{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+.alert .a-reason{ font-size:12.5px; color:var(--pl-ink); line-height:1.6; }
+.alert .a-meta{ font-size:11px; color:var(--pl-ink2); line-height:1.6; }
+.alert .a-time{ font-size:11.5px; color:var(--pl-ink2); }
+.ref{
+  font-size:11px; color:var(--pl-ink2); unicode-bidi:isolate; direction:ltr;
+  padding:2px 7px; border-radius:6px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.07);
+}
+
+.events{ display:flex; flex-direction:column; min-height:0; }
+.verdicts{ display:flex; gap:6px; padding: 0 16px 10px; flex-wrap:wrap; }
+.ev-scroll{ overflow-y:auto; overflow-x:hidden; padding: 0 14px 14px; min-height:0; flex:1 1 auto; }
+.ev-scroll::-webkit-scrollbar{ width:8px; }
+.ev-scroll::-webkit-scrollbar-track{ background:transparent; }
+.ev-scroll::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.10); border-radius:8px; }
+.ev-scroll::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.17); }
+.ev-scroll{ scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.14) transparent; }
+
+.ev{
+  display:grid; grid-template-columns: 46px auto 1fr auto; gap:3px 11px; align-items:center;
+  padding:9px 10px; border-radius:12px;
+  border:1px solid transparent;
+  border-block-end:1px solid var(--line-2);
+  transition: background var(--tap), border-color var(--tap);
+}
+.ev:hover{ background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.06); }
+.ev:last-child{ border-block-end-color: transparent; }
+.ev .e-time{ font-size:11.5px; color:var(--pl-ink2); }
+.ev .e-plate{
+  font-size:13px; font-weight:500; color:var(--pl-ink);
+  unicode-bidi:isolate; direction:rtl;
+  padding:3px 8px; border-radius:7px; background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.07);
+}
+.ev .e-gate{ font-size:12px; color:var(--pl-ink2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ev .e-note{ grid-column: 2 / -1; font-size:11px; color:var(--pl-ink2); line-height:1.65; }
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11px; padding:4px 9px; border-radius:999px; white-space:nowrap;
+  border:1px solid transparent;
+}
+.badge .bd{ width:6px; height:6px; border-radius:50%; }
+.badge.wanted{ color:#ffb4b4; background: rgba(255,107,107,.10); border-color: rgba(255,107,107,.26); }
+.badge.wanted .bd{ background: var(--wanted); }
+.badge.clean{ color:#a8ecca; background: rgba(61,220,151,.09); border-color: rgba(61,220,151,.22); }
+.badge.clean .bd{ background: var(--clean); }
+.badge.unread{ color:#f0cf9c; background: rgba(232,176,85,.10); border-color: rgba(232,176,85,.24); }
+.badge.unread .bd{ background: var(--unread); }
+
+.empty{
+  padding: 34px 18px; text-align:center; color:var(--pl-ink2); font-size:13px;
+  border:1px dashed rgba(255,255,255,.10); border-radius:14px; margin:6px 4px;
+}
+
+/* ---------- footer ---------- */
+.foot{
+  padding-block: 22px 26px; text-align:center;
+  font-size:12px; color:var(--ink-3);
+}
+
+/* ---------- focus ring ---------- */
+:where(button, a, [tabindex]):focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px; border-radius: 10px;
+}
+
+/* ---------- responsive ---------- */
+/* narrower layered layout: the mid plane grows taller as it narrows, so the far
+   sheet's reserved gutters have to grow with it */
+@media (max-width: 1400px){
+  .plane-mid{ width:60%; }
+  .sheet-gates{ padding-inline-start: 65%; }
+  .sheet-series{ padding-block-start: 96px; }
+  .gate-row .gr-name{ font-size:13.5px; }
+  .gate-row .gr-val{ font-size:19px; }
+}
+/* below this the planes can no longer be laid out side by side without colliding,
+   so they stack in reading order and the depth cue falls back to blur + alpha */
+@media (max-width: 1200px){
+  .stage{ display:flex; flex-direction:column; gap:16px; }
+  .plane{ position:static !important; width:auto !important; inset:auto !important;
+          transform:none !important; }
+  .plane-mid{ order:1; }
+  .plane-near{ order:2; display:grid; grid-template-rows:auto auto; }
+  .plane-far{ order:3; }
+  .sheet-series{ padding-block-start: 26px; padding-inline-end: 30px; min-height:0; }
+  .sheet-gates{ min-height:0; padding-inline-start: 30px; padding-block-end: 26px; }
+  .sheet-gates .far-head{ display:flex; margin-block-end:18px; }
+  .sheet-gates .far-big{ margin-inline-start:auto; align-items:flex-end; margin-block-start:0; }
+  .sheet-gates .far-title{ font-size:24px; }
+  .sheet-gates .far-sub{ font-size:13px; }
+  .sheet-gates .far-big b{ font-size:38px; }
+  .gate-grid{ gap:12px 26px; }
+  .gate-row .gr-name{ font-size:16px; }
+  .gate-row .gr-val{ font-size:24px; }
+  .gate-row .gr-meta{ font-size:11.5px; gap:14px; }
+  .stage .plane{ --pl-op: 1 !important; --pl-scale: 1 !important; }
+  .ev-scroll{ max-height: 520px; }
+  .gate-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 760px){
+  .shell{ padding-inline:14px; }
+  .kpis{ grid-template-columns: repeat(2, 1fr); }
+  .midrow{ grid-template-columns: 1fr; }
+  .gate-grid{ grid-template-columns: 1fr; }
+  .far-title{ font-size:21px; }
+  .far-big b{ font-size:30px; }
+  .topbar{ gap:12px; }
+  .depth-ctl{ order:3; width:100%; justify-content:space-between; }
+  .ev{ grid-template-columns: 44px auto 1fr; }
+  .ev .badge{ grid-column: 3 / -1; justify-self:end; }
+}
+@media (max-width: 420px){
+  .kpis{ grid-template-columns: 1fr; }
+  .alert{ grid-template-columns: auto 1fr; }
+  .alert .a-time{ grid-column: 2; justify-self:end; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <span class="lux a"></span><span class="lux b"></span><span class="lux c"></span>
+  <span class="lux d"></span><span class="lux e"></span><span class="lux f"></span>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="6" width="19" height="12" rx="2.5"/>
+          <path d="M6.5 10v4M9.5 10v4M12.5 10v4M15.5 10h2M15.5 14h2"/>
+        </svg>
+      </span>
+      <span class="brand-txt">
+        <b>نظام العربي لفحص اللوحات</b>
+        <span>النظرة العامة · الطبقات</span>
+      </span>
+    </div>
+
+    <div class="top-spacer"></div>
+
+    <div class="depth-ctl" id="depthCtl" data-focus="2">
+      <span class="depth-rail" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="lbl">العمق</span>
+      <span class="seg" role="group" aria-label="التحكم في العمق">
+        <button type="button" data-depth="1" aria-pressed="false">خلفية</button>
+        <button type="button" data-depth="2" aria-pressed="true">متوسط</button>
+        <button type="button" data-depth="3" aria-pressed="false">أمامي</button>
+      </span>
+    </div>
+
+    <span class="meta-chip"><span class="live" aria-hidden="true"></span> آخر تحديث <span class="num">14:32</span></span>
+
+    <div class="admin">
+      <span class="who">
+        <b>أحمد عماد</b>
+        <span>مدير النظام</span>
+      </span>
+      <span class="avatar" aria-hidden="true">أ</span>
+    </div>
+  </header>
+
+  <div class="scopebar" id="scopeBar" role="status" aria-live="polite">
+    <span class="k">النطاق الحالي</span>
+    <span class="scope-tag" id="tagGate"><span class="dot"></span><span class="tx">كل البوابات</span></span>
+    <span class="scope-tag" id="tagHour"><span class="dot"></span><span class="tx">كل الساعات</span></span>
+    <span class="scope-tag" id="tagVerdict"><span class="dot"></span><span class="tx">كل الأحكام</span></span>
+    <span class="scope-tag" id="tagOp"><span class="dot"></span><span class="tx">كل المراجعين</span></span>
+    <button type="button" class="btn-reset" id="btnReset">إعادة الضبط</button>
+  </div>
+
+  <main class="stage" id="stage" data-focus="2">
+
+    <!-- ===================== PLANE 1 — FAR ===================== -->
+    <div class="plane plane-far" id="planeFar">
+
+      <section class="panel sheet-gates" style="--d:0ms" aria-labelledby="gatesTitle">
+        <div class="far-head">
+          <div>
+            <div class="far-title" id="gatesTitle">أحجام البوابات اليوم</div>
+            <div class="far-sub">تسع بوابات نشطة من أصل إحدى عشرة — اضغط بوابة لتضييق النطاق</div>
+          </div>
+          <div class="far-big">
+            <b class="num" id="gatesSum">2,413</b>
+            <span id="gatesSumLbl">أعلى بوابة · بوابة الشمال</span>
+          </div>
+        </div>
+        <div class="gate-grid" id="gateGrid"></div>
+      </section>
+
+      <section class="panel sheet-series" style="--d:60ms" aria-labelledby="seriesTitle">
+        <div class="far-head">
+          <div>
+            <div class="far-title" id="seriesTitle">حجم المسح على مدار 24 ساعة</div>
+            <div class="far-sub" id="seriesSub">كل البوابات — اضغط عمود الساعة للتركيز عليها</div>
+          </div>
+          <div class="far-big">
+            <b class="num" id="peakVal">874</b>
+            <span id="peakLbl">الذروة عند الساعة 08</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap" id="chartMain"></div>
+        <div class="chart-wrap" id="chartStrip"></div>
+        <div class="legend">
+          <span><i style="background:rgba(255,107,107,.55)"></i>مطلوب</span>
+          <span><i style="background:rgba(232,176,85,.5)"></i>غير مقروء</span>
+          <span id="stripNote">مقياسان منفصلان يتشاركان محور الساعات</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== PLANE 2 — MID ===================== -->
+    <div class="plane plane-mid" id="planeMid">
+
+      <div class="kpis">
+        <article class="panel tile" style="--d:200ms">
+          <div class="t-lbl">إجمالي عمليات المسح</div>
+          <div class="t-val"><b class="figure" id="kTotal" data-cur="0">12,847</b></div>
+          <div class="t-foot">
+            <span class="delta" id="dTotal"></span>
+            <span class="spark" id="sTotal" aria-hidden="true"></span>
+          </div>
+        </article>
+
+        <article class="panel tile" style="--d:240ms">
+          <div class="t-lbl">مركبات مطلوبة</div>
+          <div class="t-val"><b class="figure" id="kWanted" data-cur="0">38</b></div>
+          <div class="t-foot">
+            <span class="delta" id="dWanted"></span>
+            <span class="spark" id="sWanted" aria-hidden="true"></span>
+          </div>
+        </article>
+
+        <article class="panel tile" style="--d:280ms">
+          <div class="t-lbl">مركبات سليمة</div>
+          <div class="t-val"><b class="figure" id="kClean" data-cur="0">12,782</b></div>
+          <div class="t-foot">
+            <span class="delta" id="dClean"></span>
+            <span class="spark" id="sClean" aria-hidden="true"></span>
+          </div>
+        </article>
+
+        <article class="panel tile" style="--d:320ms">
+          <div class="t-lbl">لوحات غير مقروءة</div>
+          <div class="t-val"><b class="figure" id="kUnread" data-cur="0">27</b></div>
+          <div class="t-foot">
+            <span class="delta" id="dUnread"></span>
+            <span class="spark" id="sUnread" aria-hidden="true"></span>
+          </div>
+        </article>
+
+        <article class="panel tile" style="--d:360ms">
+          <div class="t-lbl">متوسط زمن المعالجة</div>
+          <div class="t-val"><b class="figure" id="kLatency" data-cur="0">412</b><span class="unit">مللي/ث</span></div>
+          <div class="t-foot">
+            <span class="delta" id="dLatency"></span>
+            <span class="spark" id="sLatency" aria-hidden="true"></span>
+          </div>
+        </article>
+
+        <article class="panel tile" style="--d:400ms">
+          <div class="t-lbl">بوابات نشطة</div>
+          <div class="t-val"><b class="figure" id="kGates" data-cur="0">9</b><span class="unit">من 11</span></div>
+          <div class="t-foot">
+            <span class="delta"><span id="gatesDownTxt">بوابتان متوقفتان</span></span>
+            <span class="pips" id="gatePips" aria-hidden="true"></span>
+          </div>
+        </article>
+      </div>
+
+      <div class="midrow">
+        <section class="panel health" style="--d:440ms" aria-labelledby="healthTitle">
+          <div class="panel-head">
+            <h2 id="healthTitle">حالة البوابات</h2>
+            <span class="sub" id="healthSub">9 تعمل · 1 بطيئة · 2 خارج الخدمة أو صيانة</span>
+          </div>
+          <div class="health-summary">
+            <span class="num" style="font-size:13px">9 / 11</span>
+            <span class="hbar" id="hbar" aria-hidden="true"></span>
+            <span>جاهزية الشبكة</span>
+          </div>
+          <div class="chips" id="healthChips"></div>
+        </section>
+
+        <section class="panel ops" style="--d:480ms" aria-labelledby="opsTitle">
+          <div class="panel-head">
+            <h2 id="opsTitle">المراجعون</h2>
+            <span class="sub">مراجعة · دقة</span>
+          </div>
+          <div class="ops-list" id="opsList"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================== PLANE 3 — NEAR ===================== -->
+    <div class="plane plane-near" id="planeNear">
+
+      <section class="panel alerts" style="--d:560ms" aria-labelledby="alertsTitle">
+        <div class="panel-head">
+          <h2 id="alertsTitle"><span class="wdot" aria-hidden="true"></span> تنبيهات مركبات مطلوبة</h2>
+          <span class="sub" id="alertsCount"></span>
+        </div>
+        <div class="alert-list" id="alertList"></div>
+      </section>
+
+      <section class="panel events" style="--d:610ms" aria-labelledby="evTitle">
+        <div class="panel-head">
+          <h2 id="evTitle">الأحداث الأخيرة</h2>
+          <span class="sub" id="evCount"></span>
+        </div>
+        <div class="verdicts" id="verdictChips" role="group" aria-label="تصفية حسب الحكم"></div>
+        <div class="ev-scroll" id="evList"></div>
+      </section>
+    </div>
+
+  </main>
+
+  <p class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ========================= DATA (verbatim) ========================= */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+const STATUS_AR = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+const VERDICT_AR = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+
+/* ========================= STATE ========================= */
+const state = {
+  focus: 2,        // 1 = far · 2 = mid · 3 = near
+  gate: null,      // gate id or null
+  verdict: "all",  // all | wanted | clean | unread
+  hour: null,      // 0..23 or null
+  operator: null   // operator name or null
+};
+
+/* ========================= HELPERS ========================= */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+const nf = n => Number(n).toLocaleString('en-US');
+const pad2 = n => (n < 10 ? "0" + n : "" + n);
+const gateById = id => GATES.filter(g => g.id === id)[0];
+const gateName = id => { const g = gateById(id); return g ? g.name : "—"; };
+const ACTIVE = GATES.filter(g => g.status === "online" || g.status === "degraded");
+const ACTIVE_SUM = ACTIVE.reduce((a, g) => a + g.total, 0);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function niceMax(v){
+  if (!v || v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  const cands = [1, 2, 2.5, 5, 10];
+  for (let i = 0; i < cands.length; i++){ if (v <= cands[i] * p) return cands[i] * p; }
+  return 10 * p;
+}
+function isNiceStep(s){
+  if (s <= 0) return false;
+  const p = Math.pow(10, Math.floor(Math.log10(s)));
+  const r = Math.round((s / p) * 100) / 100;
+  return r === 1 || r === 2 || r === 2.5 || r === 5 || r === 10;
+}
+function ticksFor(max){
+  const divs = [4, 5, 2];
+  for (let i = 0; i < divs.length; i++){
+    if (isNiceStep(max / divs[i])){
+      const out = [];
+      for (let k = 0; k <= divs[i]; k++) out.push(Math.round((max / divs[i]) * k * 1000) / 1000);
+      return out;
+    }
+  }
+  return [0, max / 2, max];
+}
+const fmtTick = t => String(Math.round(t * 100) / 100);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* every Western-digit run sitting inside an Arabic sentence gets isolated, or the
+   bidi algorithm reorders it against the neighbouring words */
+const iso = n => '<span class="num">' + n + '</span>';
+
+/* ========================= SCOPED DERIVATION ========================= */
+function scoped(){
+  const g = state.gate ? gateById(state.gate) : null;
+  const ratioT = g ? g.total / ACTIVE_SUM : 1;
+
+  // The total series is a large aggregate, so a proportional estimate for one gate
+  // is defensible (and labelled as an estimate). The wanted/unread series are whole
+  // counts of 0–4; scaling those by a gate's share invents fractional vehicles and
+  // puts 0.25 on a count axis. We have no per-gate hourly breakdown for them, so we
+  // keep them at network scope and say so, rather than fabricating a shape.
+  const series = {
+    total:  HOURLY.total.map(v => g ? Math.round(v * ratioT) : v),
+    wanted: HOURLY.wanted.slice(),
+    unread: HOURLY.unread.slice()
+  };
+
+  const k = g
+    ? { total: g.total, wanted: g.wanted, unread: g.unread,
+        clean: g.total - g.wanted - g.unread, latency: g.ms, gates: KPI.gates.v }
+    : { total: KPI.total.v, wanted: KPI.wanted.v, unread: KPI.unread.v,
+        clean: KPI.clean.v, latency: KPI.latency.v, gates: KPI.gates.v };
+
+  return { gate: g, series: series, k: k, estimated: !!g };
+}
+
+function filteredEvents(){
+  return EVENTS.filter(function(e){
+    if (state.gate && e.gate !== state.gate) return false;
+    if (state.verdict !== "all" && e.verdict !== state.verdict) return false;
+    if (state.hour !== null && parseInt(e.t.slice(0, 2), 10) !== state.hour) return false;
+    if (state.operator && e.by !== state.operator) return false;
+    return true;
+  });
+}
+function scopedAlerts(){
+  return EVENTS.filter(function(e){
+    if (e.verdict !== "wanted") return false;
+    if (state.gate && e.gate !== state.gate) return false;
+    if (state.hour !== null && parseInt(e.t.slice(0, 2), 10) !== state.hour) return false;
+    if (state.operator && e.by !== state.operator) return false;
+    return true;
+  });
+}
+
+/* ========================= COUNTERS ========================= */
+function animateNumber(el, to){
+  // The real figure is already in the markup. On the very first paint dataset.cur
+  // is unset, so we seed it from the rendered text rather than from 0 — and if the
+  // tab is hidden we skip the tween entirely, because rAF is throttled there and a
+  // counter driven from 0 would sit at a wrong number until the tab is looked at.
+  const seeded = el.dataset.cur !== undefined && el.dataset.cur !== "";
+  const from = seeded ? parseFloat(el.dataset.cur) : parseFloat(el.textContent.replace(/[^0-9.-]/g, '')) || 0;
+  el.dataset.cur = String(to);
+  if (reduceMotion || document.hidden || from === to){ el.textContent = nf(to); return; }
+  const dur = 620, t0 = performance.now();
+  function step(now){
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = nf(Math.round(from + (to - from) * e));
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = nf(to);
+  }
+  requestAnimationFrame(step);
+}
+
+/* If the tab is hidden part-way through a tween, rAF stops and the figure freezes
+   mid-count. Snap every counter to its true value whenever visibility changes. */
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden) return;
+  $$('.figure[data-cur]').forEach(function(el){ el.textContent = nf(parseFloat(el.dataset.cur) || 0); });
+});
+
+function deltaHTML(d){
+  if (d === null || d === undefined) return '<span style="font-size:11.5px">ضمن النطاق المحدد</span>';
+  const up = d >= 0;
+  const arrow = up
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
+  return arrow + '<span class="num">' + (up ? '+' : '') + d.toFixed(1) + '%</span><span>عن الأمس</span>';
+}
+
+function sparkHTML(arr){
+  const step = Math.ceil(arr.length / 12);
+  const pick = [];
+  for (let i = 0; i < arr.length; i += step) pick.push(arr[i]);
+  const mx = Math.max.apply(null, pick) || 1;
+  return pick.map(function(v){
+    const h = Math.max(2, Math.round((v / mx) * 16));
+    return '<i style="height:' + h + 'px"></i>';
+  }).join('');
+}
+
+/* ========================= RENDER : KPI TILES ========================= */
+function renderKPIs(sc){
+  animateNumber($('#kTotal'),   sc.k.total);
+  animateNumber($('#kWanted'),  sc.k.wanted);
+  animateNumber($('#kClean'),   sc.k.clean);
+  animateNumber($('#kUnread'),  sc.k.unread);
+  animateNumber($('#kLatency'), sc.k.latency);
+  animateNumber($('#kGates'),   sc.k.gates);
+
+  const scopedNow = !!state.gate;
+  $('#dTotal').innerHTML   = deltaHTML(scopedNow ? null : KPI.total.delta);
+  $('#dWanted').innerHTML  = deltaHTML(scopedNow ? null : KPI.wanted.delta);
+  $('#dClean').innerHTML   = deltaHTML(scopedNow ? null : KPI.clean.delta);
+  $('#dUnread').innerHTML  = deltaHTML(scopedNow ? null : KPI.unread.delta);
+  $('#dLatency').innerHTML = deltaHTML(scopedNow ? null : KPI.latency.delta);
+
+  $('#sTotal').innerHTML   = sparkHTML(sc.series.total);
+  $('#sClean').innerHTML   = sparkHTML(sc.series.total);
+  // the hourly wanted/unread shape only exists network-wide — don't draw it next to
+  // a single gate's figure, where it would read as that gate's shape
+  $('#sWanted').innerHTML  = scopedNow ? '' : sparkHTML(sc.series.wanted);
+  $('#sUnread').innerHTML  = scopedNow ? '' : sparkHTML(sc.series.unread);
+  $('#sLatency').innerHTML = sparkHTML(ACTIVE.map(function(g){ return g.ms; }));
+
+  $('#gatePips').innerHTML = GATES.map(function(g){
+    const cls = g.status === "offline" ? "off" : (g.status === "maint" ? "mnt" : "");
+    return '<i class="' + cls + '"></i>';
+  }).join('');
+}
+
+/* ========================= RENDER : GATE VOLUMES (far) ========================= */
+function renderGateVolumes(){
+  const mx = Math.max.apply(null, ACTIVE.map(function(g){ return g.total; }));
+  const host = $('#gateGrid');
+  host.innerHTML = ACTIVE.map(function(g){
+    const on = state.gate === g.id;
+    return '' +
+      '<button type="button" class="gate-row" data-gate="' + g.id + '" aria-pressed="' + on + '">' +
+        '<span class="gr-top">' +
+          (g.status === "online" ? '' : '<span class="sdot ' + g.status + '" aria-hidden="true"></span>') +
+          '<span class="gr-name">' + esc(g.name) + '</span>' +
+          '<span class="gr-val num">' + nf(g.total) + '</span>' +
+        '</span>' +
+        '<span class="track"><i style="width:' + ((g.total / mx) * 100).toFixed(1) + '%"></i></span>' +
+        '<span class="gr-meta">' +
+          '<span>مطلوب ' + iso(g.wanted) + '</span>' +
+          '<span>غير مقروء ' + iso(g.unread) + '</span>' +
+          '<span>' + iso(g.ms) + ' مللي/ث</span>' +
+        '</span>' +
+        '<span class="sr-only">' + STATUS_AR[g.status] + '</span>' +
+      '</button>';
+  }).join('');
+}
+
+/* ========================= RENDER : HEALTH (mid) ========================= */
+function renderHealth(){
+  const counts = { online:0, degraded:0, offline:0, maint:0 };
+  GATES.forEach(function(g){ counts[g.status]++; });
+  $('#healthSub').innerHTML =
+    iso(counts.online) + ' تعمل · ' + iso(counts.degraded) + ' بطيئة · ' +
+    iso(counts.offline) + ' خارج الخدمة · ' + iso(counts.maint) + ' صيانة';
+
+  $('#hbar').innerHTML = GATES.map(function(g){
+    const c = g.status === "online" ? 'rgba(61,220,151,.55)'
+            : g.status === "degraded" ? 'rgba(232,176,85,.6)'
+            : g.status === "offline" ? 'rgba(255,107,107,.6)'
+            : 'rgba(255,255,255,.14)';
+    return '<i style="flex:1;background:' + c + '"></i>';
+  }).join('');
+
+  $('#gatesDownTxt').textContent = 'بوابتان خارج الخدمة: ' +
+    GATES.filter(function(g){ return g.status === "offline" || g.status === "maint"; })
+         .map(function(g){ return g.name; }).join(' · ');
+
+  $('#healthChips').innerHTML = GATES.map(function(g){
+    const usable = g.status === "online" || g.status === "degraded";
+    const on = state.gate === g.id;
+    return '' +
+      '<button type="button" class="chip" data-gate="' + g.id + '" aria-pressed="' + on + '"' +
+        (usable ? '' : ' disabled aria-disabled="true"') + '>' +
+        '<span class="sdot ' + g.status + '" aria-hidden="true"></span>' +
+        esc(g.name) +
+        (usable ? '<span class="cn num">' + nf(g.total) + '</span>'
+                : '<span class="cn">' + STATUS_AR[g.status] + '</span>') +
+      '</button>';
+  }).join('');
+}
+
+/* ========================= RENDER : OPERATORS (mid) ========================= */
+function renderOperators(){
+  const mx = Math.max.apply(null, OPERATORS.map(function(o){ return o.reviews; }));
+  $('#opsList').innerHTML = OPERATORS.map(function(o){
+    const on = state.operator === o.name;
+    return '' +
+      '<button type="button" class="op-row" data-op="' + esc(o.name) + '" aria-pressed="' + on + '">' +
+        '<span class="on">' + esc(o.name) + '</span>' +
+        '<span class="ov"><span class="num">' + nf(o.reviews) + '</span> · مطلوب <span class="num">' + o.wanted +
+          '</span> · دقة <span class="num">' + o.acc + '%</span></span>' +
+        '<span class="obar"><i style="width:' + ((o.reviews / mx) * 100).toFixed(1) + '%"></i></span>' +
+      '</button>';
+  }).join('');
+}
+
+/* ========================= RENDER : CHARTS (far) ========================= */
+const CW = 760, PAD_R = 50, PAD_L = 16;
+const xAt = i => CW - PAD_R - (i / 23) * (CW - PAD_R - PAD_L);
+const slot = (CW - PAD_R - PAD_L) / 23;
+
+function renderMainChart(sc){
+  const H = 320, PT = 20, PB = 26;
+  const data = sc.series.total;
+  const max = niceMax(Math.max.apply(null, data));
+  const tk = ticksFor(max);
+  const detail = state.focus === 1;
+  const y = v => PT + (1 - v / max) * (H - PT - PB);
+
+  let grid = '';
+  tk.forEach(function(t){
+    grid += '<line class="gridline" x1="' + PAD_L + '" x2="' + (CW - PAD_R) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '"/>';
+    grid += '<text class="axis-txt" x="' + (CW - PAD_R + 9) + '" y="' + (y(t) + 3.5).toFixed(1) + '" text-anchor="start">' + fmtTick(t) + '</text>';
+  });
+
+  let d = '', area = '';
+  data.forEach(function(v, i){
+    d += (i === 0 ? 'M' : 'L') + xAt(i).toFixed(1) + ' ' + y(v).toFixed(1) + ' ';
+  });
+  area = 'M' + xAt(0).toFixed(1) + ' ' + (H - PB) + ' ' + d.replace(/^M/, 'L') +
+         'L' + xAt(23).toFixed(1) + ' ' + (H - PB) + ' Z';
+
+  let hits = '', dots = '', labels = '';
+  for (let i = 0; i < 24; i++){
+    const sel = state.hour === i;
+    // the 24 columns of THIS chart are the keyboard path for hour selection;
+    // the strip below mirrors the same hours, so its columns stay out of the tab order
+    hits += '<rect class="hitcol' + (sel ? ' sel' : '') + '" x="' + (xAt(i) - slot / 2).toFixed(1) + '" y="' + PT +
+            '" width="' + slot.toFixed(1) + '" height="' + (H - PT - PB) +
+            '" rx="4" tabindex="0" role="button" data-hour="' + i +
+            '" aria-pressed="' + sel + '" aria-label="الساعة ' + pad2(i) + '"></rect>';
+    if (detail && i % 2 === 0){
+      labels += '<text class="dat-txt" x="' + xAt(i).toFixed(1) + '" y="' + (y(data[i]) - 8).toFixed(1) +
+                '" text-anchor="middle">' + nf(data[i]) + '</text>';
+    }
+    if (sel){
+      dots += '<line class="marker" x1="' + xAt(i).toFixed(1) + '" x2="' + xAt(i).toFixed(1) +
+              '" y1="' + PT + '" y2="' + (H - PB) + '"/>' +
+              '<circle class="marker-dot" cx="' + xAt(i).toFixed(1) + '" cy="' + y(data[i]).toFixed(1) + '" r="4"/>' +
+              '<text class="dat-txt" x="' + xAt(i).toFixed(1) + '" y="' + (y(data[i]) - 11).toFixed(1) +
+              '" text-anchor="middle" style="fill:var(--accent)">' + nf(data[i]) + '</text>';
+    }
+  }
+
+  $('#chartMain').innerHTML =
+    '<svg viewBox="0 0 ' + CW + ' ' + H + '" role="group" aria-label="حجم المسح لكل ساعة خلال 24 ساعة">' +
+      '<defs><linearGradient id="gFill" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="#ffffff" stop-opacity=".22"/>' +
+        '<stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>' +
+      '</linearGradient></defs>' +
+      grid +
+      '<path class="serie-area" d="' + area + '"/>' +
+      '<path class="serie-line" id="lineTotal" pathLength="1" d="' + d.trim() + '"/>' +
+      labels + dots + hits +
+    '</svg>';
+}
+
+function renderStripChart(sc){
+  const H = 150, PT = 14, PB = 30;
+  const w = sc.series.wanted, u = sc.series.unread;
+  const max = niceMax(Math.max(Math.max.apply(null, w), Math.max.apply(null, u)));
+  const tk = ticksFor(max);
+  const detail = state.focus === 1;
+  const y = v => PT + (1 - v / max) * (H - PT - PB);
+  const base = H - PB;
+  const bw = Math.min(11, slot / 2 - 1.5);
+
+  let grid = '';
+  tk.forEach(function(t){
+    grid += '<line class="gridline" x1="' + PAD_L + '" x2="' + (CW - PAD_R) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '"/>';
+    grid += '<text class="axis-txt" x="' + (CW - PAD_R + 9) + '" y="' + (y(t) + 3.5).toFixed(1) + '" text-anchor="start">' + fmtTick(t) + '</text>';
+  });
+
+  let bars = '', axis = '', hits = '';
+  for (let i = 0; i < 24; i++){
+    const hW = Math.max(w[i] > 0 ? 2 : 0, base - y(w[i]));
+    const hU = Math.max(u[i] > 0 ? 2 : 0, base - y(u[i]));
+    bars += '<rect class="bar bar-w" x="' + (xAt(i) - bw - 1).toFixed(1) + '" y="' + (base - hW).toFixed(1) +
+            '" width="' + bw.toFixed(1) + '" height="' + hW.toFixed(1) + '" rx="2"/>';
+    bars += '<rect class="bar bar-u" x="' + (xAt(i) + 1).toFixed(1) + '" y="' + (base - hU).toFixed(1) +
+            '" width="' + bw.toFixed(1) + '" height="' + hU.toFixed(1) + '" rx="2"/>';
+
+    const showLbl = detail ? true : (i % 3 === 0 || i === 23);
+    if (showLbl){
+      axis += '<text class="axis-txt" x="' + xAt(i).toFixed(1) + '" y="' + (H - 10) + '" text-anchor="middle">' + pad2(i) + '</text>';
+    }
+    const sel = state.hour === i;
+    // mouse convenience only — same action, already keyboard-reachable above
+    hits += '<rect class="hitcol' + (sel ? ' sel' : '') + '" x="' + (xAt(i) - slot / 2).toFixed(1) + '" y="' + PT +
+            '" width="' + slot.toFixed(1) + '" height="' + (H - PT - PB) +
+            '" rx="4" data-hour="' + i + '" aria-hidden="true"></rect>';
+    if (sel){
+      hits += '<line class="marker" x1="' + xAt(i).toFixed(1) + '" x2="' + xAt(i).toFixed(1) +
+              '" y1="' + PT + '" y2="' + base + '"/>';
+    }
+  }
+
+  $('#chartStrip').innerHTML =
+    '<svg viewBox="0 0 ' + CW + ' ' + H + '" role="group" aria-label="المطلوب وغير المقروء لكل ساعة">' +
+      grid + bars + axis + hits +
+      '<line class="gridline" x1="' + PAD_L + '" x2="' + (CW - PAD_R) + '" y1="' + base + '" y2="' + base + '"/>' +
+    '</svg>';
+
+  $('#stripNote').textContent = sc.estimated
+    ? 'أعداد على مستوى الشبكة — لا يتوفر توزيع ساعي لكل بوابة'
+    : 'مقياسان منفصلان يتشاركان محور الساعات';
+}
+
+function renderSeriesHead(sc){
+  const data = sc.series.total;
+  let mi = 0;
+  data.forEach(function(v, i){ if (v > data[mi]) mi = i; });
+  $('#peakVal').textContent = nf(data[mi]);
+  $('#peakLbl').textContent = 'الذروة عند الساعة ' + pad2(mi);
+
+  let sub = sc.gate ? sc.gate.name : 'كل البوابات';
+  if (state.hour !== null) sub += ' — الساعة ' + pad2(state.hour);
+  sub += sc.estimated ? ' · توزيع تقديري' : '';
+  sub += ' · اضغط عمود الساعة للتركيز عليها';
+  $('#seriesSub').textContent = sub;
+
+  // the network total already has its own KPI tile — don't print it twice.
+  // Unscoped this panel headlines the busiest gate; scoped, the selected gate.
+  if (sc.gate){
+    $('#gatesSum').textContent = nf(sc.gate.total);
+    $('#gatesSumLbl').textContent = 'عمليات المسح · ' + sc.gate.name;
+  } else {
+    const top = ACTIVE.reduce(function(a, b){ return b.total > a.total ? b : a; });
+    $('#gatesSum').textContent = nf(top.total);
+    $('#gatesSumLbl').textContent = 'أعلى بوابة · ' + top.name;
+  }
+}
+
+/* ========================= RENDER : ALERTS + EVENTS (near) ========================= */
+function renderAlerts(){
+  const list = scopedAlerts();
+  $('#alertsCount').innerHTML = iso(list.length) + ' ضمن النطاق';
+  if (!list.length){
+    $('#alertList').innerHTML = '<p class="empty">لا توجد سجلات مطابقة</p>';
+    return;
+  }
+  $('#alertList').innerHTML = list.map(function(e){
+    return '' +
+      '<article class="alert">' +
+        '<span class="plate">' + esc(e.plate) + '</span>' +
+        '<span class="a-mid">' +
+          '<span class="a-reason">' + esc(e.reason) + '</span>' +
+          '<span class="a-meta">' + esc(gateName(e.gate)) + ' · راجعها ' + esc(e.by) +
+            ' · <span class="ref">' + esc(e.ref) + '</span></span>' +
+        '</span>' +
+        '<span class="a-time num">' + e.t + '</span>' +
+      '</article>';
+  }).join('');
+}
+
+function renderVerdictChips(){
+  const opts = [
+    { k:'all',    label:'الكل' },
+    { k:'wanted', label:'مطلوب' },
+    { k:'clean',  label:'سليم' },
+    { k:'unread', label:'غير مقروء' }
+  ];
+  const base = EVENTS.filter(function(e){
+    if (state.gate && e.gate !== state.gate) return false;
+    if (state.hour !== null && parseInt(e.t.slice(0, 2), 10) !== state.hour) return false;
+    if (state.operator && e.by !== state.operator) return false;
+    return true;
+  });
+  $('#verdictChips').innerHTML = opts.map(function(o){
+    const n = o.k === 'all' ? base.length : base.filter(function(e){ return e.verdict === o.k; }).length;
+    const on = state.verdict === o.k;
+    const dot = o.k === 'all' ? '' : '<span class="sdot v-' + o.k + '" aria-hidden="true"></span>';
+    return '<button type="button" class="chip" data-verdict="' + o.k + '" aria-pressed="' + on + '">' +
+             dot + o.label + '<span class="cn num">' + n + '</span></button>';
+  }).join('');
+}
+
+function renderEvents(){
+  const list = filteredEvents();
+  $('#evCount').innerHTML = iso(list.length) + ' من ' + iso(EVENTS.length) + ' حدث';
+  if (!list.length){
+    $('#evList').innerHTML = '<p class="empty">لا توجد سجلات مطابقة</p>';
+    return;
+  }
+  $('#evList').innerHTML = list.map(function(e){
+    const note = e.verdict === 'wanted'
+      ? esc(e.reason) + ' · <span class="ref">' + esc(e.ref) + '</span> · ' + esc(e.by)
+      : (e.reason ? esc(e.reason) : '');
+    return '' +
+      '<article class="ev">' +
+        '<span class="e-time num">' + e.t + '</span>' +
+        '<span class="e-plate">' + esc(e.plate) + '</span>' +
+        '<span class="e-gate">' + esc(gateName(e.gate)) + '</span>' +
+        '<span class="badge ' + e.verdict + '"><span class="bd"></span>' + VERDICT_AR[e.verdict] + '</span>' +
+        (note ? '<span class="e-note">' + note + '</span>' : '') +
+      '</article>';
+  }).join('');
+}
+
+/* ========================= RENDER : SCOPE BAR + DEPTH ========================= */
+function renderScope(){
+  function set(id, on, text){
+    const el = $(id);
+    el.classList.toggle('on', on);
+    $('.tx', el).textContent = text;
+  }
+  set('#tagGate',    !!state.gate,          state.gate ? gateName(state.gate) : 'كل البوابات');
+  set('#tagHour',    state.hour !== null,   state.hour !== null ? 'الساعة ' + pad2(state.hour) : 'كل الساعات');
+  set('#tagVerdict', state.verdict !== 'all', state.verdict === 'all' ? 'كل الأحكام' : VERDICT_AR[state.verdict]);
+  set('#tagOp',      !!state.operator,      state.operator ? state.operator : 'كل المراجعين');
+}
+
+function applyDepth(){
+  $('#stage').setAttribute('data-focus', String(state.focus));
+  $('#depthCtl').setAttribute('data-focus', String(state.focus));
+  $$('#depthCtl .seg button').forEach(function(b){
+    b.setAttribute('aria-pressed', String(Number(b.dataset.depth) === state.focus));
+  });
+}
+
+/* ========================= MASTER RENDER ========================= */
+function render(){
+  const sc = scoped();
+  applyDepth();
+  renderKPIs(sc);
+  renderGateVolumes();
+  renderHealth();
+  renderOperators();
+  renderSeriesHead(sc);
+  renderMainChart(sc);
+  renderStripChart(sc);
+  renderAlerts();
+  renderVerdictChips();
+  renderEvents();
+  renderScope();
+}
+
+/* ========================= EVENTS ========================= */
+document.addEventListener('click', function(ev){
+  const depthBtn = ev.target.closest('#depthCtl .seg button');
+  if (depthBtn){ state.focus = Number(depthBtn.dataset.depth); render(); return; }
+
+  const gateBtn = ev.target.closest('[data-gate]');
+  if (gateBtn && !gateBtn.disabled){
+    const id = gateBtn.dataset.gate;
+    state.gate = (state.gate === id) ? null : id;
+    render(); return;
+  }
+
+  const vBtn = ev.target.closest('[data-verdict]');
+  if (vBtn){ state.verdict = vBtn.dataset.verdict; render(); return; }
+
+  const opBtn = ev.target.closest('[data-op]');
+  if (opBtn){
+    const nm = opBtn.dataset.op;
+    state.operator = (state.operator === nm) ? null : nm;
+    render(); return;
+  }
+
+  const hourEl = ev.target.closest('[data-hour]');
+  if (hourEl){
+    const h = Number(hourEl.dataset.hour);
+    state.hour = (state.hour === h) ? null : h;
+    render(); return;
+  }
+
+  if (ev.target.closest('#btnReset')){
+    state.gate = null; state.verdict = 'all'; state.hour = null; state.operator = null;
+    render(); return;
+  }
+});
+
+/* keyboard for the SVG hour columns (not native buttons) */
+document.addEventListener('keydown', function(ev){
+  if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
+  const el = ev.target;
+  if (el && el.getAttribute && el.getAttribute('data-hour') !== null){
+    ev.preventDefault();
+    const h = Number(el.getAttribute('data-hour'));
+    state.hour = (state.hour === h) ? null : h;
+    render();
+  }
+});
+
+/* ========================= MOUSE PARALLAX ========================= */
+(function parallax(){
+  const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!fine || reduceMotion) return;
+
+  const planes = [
+    { el: $('#planeFar'),  amp: 6  },
+    { el: $('#planeMid'),  amp: 12 },
+    { el: $('#planeNear'), amp: 20 }
+  ];
+  let tx = 0, ty = 0, cx = 0, cy = 0, running = false;
+
+  function loop(){
+    cx += (tx - cx) * 0.06;
+    cy += (ty - cy) * 0.06;
+    planes.forEach(function(p){
+      if (!p.el) return;
+      p.el.style.setProperty('--px', (cx * p.amp).toFixed(2) + 'px');
+      p.el.style.setProperty('--py', (cy * p.amp).toFixed(2) + 'px');
+    });
+    if (Math.abs(tx - cx) > 0.002 || Math.abs(ty - cy) > 0.002){
+      requestAnimationFrame(loop);
+    } else { running = false; }
+  }
+
+  window.addEventListener('pointermove', function(e){
+    if (e.pointerType !== 'mouse') return;
+    tx = (e.clientX / window.innerWidth  - 0.5) * -2;
+    ty = (e.clientY / window.innerHeight - 0.5) * -2;
+    if (!running){ running = true; requestAnimationFrame(loop); }
+  }, { passive: true });
+
+  document.addEventListener('mouseleave', function(){
+    tx = 0; ty = 0;
+    if (!running){ running = true; requestAnimationFrame(loop); }
+  });
+})();
+
+/* ========================= BOOT ========================= */
+render();
+
+})();
+</script>
+</body>
+</html>

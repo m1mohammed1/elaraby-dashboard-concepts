@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>الجدار — النظرة العامة</title>
+<style>
+/* ============================================================================
+   الجدار — treemap wall. The data IS the layout.
+   No sidebar, no cards, no chart in the body. One 56px chrome band, then a
+   squarified treemap that runs edge to edge: 9 gate rectangles, each
+   subdivided into its hours. Offline gates live as a hatched strip.
+   ========================================================================== */
+
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --band-h: 56px;
+  --strip-h: 34px;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{ height:100%; }
+
+body{
+  margin:0;
+  background:#06100c;
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-weight:400;
+  line-height:1.75;
+  letter-spacing:normal;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+}
+
+.tnum{ font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1; }
+.ltr{ direction:ltr; unicode-bidi:isolate; }
+.iso{ unicode-bidi:isolate; }
+
+/* ---------- the scene: the only saturated colour on the page ------------- */
+.scene{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.lamp{
+  position:absolute; display:block; border-radius:50%;
+  filter: blur(90px);
+}
+/* calm lighting — nothing here may read as a bright blob (SPEC §1, اضاءة اهدى) */
+.lamp.a{ inline-size:58vw; block-size:58vw; inset-block-start:-18vw; inset-inline-start:-10vw;
+  background: radial-gradient(circle, #0f4d38 0%, rgba(15,77,56,0) 70%); opacity:.16; }
+.lamp.b{ inline-size:46vw; block-size:46vw; inset-block-start:6vh; inset-inline-end:-12vw;
+  background: radial-gradient(circle, #10613f 0%, rgba(16,97,63,0) 70%); opacity:.13; }
+.lamp.c{ inline-size:64vw; block-size:44vw; inset-block-end:-18vh; inset-inline-start:12vw;
+  background: radial-gradient(circle, #0b3a30 0%, rgba(11,58,48,0) 72%); opacity:.17; }
+.lamp.d{ inline-size:34vw; block-size:34vw; inset-block-end:4vh; inset-inline-end:6vw;
+  background: radial-gradient(circle, #145a45 0%, rgba(20,90,69,0) 70%); opacity:.11; }
+.lamp.e{ inline-size:40vw; block-size:30vw; inset-block-start:34vh; inset-inline-start:26vw;
+  background: radial-gradient(circle, #08302a 0%, rgba(8,48,42,0) 72%); opacity:.15; }
+.lamp.f{ inline-size:26vw; block-size:26vw; inset-block-start:-6vh; inset-inline-start:44vw;
+  background: radial-gradient(circle, #10613f 0%, rgba(16,97,63,0) 70%); opacity:.10; }
+
+.vignette{
+  position:absolute; inset:0;
+  background: radial-gradient(120% 88% at 50% 42%, rgba(6,16,12,0) 38%, rgba(6,16,12,.60) 78%, rgba(4,11,8,.92) 100%);
+}
+.grain{
+  position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+}
+
+/* ---------- chrome: one band. that is all. ------------------------------- */
+.band{
+  position:relative; z-index:20;
+  min-block-size:var(--band-h);
+  display:flex; align-items:center; gap:18px;
+  padding-inline:16px;
+  background: rgba(255,255,255,.045);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  border-block-end:1px solid var(--line);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.10) inset,
+              0 20px 50px -20px rgba(0,0,0,.55);
+}
+
+.ident{ display:flex; align-items:center; gap:9px; flex:0 0 auto; }
+.avatar{
+  inline-size:30px; block-size:30px; border-radius:9px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.11);
+  font-size:13px; font-weight:600; color:var(--ink);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.12) inset;
+}
+.ident .who{ display:flex; flex-direction:column; line-height:1.25; }
+.ident .who b{ font-size:12.5px; font-weight:600; }
+.ident .who span{ font-size:10px; color:var(--ink-3); }
+
+.live{ display:inline-flex; align-items:center; gap:5px; font-size:10px; color:var(--ink-3); }
+.live i{
+  inline-size:6px; block-size:6px; border-radius:50%; background:var(--accent);
+  /* SPEC §1: glow is wanted, palette-tinted, never neon — one of only two on screen */
+  box-shadow:0 0 14px -4px rgba(110,196,155,.55);
+  /* the single sanctioned pulse — a status indicator, not decoration */
+  animation: livePulse 2.4s ease-in-out infinite;
+}
+@keyframes livePulse{ 0%,100%{ opacity:.42; transform:scale(.86); } 50%{ opacity:1; transform:scale(1); } }
+
+.sep{ inline-size:1px; align-self:stretch; margin-block:12px; background:var(--line-2); flex:0 0 auto; }
+
+/* range control */
+.range{ display:flex; gap:2px; padding:2px; flex:0 0 auto;
+  background:rgba(255,255,255,.035); border:1px solid var(--line-2); border-radius:9px; }
+.range button{
+  font:inherit; font-size:11px; font-weight:500; color:var(--ink-3);
+  background:transparent; border:0; border-radius:7px; padding:4px 9px; cursor:pointer;
+  transition: color .16s var(--ease), background-color .16s var(--ease);
+}
+.range button:hover{ color:var(--ink-2); background:rgba(255,255,255,.05); }
+.range button[aria-pressed="true"]{ color:var(--ink); background:rgba(255,255,255,.09);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset; }
+
+/* hour ruler — the 24h series, two stacked rows sharing one x axis */
+.ruler{ flex:0 0 auto; display:flex; flex-direction:column; gap:1px; }
+.ruler .cap{ font-size:10px; color:var(--ink-3); line-height:1.25; display:flex; gap:5px; align-items:baseline;
+  white-space:nowrap; }
+.ruler .cap em{ font-style:normal; color:var(--ink-2); }
+.ruler .cap .dot{ color:var(--ink-3); opacity:.6; }
+.ruler svg{ display:block; }
+.ruler g.hr{ cursor:pointer; }
+.ruler g.hr rect.hit{ fill:transparent; }
+.ruler g.hr:hover rect.bar{ fill:rgba(255,255,255,.52); }
+.ruler g.hr:focus-visible{ outline:none; }
+.ruler g.hr:focus-visible rect.hit{ fill:rgba(110,196,155,.14); stroke:var(--accent); stroke-width:1; }
+
+/* the six figures, inline runs */
+.figs{ display:flex; align-items:center; gap:15px; flex:1 1 auto; min-inline-size:0; overflow:hidden; }
+.fig{ display:flex; flex-direction:column; line-height:1.2; flex:0 0 auto; }
+.fig b{ font-size:14.5px; font-weight:600; letter-spacing:normal; }
+.fig .lab{ font-size:10.5px; color:var(--ink-3); white-space:nowrap; }
+.fig .d{ font-size:10.5px; color:var(--ink-3); margin-inline-start:5px; font-weight:400; }
+.fig .u{ font-size:10px; color:var(--ink-3); font-weight:400; margin-inline-start:3px; }
+.fig.w b{ color:var(--wanted); }
+.fig.u2 b{ color:var(--unread); }
+
+.stamp{ flex:0 0 auto; font-size:10px; color:var(--ink-3); text-align:end; line-height:1.3; }
+
+/* breadcrumb (zoom) */
+.crumb{ display:flex; align-items:center; gap:7px; flex:0 0 auto; font-size:11.5px; }
+.crumb[hidden]{ display:none; }
+.crumb button{
+  font:inherit; font-size:11.5px; color:var(--ink-2); background:rgba(255,255,255,.05);
+  border:1px solid var(--line); border-radius:8px; padding:3px 9px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:5px;
+  transition: background-color .16s var(--ease), color .16s var(--ease);
+}
+.crumb button:hover{ background:rgba(255,255,255,.09); color:var(--ink); }
+.crumb .now{ color:var(--ink); font-weight:600; }
+.crumb .slash{ color:var(--ink-3); }
+
+/* ---------- the wall ----------------------------------------------------- */
+.wall{
+  position:relative; z-index:10; flex:1 1 auto; min-block-size:0;
+  display:flex; flex-direction:column;
+}
+.wallInner{ position:relative; flex:1 1 auto; min-block-size:0; }
+
+.gate{
+  position:absolute;
+  border-radius:14px;
+  background: rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.085);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.10) inset,
+              0 20px 50px -20px rgba(0,0,0,.55);
+  overflow:hidden;
+  will-change: transform;
+}
+.gate.enter{ animation: gateIn 560ms var(--ease) both; animation-delay: var(--d, 0ms); }
+@keyframes gateIn{ from{ opacity:0; transform: translateY(10px) scale(.985); } to{ opacity:1; transform:none; } }
+
+.ghead{
+  position:absolute; inset-block-start:0; inset-inline-start:0; inset-inline-end:0;
+  display:block; inline-size:100%; text-align:start;
+  background:transparent; border:0; cursor:pointer; color:inherit; font:inherit;
+  padding:8px 11px 0 11px;
+  z-index:3;
+}
+.ghead:focus-visible{ outline:2px solid var(--accent); outline-offset:-3px; border-radius:12px; }
+.ghead .gname{
+  display:block; font-weight:600; color:var(--ink);
+  line-height:1.28; text-shadow: 0 1px 10px rgba(4,11,8,.85), 0 0 2px rgba(4,11,8,.7);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.ghead .gvol{
+  display:block; color:var(--ink-2); font-weight:400; line-height:1.35;
+  text-shadow: 0 1px 8px rgba(4,11,8,.85);
+}
+.ghead .gvol small{ color:var(--ink-3); font-size:.82em; margin-inline-start:5px; }
+.ghead .zi{ position:absolute; inset-block-start:8px; inset-inline-end:9px; opacity:.42;
+  transition: opacity .16s var(--ease); }
+.gate:hover .ghead .zi{ opacity:.9; }
+.gdot{ display:inline-block; inline-size:6px; block-size:6px; border-radius:50%;
+  background:var(--unread); margin-inline-end:5px; vertical-align:middle; }
+
+.ghit{ position:absolute; inset:0; z-index:1; background:transparent; border:0; cursor:pointer;
+  font:inherit; color:inherit; padding:0; }
+.ghit:focus-visible{ outline:2px solid var(--accent); outline-offset:-3px; border-radius:12px; }
+
+.tilewrap{ position:absolute; inset:0; z-index:2; pointer-events:none; }
+
+.tile{
+  position:absolute; padding:0; margin:0; border:0; cursor:pointer;
+  border-radius:3px; pointer-events:auto;
+  background: rgba(255,255,255,.04);
+  transition: background-color .15s var(--ease), transform .15s var(--ease),
+              box-shadow .18s var(--ease), border-radius .15s var(--ease);
+  display:grid; place-items:center; overflow:hidden;
+  font:inherit; color:var(--ink-3);
+}
+.tile i{ font-style:normal; font-size:10px; line-height:1; color:var(--ink-2); opacity:.8;
+  direction:ltr; unicode-bidi:isolate; pointer-events:none;
+  font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1; }
+.tile.hasWanted{ box-shadow: inset 0 2px 0 0 var(--wanted); }
+.tile.enter{ animation: tileIn 380ms var(--ease) both; animation-delay: var(--d, 0ms); }
+@keyframes tileIn{ from{ opacity:0; transform: scale(.9); } to{ opacity:1; transform:none; } }
+
+.tile:hover, .tile.hot{
+  background: rgba(255,255,255,.155) !important;
+  backdrop-filter: blur(6px) saturate(1.5);
+  -webkit-backdrop-filter: blur(6px) saturate(1.5);
+  transform: scale(1.055);
+  border-radius:5px;
+  box-shadow: 0 10px 26px -8px rgba(0,0,0,.72), 0 0 0 1px rgba(255,255,255,.18) inset;
+  z-index:9;
+}
+.tile.hasWanted:hover, .tile.hasWanted.hot{
+  box-shadow: 0 10px 26px -8px rgba(0,0,0,.72), inset 0 2px 0 0 var(--wanted),
+              0 0 0 1px rgba(255,255,255,.18) inset;
+}
+.tile:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; z-index:10; }
+.tile.sel{ box-shadow: 0 0 0 1.5px var(--accent) inset, 0 0 40px -12px rgba(110,196,155,.35); }
+
+.opname{ position:absolute; inset-block-start:7px; inset-inline-start:10px; z-index:3;
+  pointer-events:none; text-shadow:0 1px 9px rgba(4,11,8,.9); }
+.opname b{ display:block; font-size:13px; font-weight:600; line-height:1.3; }
+.opname span{ display:block; font-size:10.5px; color:var(--ink-3); line-height:1.35; }
+
+.leaders{ position:absolute; inset:0; z-index:8; pointer-events:none; overflow:visible; }
+
+.wallEmpty{
+  position:absolute; inset:0; display:grid; place-items:center; z-index:7;
+  color:var(--ink-3); font-size:13.5px;
+}
+
+/* offline gates: a narrow hatched strip. an absent gate is information. */
+.downstrip{
+  flex:0 0 auto; block-size:var(--strip-h);
+  display:flex; align-items:center; gap:12px; padding-inline:14px;
+  border-block-start:1px solid var(--line);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.055) 0 5px, rgba(255,255,255,0) 5px 11px),
+    rgba(255,255,255,.022);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  overflow:hidden;
+}
+.downstrip .tag{ font-size:10.5px; color:var(--ink-3); letter-spacing:normal; flex:0 0 auto; }
+.downchip{
+  display:inline-flex; align-items:center; gap:7px; flex:0 0 auto;
+  font-size:11px; color:var(--ink-2);
+  background:rgba(6,16,12,.55); border:1px solid var(--line);
+  border-radius:8px; padding:2px 9px;
+}
+.downchip s{ text-decoration:none; color:var(--ink-3); font-size:10px; }
+.downchip .x{ inline-size:6px; block-size:6px; border-radius:1px; background:var(--ink-3); opacity:.7; }
+.downstrip .grow{ flex:1 1 auto; }
+.downstrip .health{ font-size:10.5px; color:var(--ink-3); flex:0 0 auto; }
+.downstrip .health b{ color:var(--ink-2); font-weight:600; }
+
+/* ---------- floating readout ------------------------------------------- */
+.readout{
+  position:fixed; z-index:50; inline-size:238px; pointer-events:none;
+  background: rgba(255,255,255,.065);
+  backdrop-filter: blur(28px) saturate(1.3);
+  -webkit-backdrop-filter: blur(28px) saturate(1.3);
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:14px;
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.12) inset, 0 26px 60px -22px rgba(0,0,0,.75);
+  padding:11px 12px 10px;
+  opacity:0; transform: translateY(5px);
+  transition: opacity .13s var(--ease), transform .13s var(--ease);
+}
+.readout.on{ opacity:1; transform:none; }
+.readout .rt{ font-size:12.5px; font-weight:600; line-height:1.35; }
+.readout .rs{ font-size:10px; color:var(--ink-3); line-height:1.5; margin-block-end:7px; }
+.readout dl{ margin:0; display:grid; grid-template-columns:1fr auto; gap:2px 10px; }
+.readout dt{ font-size:10.5px; color:var(--ink-3); }
+.readout dd{ margin:0; font-size:11.5px; text-align:end; }
+.readout dd.w{ color:var(--wanted); }
+.readout dd.u{ color:var(--unread); }
+.readout .rspark{ margin-block-start:8px; padding-block-start:7px; border-block-start:1px solid var(--line-2); }
+.readout .rspark .sl{ font-size:10px; color:var(--ink-3); margin-block-end:3px; line-height:1.45; }
+.readout .rspark .sl em{ font-style:normal; color:var(--ink-2); }
+.readout .hint{ margin-block-start:7px; font-size:10.5px; color:var(--ink-3); }
+
+/* ---------- drawer ------------------------------------------------------ */
+.scrim{
+  position:fixed; inset:0; z-index:70; background:rgba(3,9,7,.5);
+  opacity:0; visibility:hidden; transition: opacity .18s var(--ease), visibility .18s;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.scrim.on{ opacity:1; visibility:visible; }
+
+.drawer{
+  position:fixed; z-index:80;
+  inset-block:0; inset-inline-start:0;      /* RTL: inline-start is the right edge */
+  inline-size:min(430px, 92vw);
+  display:flex; flex-direction:column;
+  background: rgba(255,255,255,.055);
+  backdrop-filter: blur(34px) saturate(1.3);
+  -webkit-backdrop-filter: blur(34px) saturate(1.3);
+  border-inline-end:1px solid var(--line);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,.10) inset, -30px 0 70px -30px rgba(0,0,0,.8);
+  transform: translateX(105%);              /* pushed off the right edge */
+  visibility:hidden;
+  transition: transform .28s var(--ease), visibility .28s;
+}
+.drawer.on{ transform:none; visibility:visible; }
+
+.dhead{ flex:0 0 auto; padding:14px 16px 10px; border-block-end:1px solid var(--line); }
+.dhead .row{ display:flex; align-items:flex-start; gap:10px; }
+.dhead h2{ margin:0; font-size:16px; font-weight:600; line-height:1.4; flex:1 1 auto; }
+.dhead .sub{ font-size:11px; color:var(--ink-3); line-height:1.6; }
+.xbtn{
+  flex:0 0 auto; inline-size:28px; block-size:28px; border-radius:8px; cursor:pointer;
+  background:rgba(255,255,255,.05); border:1px solid var(--line); color:var(--ink-2);
+  display:grid; place-items:center; transition: background-color .16s var(--ease), color .16s var(--ease);
+}
+.xbtn:hover{ background:rgba(255,255,255,.1); color:var(--ink); }
+.xbtn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+.dstats{ display:flex; gap:14px; margin-block-start:9px; }
+.dstats div{ line-height:1.25; }
+.dstats b{ display:block; font-size:15px; font-weight:600; }
+.dstats span{ display:block; font-size:10.5px; color:var(--ink-3); }
+.dstats .w b{ color:var(--wanted); }
+.dstats .u b{ color:var(--unread); }
+
+.dfilters{ flex:0 0 auto; display:flex; gap:5px; padding:9px 16px; border-block-end:1px solid var(--line-2);
+  flex-wrap:wrap; }
+.fchip{
+  font:inherit; font-size:11px; cursor:pointer; padding:3px 10px; border-radius:999px;
+  background:rgba(255,255,255,.035); border:1px solid var(--line-2); color:var(--ink-3);
+  transition: color .16s var(--ease), background-color .16s var(--ease), border-color .16s var(--ease);
+}
+.fchip:hover{ color:var(--ink-2); background:rgba(255,255,255,.07); }
+.fchip[aria-pressed="true"]{ color:var(--ink); background:rgba(255,255,255,.10); border-color:var(--line); }
+.fchip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+.dbody{ flex:1 1 auto; overflow-y:auto; overscroll-behavior:contain; padding:4px 16px 20px;
+  scrollbar-width:thin; scrollbar-color: rgba(255,255,255,.16) transparent; }
+.dbody::-webkit-scrollbar{ inline-size:8px; }
+.dbody::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.16); border-radius:99px; }
+.dbody::-webkit-scrollbar-track{ background:transparent; }
+
+.dsec{ margin-block-start:16px; }
+.dsec > h3{ margin:0 0 8px; font-size:10.5px; font-weight:600; color:var(--ink-3); }
+
+.ev{ display:grid; grid-template-columns:auto 1fr auto; gap:3px 10px; align-items:center;
+  padding:8px 0; border-block-end:1px solid var(--line-2); }
+.ev .t{ font-size:11px; color:var(--ink-3); direction:ltr; unicode-bidi:isolate;
+  font-variant-numeric: tabular-nums; font-feature-settings:"tnum" 1; }
+.ev .p{ font-size:13px; font-weight:600; unicode-bidi:isolate; direction:rtl; }
+.ev .meta{ grid-column:1 / -1; font-size:10.5px; color:var(--ink-3); line-height:1.6; }
+.ev .meta b{ color:var(--ink-2); font-weight:500; }
+
+.chip{ font-size:10px; padding:1px 8px; border-radius:999px; border:1px solid transparent; white-space:nowrap; }
+.chip.w{ color:var(--wanted); background:rgba(255,107,107,.10); border-color:rgba(255,107,107,.28); }
+.chip.c{ color:var(--clean);  background:rgba(61,220,151,.09); border-color:rgba(61,220,151,.24); }
+.chip.u{ color:var(--unread); background:rgba(232,176,85,.10); border-color:rgba(232,176,85,.26); }
+
+.oprow{ display:grid; grid-template-columns:1fr auto; gap:2px 10px; padding:7px 0;
+  border-block-end:1px solid var(--line-2); }
+.oprow .n{ font-size:12px; }
+.oprow .v{ font-size:11.5px; color:var(--ink-2); }
+.oprow .bar{ grid-column:1 / -1; block-size:3px; border-radius:99px; background:rgba(255,255,255,.055); overflow:hidden; }
+.oprow .bar i{ display:block; block-size:100%; background:rgba(255,255,255,.34); border-radius:99px;
+  transition: inline-size .5s var(--ease); }
+.oprow .m{ grid-column:1 / -1; font-size:10px; color:var(--ink-3); }
+
+.empty{ padding:18px 0 6px; font-size:12.5px; color:var(--ink-3); }
+.empty button{
+  display:inline-block; margin-block-start:9px; font:inherit; font-size:11.5px; cursor:pointer;
+  background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--ink-2);
+  border-radius:8px; padding:4px 11px;
+}
+.empty button:hover{ background:rgba(255,255,255,.1); color:var(--ink); }
+.empty button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---------- footer ------------------------------------------------------ */
+.foot{
+  position:relative; z-index:20; flex:0 0 auto; margin:0;
+  padding:5px 16px 6px;
+  font-size:10px; color:var(--ink-3); text-align:center;
+  border-block-start:1px solid var(--line-2);
+  background:rgba(255,255,255,.02);
+}
+
+/* ---------- responsive -------------------------------------------------- */
+/* the 24-hour series is required content — it is never hidden, only rehomed */
+@media (max-width: 1180px){
+  .stamp{ display:none; }
+  .band{ gap:14px; }
+}
+@media (max-width: 980px){
+  .figs{ gap:12px; }
+  .ident .who{ display:none; }
+}
+@media (max-width: 860px){
+  body{ height:auto; min-block-size:100dvh; overflow-x:hidden; overflow-y:auto; }
+  .band{ flex-wrap:wrap; padding-block:9px; gap:10px 14px; }
+  .band .sep{ display:none; }
+  .ident .who{ display:flex; }
+  .ruler{ order:4; }
+  .figs{ order:5; flex-basis:100%; overflow-x:auto; scrollbar-width:none;
+    padding-block-start:2px; border-block-start:1px solid var(--line-2); }
+  .figs::-webkit-scrollbar{ display:none; }
+  .wall{ block-size:68vh; min-block-size:400px; }
+  .readout{ inline-size:min(230px, calc(100vw - 24px)); }
+  .drawer{ inline-size:min(430px, 100vw); }
+  /* gate health is required content — let it wrap instead of being clipped */
+  .downstrip{ block-size:auto; min-block-size:var(--strip-h); flex-wrap:wrap;
+    gap:5px 10px; padding-block:6px; }
+  .downstrip .grow{ display:none; }
+}
+@media (max-width: 430px){
+  .crumb{ order:3; }
+  .ruler .cap em{ display:none; }
+}
+
+/* ---------- focus + motion --------------------------------------------- */
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{
+  animation-duration:.01ms !important; animation-iteration-count:1 !important;
+  transition-duration:.01ms !important; } }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <span class="lamp a"></span>
+  <span class="lamp b"></span>
+  <span class="lamp c"></span>
+  <span class="lamp d"></span>
+  <span class="lamp e"></span>
+  <span class="lamp f"></span>
+  <div class="vignette"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ===================== chrome: one band ============================== -->
+<header class="band">
+  <div class="ident">
+    <div class="avatar" aria-hidden="true">أ</div>
+    <div class="who">
+      <b>أحمد عماد</b>
+      <span>مدير النظام</span>
+    </div>
+  </div>
+
+  <nav class="crumb" id="crumb" hidden aria-label="مسار التنقّل">
+    <button type="button" id="crumbBack">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 3.5 10.5 8 6 12.5"/>
+      </svg>
+      الجدار
+    </button>
+    <span class="slash" aria-hidden="true">/</span>
+    <span class="now" id="crumbNow"></span>
+  </nav>
+
+  <div class="sep" aria-hidden="true"></div>
+
+  <div class="range" role="group" aria-label="نطاق الوقت">
+    <button type="button" data-range="24" aria-pressed="true"><span class="ltr tnum">24</span> ساعة</button>
+    <button type="button" data-range="12" aria-pressed="false"><span class="ltr tnum">12</span> ساعة</button>
+    <button type="button" data-range="6"  aria-pressed="false"><span class="ltr tnum">6</span> ساعات</button>
+  </div>
+
+  <div class="ruler">
+    <div class="cap">
+      <span>مسح</span><em class="tnum ltr" id="rulerMax">0 – 1,000</em>
+      <span class="dot" aria-hidden="true">·</span>
+      <span>مطلوب</span><em class="tnum ltr" id="rulerMaxW">0 – 5</em>
+    </div>
+    <svg id="ruler" width="172" height="30" viewBox="0 0 172 30" role="group"
+         aria-label="الحمل حسب الساعة — صفّان مستقلّان يشتركان في محور واحد: إجمالي المسح بمقياس من صفر إلى ألف، ثم المركبات المطلوبة بمقياس مستقل من صفر إلى خمسة"></svg>
+  </div>
+
+  <div class="sep" aria-hidden="true"></div>
+
+  <div class="figs" id="figs">
+    <div class="fig"><b class="tnum" data-fig="total">12,847</b>
+      <span class="lab">إجمالي المسح <span class="d">+6.2%</span></span></div>
+    <div class="fig w"><b class="tnum" data-fig="wanted">38</b>
+      <span class="lab">مركبات مطلوبة <span class="d">−11.6%</span></span></div>
+    <div class="fig"><b class="tnum" data-fig="clean">12,782</b>
+      <span class="lab">مركبات سليمة <span class="d">+6.3%</span></span></div>
+    <div class="fig u2"><b class="tnum" data-fig="unread">27</b>
+      <span class="lab">لوحات غير مقروءة <span class="d">+2.4%</span></span></div>
+    <div class="fig"><b class="tnum" data-fig="latency">412</b>
+      <span class="lab">زمن المعالجة <span class="u iso">مللي/ث</span></span></div>
+    <div class="fig"><b class="tnum ltr" data-fig="gates">9 / 11</b>
+      <span class="lab">بوابات نشطة</span></div>
+  </div>
+
+  <div class="stamp">
+    <span class="live"><i aria-hidden="true"></i> مباشر</span><br>
+    آخر تحديث <span class="ltr tnum">14:32</span>
+  </div>
+</header>
+
+<!-- ===================== the wall ====================================== -->
+<main class="wall" id="wall" aria-label="جدار البوابات">
+  <div class="wallInner" id="wallInner">
+    <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+  </div>
+
+  <div class="downstrip" id="downstrip">
+    <span class="tag">خارج الخدمة</span>
+    <span class="downchip"><i class="x" aria-hidden="true"></i>بوابة الغرب <s>خارج الخدمة</s></span>
+    <span class="downchip"><i class="x" aria-hidden="true"></i>مدخل الصيانة <s>صيانة</s></span>
+    <span class="grow"></span>
+    <span class="health"><b class="tnum ltr">9</b> من <b class="tnum ltr">11</b> بوابة تعمل ·
+      <span id="degradedNote">محطة الوزن بطيئة</span></span>
+  </div>
+</main>
+
+<p class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</p>
+
+<!-- ===================== floating readout ============================== -->
+<div class="readout" id="readout" role="status" aria-live="polite"></div>
+
+<!-- ===================== drawer ======================================== -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="dhead">
+    <div class="row">
+      <div style="flex:1 1 auto; min-inline-size:0">
+        <h2 id="drawerTitle">—</h2>
+        <div class="sub" id="drawerSub">—</div>
+      </div>
+      <button type="button" class="xbtn" id="drawerClose" aria-label="إغلاق اللوحة">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+    <div class="dstats" id="drawerStats"></div>
+  </div>
+  <div class="dfilters" id="drawerFilters" role="group" aria-label="تصفية حسب الحكم"></div>
+  <div class="dbody" id="drawerBody"></div>
+</aside>
+
+<script>
+"use strict";
+/* ==========================================================================
+   1. DATASET — copied verbatim from SPEC §7
+   ========================================================================== */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+// index = hour 0..23
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+const STATUS_AR = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+const VERDICT_AR = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+const VERDICT_CLS = { wanted:"w", clean:"c", unread:"u" };
+
+/* ==========================================================================
+   2. DERIVED MODEL — every gate's 24-hour profile, apportioned exactly
+   ========================================================================== */
+const nf  = n => Number(n).toLocaleString('en-US');
+const pad = n => String(n).padStart(2, '0');
+const HOURS_ALL = Array.from({length:24}, (_,i) => i);
+
+/* `n` and `unit` are kept apart so the digits can be bidi-isolated wherever the
+   label is composed into an Arabic sentence (SPEC §8) */
+const RANGES = {
+  '24': { n:'24', unit:'ساعة',  hours: HOURS_ALL.slice(0)  },
+  '12': { n:'12', unit:'ساعة',  hours: HOURS_ALL.slice(12) },
+  '6' : { n:'6',  unit:'ساعات', hours: HOURS_ALL.slice(18) }
+};
+
+/* largest-remainder apportionment so the parts sum back to the whole exactly */
+function apportion(total, weights){
+  const sum = weights.reduce((a,b) => a+b, 0);
+  if(sum <= 0 || total <= 0) return weights.map(() => 0);
+  const raw  = weights.map(w => total * w / sum);
+  const base = raw.map(Math.floor);
+  let rem = total - base.reduce((a,b) => a+b, 0);
+  const order = raw
+    .map((r,i) => ({ i, f: r - Math.floor(r) }))
+    .sort((a,b) => b.f - a.f || a.i - b.i);
+  for(let k = 0; rem > 0 && order.length; k++, rem--) base[order[k % order.length].i]++;
+  return base;
+}
+
+const ACTIVE = GATES.filter(g => g.status !== 'offline' && g.status !== 'maint');
+const DOWN   = GATES.filter(g => g.status === 'offline' || g.status === 'maint');
+
+/* per-gate hour vectors */
+const GH = {};
+GATES.forEach(g => {
+  GH[g.id] = {
+    total:  apportion(g.total,  HOURLY.total),
+    wanted: apportion(g.wanted, HOURLY.wanted),
+    unread: apportion(g.unread, HOURLY.unread)
+  };
+});
+
+/* per-gate operator split — rotated weights so no two gates look identical */
+const GO = {};
+ACTIVE.forEach((g, gi) => {
+  const w = OPERATORS.map((_, k) => OPERATORS[(k + gi) % OPERATORS.length].reviews);
+  GO[g.id] = { weights: w };
+});
+function gateOperatorSplit(gid, total){
+  const gi = ACTIVE.findIndex(g => g.id === gid);
+  if(gi < 0) return [];
+  const parts = apportion(total, GO[gid].weights);
+  return OPERATORS.map((op, k) => ({ op, value: parts[k], gi }));
+}
+
+/* full-range weighted latency, used to calibrate the displayed figure */
+const LAT_FULL = (() => {
+  let num = 0, den = 0;
+  ACTIVE.forEach(g => { num += g.total * g.ms; den += g.total; });
+  return den ? num / den : 0;
+})();
+
+/* nice axis maxima: 1 / 2 / 2.5 / 5 / 10 × 10ⁿ */
+function niceMax(v){
+  if(v <= 0) return 1;
+  const exp  = Math.floor(Math.log10(v));
+  const base = Math.pow(10, exp);
+  const f    = v / base;
+  const step = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+  return step * base;
+}
+
+/* ==========================================================================
+   3. STATE — every render reads from here, nothing else
+   ========================================================================== */
+const state = {
+  range: '24',      // '24' | '12' | '6'
+  hour: null,       // null | 0..23   (scrubbed from the hour ruler)
+  zoom: null,       // null | gate id (drill-down: subdivide by operator)
+  tile: null,       // { gid, hour } | { gid, opIndex, block }
+  drawer: false,
+  drawerVerdict: 'all',
+  drawerHourOnly: true
+};
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function hoursInScope(){
+  if(state.hour !== null) return [state.hour];
+  return RANGES[state.range].hours;
+}
+/* returns markup, not plain text: every digit run is isolated from the Arabic
+   around it so the bidi algorithm cannot reorder it */
+function scopeLabel(){
+  if(state.hour !== null)
+    return 'الساعة <span class="ltr tnum">' + pad(state.hour) + ':00</span>';
+  const r = RANGES[state.range];
+  return 'آخر <span class="ltr tnum">' + r.n + '</span> ' + r.unit;
+}
+function gateScope(gid){
+  const hrs = hoursInScope(), v = GH[gid];
+  let t = 0, w = 0, u = 0;
+  for(const h of hrs){ t += v.total[h]; w += v.wanted[h]; u += v.unread[h]; }
+  return { total:t, wanted:w, unread:u };
+}
+function totals(){
+  let t = 0, w = 0, u = 0, latNum = 0, latDen = 0, live = 0;
+  ACTIVE.forEach(g => {
+    const s = gateScope(g.id);
+    t += s.total; w += s.wanted; u += s.unread;
+    latNum += s.total * g.ms; latDen += s.total;
+    if(s.total > 0) live++;
+  });
+  const lat = latDen ? (latNum / latDen) * (KPI.latency.v / LAT_FULL) : 0;
+  return { total:t, wanted:w, unread:u, clean: t - w - u, latency: Math.round(lat), live };
+}
+
+/* ==========================================================================
+   4. SQUARIFIED TREEMAP
+   ========================================================================== */
+function worstRatio(row, len, scale){
+  let s = 0, mx = -Infinity, mn = Infinity;
+  for(const n of row){ const a = n.value * scale; s += a; if(a > mx) mx = a; if(a < mn) mn = a; }
+  if(s <= 0 || mn <= 0) return Infinity;
+  return Math.max((len*len*mx) / (s*s), (s*s) / (len*len*mn));
+}
+
+/* x grows from the INLINE-START edge (the right edge, in RTL). */
+function squarify(nodes, rect){
+  const out = [];
+  const items = nodes.filter(n => n.value > 0).sort((a,b) => b.value - a.value || (a.key > b.key ? 1 : -1));
+  if(!items.length || rect.w <= 0 || rect.h <= 0) return out;
+  const totalVal = items.reduce((s,n) => s + n.value, 0);
+  const scale = (rect.w * rect.h) / totalVal;
+  let free = { x:rect.x, y:rect.y, w:rect.w, h:rect.h };
+  let i = 0;
+
+  while(i < items.length && free.w > .5 && free.h > .5){
+    const shortest = Math.min(free.w, free.h);
+    let row = [], best = Infinity, j = i;
+    while(j < items.length){
+      const cand = row.concat([items[j]]);
+      const r = worstRatio(cand, shortest, scale);
+      if(row.length === 0 || r <= best){ row = cand; best = r; j++; } else break;
+    }
+    const rowArea = row.reduce((s,n) => s + n.value, 0) * scale;
+    if(free.w >= free.h){
+      const rw = Math.min(free.w, rowArea / free.h);
+      let cy = free.y;
+      row.forEach((n, k) => {
+        let nh = (n.value * scale) / rw;
+        if(k === row.length - 1) nh = free.y + free.h - cy;
+        out.push({ node:n, x:free.x, y:cy, w:rw, h:nh });
+        cy += nh;
+      });
+      free = { x: free.x + rw, y: free.y, w: free.w - rw, h: free.h };
+    }else{
+      const rh = Math.min(free.h, rowArea / free.w);
+      let cx = free.x;
+      row.forEach((n, k) => {
+        let nw = (n.value * scale) / rh;
+        if(k === row.length - 1) nw = free.x + free.w - cx;
+        out.push({ node:n, x:cx, y:free.y, w:nw, h:rh });
+        cx += nw;
+      });
+      free = { x: free.x, y: free.y + rh, w: free.w, h: free.h - rh };
+    }
+    i = j;
+  }
+  /* anything the loop could not place (degenerate rects) gets a sliver */
+  for(; i < items.length; i++) out.push({ node:items[i], x:free.x, y:free.y, w:0, h:0 });
+  return out;
+}
+
+/* ==========================================================================
+   5. ELEMENTS
+   ========================================================================== */
+const el = {
+  wall:        document.getElementById('wall'),
+  wallInner:   document.getElementById('wallInner'),
+  leaders:     document.getElementById('leaders'),
+  ruler:       document.getElementById('ruler'),
+  rulerMax:    document.getElementById('rulerMax'),
+  rulerMaxW:   document.getElementById('rulerMaxW'),
+  figs:        document.getElementById('figs'),
+  crumb:       document.getElementById('crumb'),
+  crumbNow:    document.getElementById('crumbNow'),
+  crumbBack:   document.getElementById('crumbBack'),
+  readout:     document.getElementById('readout'),
+  scrim:       document.getElementById('scrim'),
+  drawer:      document.getElementById('drawer'),
+  drawerTitle: document.getElementById('drawerTitle'),
+  drawerSub:   document.getElementById('drawerSub'),
+  drawerStats: document.getElementById('drawerStats'),
+  drawerFilters:document.getElementById('drawerFilters'),
+  drawerBody:  document.getElementById('drawerBody'),
+  drawerClose: document.getElementById('drawerClose'),
+  degradedNote:document.getElementById('degradedNote')
+};
+
+const SVGNS = 'http://www.w3.org/2000/svg';
+const svg = (tag, attrs) => {
+  const n = document.createElementNS(SVGNS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+
+/* ==========================================================================
+   6. COUNTERS — animate on top of markup that already holds a real number
+   ========================================================================== */
+const counters = new Map();
+function setFigure(key, value, fmt){
+  const node = el.figs.querySelector('[data-fig="' + key + '"]');
+  if(!node) return;
+  const from = counters.has(key) ? counters.get(key) : value;
+  counters.set(key, value);
+  /* The markup already carries the real figure. Never hand it to a count-up
+     that cannot finish: requestAnimationFrame is paused in a hidden tab, so
+     write the value straight in instead (SPEC §4). */
+  if(REDUCED || document.hidden || from === value){ node.textContent = fmt(value); return; }
+  const t0 = performance.now(), dur = 520;
+  function step(now){
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    node.textContent = fmt(Math.round(from + (value - from) * e));
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function renderFigures(){
+  const T = totals();
+  setFigure('total',   T.total,   nf);
+  setFigure('wanted',  T.wanted,  nf);
+  setFigure('clean',   T.clean,   nf);
+  setFigure('unread',  T.unread,  nf);
+  setFigure('latency', T.latency, nf);
+  const gnode = el.figs.querySelector('[data-fig="gates"]');
+  gnode.textContent = T.live + ' / ' + KPI.gates.of;
+}
+
+/* ==========================================================================
+   7. THE HOUR RULER — two stacked rows sharing one x axis, no dual axis.
+      Reversed by hand so hour 00 sits at the inline-start (right) edge.
+   ========================================================================== */
+function renderRuler(){
+  const BW = 5, GAP = 2, TOP_H = 18, BOT_H = 6, BOT_Y = 24, RULE_Y = 20.5;
+  const W = 24 * (BW + GAP) - GAP;
+  const maxT = niceMax(Math.max.apply(null, HOURLY.total));
+  const maxW = niceMax(Math.max.apply(null, HOURLY.wanted));
+  /* two independent, explicitly labelled scales — never one shared axis */
+  el.rulerMax.textContent  = '0 – ' + nf(maxT);
+  el.rulerMaxW.textContent = '0 – ' + nf(maxW);
+  el.ruler.textContent = '';
+
+  /* the rule that separates the two stacked panels */
+  el.ruler.appendChild(svg('line', {
+    x1:0, y1:RULE_Y, x2:W, y2:RULE_Y, stroke:'rgba(255,255,255,.10)', 'stroke-width':'1'
+  }));
+
+  const scopeSet = new Set(RANGES[state.range].hours);
+
+  for(let h = 0; h < 24; h++){
+    // SVG viewBox is LTR: place hour 0 at the far end so it reads right-to-left
+    const x = (23 - h) * (BW + GAP);
+    const inScope = scopeSet.has(h);
+    const isSel = state.hour === h;
+
+    const g = svg('g', {
+      class:'hr', tabindex:'0', role:'button',
+      'aria-label':'الساعة ' + pad(h) + ' — ' + nf(HOURLY.total[h]) + ' عملية مسح',
+      'aria-pressed': isSel ? 'true' : 'false'
+    });
+    g.dataset.hour = String(h);
+
+    g.appendChild(svg('rect', { class:'hit', x:x-1, y:0, width:BW+GAP, height:30, rx:2 }));
+
+    const bh = Math.max(1.5, (HOURLY.total[h] / maxT) * TOP_H);
+    g.appendChild(svg('rect', {
+      class:'bar', x:x, y:TOP_H - bh, width:BW, height:bh, rx:1.5,
+      fill: isSel ? 'var(--accent)' : (inScope ? 'rgba(255,255,255,.36)' : 'rgba(255,255,255,.13)')
+    }));
+
+    const wv = HOURLY.wanted[h];
+    if(wv > 0){
+      const wh = Math.max(1.5, (wv / maxW) * BOT_H);
+      g.appendChild(svg('rect', {
+        x:x, y:BOT_Y + (BOT_H - wh), width:BW, height:wh, rx:1,
+        fill:'var(--wanted)', opacity: isSel ? '1' : (inScope ? '.78' : '.3')
+      }));
+    }
+    el.ruler.appendChild(g);
+  }
+}
+
+/* ==========================================================================
+   8. THE WALL
+   ========================================================================== */
+let flip = null;               // { id, from: DOMRect } — FLIP source for the zoom
+let hotTile = null;
+
+function gateFontFor(w, h){
+  return Math.max(11, Math.min(30, Math.sqrt(Math.max(0, w * h)) / 9.2));
+}
+
+function clearWall(){
+  Array.from(el.wallInner.children).forEach(c => { if(c !== el.leaders) c.remove(); });
+  el.leaders.textContent = '';
+}
+
+function renderWall(){
+  const box = el.wallInner.getBoundingClientRect();
+  const W = Math.max(0, box.width), H = Math.max(0, box.height);
+  clearWall();
+  if(W < 40 || H < 40) return;
+
+  el.leaders.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  el.leaders.setAttribute('width', W);
+  el.leaders.setAttribute('height', H);
+
+  const PAD = 3;
+  const nodes = state.zoom ? zoomNodes() : wallNodes();
+  const laid  = squarify(nodes, { x:PAD, y:PAD, w:W - PAD*2, h:H - PAD*2 });
+
+  const showEmpty = () => {
+    const e = document.createElement('div');
+    e.className = 'wallEmpty';
+    e.textContent = 'لا توجد سجلات مطابقة';
+    el.wallInner.appendChild(e);
+  };
+
+  if(!laid.length){ showEmpty(); return; }
+
+  const externals = [];
+  let placed = 0;
+  laid.forEach((r, idx) => {
+    const w = Math.max(0, r.w - PAD), h = Math.max(0, r.h - PAD);
+    if(w < 6 || h < 6) return;
+    const node = state.zoom
+      ? buildOperatorRect(r.node, r.x, r.y, w, h, idx)
+      : buildGateRect(r.node, r.x, r.y, w, h, idx, externals);
+    el.wallInner.appendChild(node);
+    placed++;
+  });
+
+  /* every rectangle degenerate (an extremely short wall) — say so rather than
+     leaving a blank panel */
+  if(!placed){ showEmpty(); return; }
+
+  if(externals.length) renderLeaders(externals, W, H);
+  runFlip();
+}
+
+/* ---- level 1: gates ---------------------------------------------------- */
+function wallNodes(){
+  return ACTIVE.map(g => {
+    const s = gateScope(g.id);
+    return { key:g.id, kind:'gate', gate:g, scope:s, value:s.total };
+  });
+}
+
+function buildGateRect(node, x, y, w, h, idx, externals){
+  const g = node.gate, s = node.scope;
+  const box = document.createElement('section');
+  box.className = 'gate' + (flip && flip.id === g.id ? '' : ' enter');
+  box.dataset.gate = g.id;
+  box.style.insetInlineStart = x + 'px';
+  box.style.insetBlockStart  = y + 'px';
+  box.style.inlineSize  = w + 'px';
+  box.style.blockSize   = h + 'px';
+  box.style.setProperty('--d', (idx * 55) + 'ms');
+
+  /* nearer (bigger) panels are sharper and lighter — depth through the glass */
+  const share = node.value / Math.max(1, ACTIVE.reduce((a,b) => Math.max(a, gateScope(b.id).total), 0));
+  const blur  = (26 - 11 * share).toFixed(1);
+  const alpha = (0.030 + 0.024 * share).toFixed(3);
+  box.style.backdropFilter = 'blur(' + blur + 'px) saturate(1.2)';
+  box.style.webkitBackdropFilter = 'blur(' + blur + 'px) saturate(1.2)';
+  box.style.background = 'rgba(255,255,255,' + alpha + ')';
+
+  /* a whole-rectangle hit target: clicking the gate zooms it */
+  const hit = document.createElement('button');
+  hit.type = 'button';
+  hit.className = 'ghit';
+  hit.setAttribute('aria-label', 'تكبير ' + g.name + ' وتقسيمها حسب المراجع');
+  hit.addEventListener('click', () => zoomIn(g.id, box));
+  box.appendChild(hit);
+
+  /* label: size proportional to area, volume beneath in tabular figures */
+  const fs = gateFontFor(w, h);
+  const headH = fs * 1.32 + fs * 0.62 * 1.45 + 14;
+  const roomy = h > headH + 26 && w > 96;
+
+  if(roomy){
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'ghead';
+    head.setAttribute('aria-label', 'تكبير ' + g.name);
+    head.innerHTML =
+      '<span class="gname" style="font-size:' + fs.toFixed(1) + 'px">' +
+        (g.status === 'degraded' ? '<i class="gdot" aria-hidden="true"></i>' : '') + g.name +
+      '</span>' +
+      '<span class="gvol tnum" style="font-size:' + (fs * 0.62).toFixed(1) + 'px">' +
+        '<span class="ltr">' + nf(s.total) + '</span>' +
+        (w > 150 ? '<small>' + (g.status === 'degraded' ? 'بطيئة · ' : '') +
+           '<span class="ltr">' + g.ms + '</span> مللي/ث</small>' : '') +
+      '</span>' +
+      '<svg class="zi" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2 13.5 13.5"/><path d="M5.2 7h3.6M7 5.2v3.6"/></svg>';
+    head.addEventListener('click', e => { e.stopPropagation(); zoomIn(g.id, box); });
+    box.appendChild(head);
+  }else{
+    externals.push({ gid:g.id, name:g.name, total:s.total, x:x, y:y, w:w, h:h });
+  }
+
+  /* one keyboard stop per gate: when the visible header exists it owns the
+     zoom action, and the full-rectangle hit target stays pointer-only so the
+     tab order is not doubled up with two buttons that do the same thing */
+  if(roomy){ hit.tabIndex = -1; hit.setAttribute('aria-hidden', 'true'); }
+
+  /* hour tiles */
+  const wrap = document.createElement('div');
+  wrap.className = 'tilewrap';
+  const inset = roomy ? headH : 4;
+  const hrs = hoursInScope();
+  const tnodes = hrs.map(hh => ({
+    key: g.id + '-' + hh, kind:'hour', gid:g.id, hour:hh,
+    value: GH[g.id].total[hh],
+    wanted: GH[g.id].wanted[hh],
+    unread: GH[g.id].unread[hh]
+  }));
+  const maxV = Math.max(1, ...tnodes.map(t => t.value));
+  const inner = squarify(tnodes, { x:0, y:inset, w:w, h:Math.max(0, h - inset - 3) });
+
+  inner.forEach((t, k) => {
+    /* 2px gutter between adjacent marks (SPEC §9) */
+    const tw = Math.max(0, t.w - 2), th = Math.max(0, t.h - 2);
+    if(tw < 2 || th < 2) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tile' + (t.node.wanted > 0 ? ' hasWanted' : '') + (flip ? '' : ' enter');
+    b.tabIndex = k === 0 ? 0 : -1;
+    b.dataset.gid = g.id;
+    b.dataset.hour = String(t.node.hour);
+    b.dataset.tidx = String(k);
+    b.style.insetInlineStart = t.x + 'px';
+    b.style.insetBlockStart  = t.y + 'px';
+    b.style.inlineSize = tw + 'px';
+    b.style.blockSize  = th + 'px';
+    b.style.setProperty('--d', (idx * 55 + Math.min(k * 6, 96)) + 'ms');
+    /* volume is the ONLY thing this neutral alpha ramp encodes; hit status is a
+       separate channel (the red block-start edge), never blended in (SPEC §9).
+       Ceiling stays under the .155 hover alpha so hover still reads as lift. */
+    const a = 0.018 + 0.115 * Math.pow(t.node.value / maxV, 0.75);
+    b.style.background = 'rgba(255,255,255,' + a.toFixed(3) + ')';
+    b.setAttribute('aria-label',
+      g.name + ' — الساعة ' + pad(t.node.hour) + ' — ' + nf(t.node.value) + ' عملية مسح' +
+      (t.node.wanted > 0 ? ' — ' + t.node.wanted + ' مطلوبة' : ''));
+    if(tw > 34 && th > 20){
+      const i = document.createElement('i');
+      i.textContent = pad(t.node.hour);
+      b.appendChild(i);
+    }
+    if(state.tile && state.tile.gid === g.id && state.tile.hour === t.node.hour) b.classList.add('sel');
+    wrap.appendChild(b);
+  });
+  box.appendChild(wrap);
+  return box;
+}
+
+/* ---- level 2: the zoomed gate, subdivided by operator ------------------ */
+function zoomNodes(){
+  const gid = state.zoom;
+  const s = gateScope(gid);
+  return gateOperatorSplit(gid, s.total).map((o, k) => ({
+    key: gid + '-op' + k, kind:'op', op:o.op, opIndex:k, value:o.value
+  })).filter(n => n.value > 0);
+}
+
+/* the hours in scope, folded into at most six labelled blocks */
+function timeBlocks(){
+  const hrs = hoursInScope();
+  const n = Math.min(6, hrs.length);
+  const per = Math.ceil(hrs.length / n);
+  const out = [];
+  for(let i = 0; i < hrs.length; i += per){
+    const chunk = hrs.slice(i, i + per);
+    out.push({
+      hours: chunk,
+      label: chunk.length === 1 ? pad(chunk[0]) : pad(chunk[0]) + '–' + pad(chunk[chunk.length - 1])
+    });
+  }
+  return out;
+}
+
+function buildOperatorRect(node, x, y, w, h, idx){
+  const gid = state.zoom;
+  const gate = GATES.find(g => g.id === gid);
+  const box = document.createElement('section');
+  box.className = 'gate' + (flip && flip.id === gid && idx === 0 ? '' : ' enter');
+  box.dataset.op = String(node.opIndex);
+  if(idx === 0) box.dataset.gate = gid;   // FLIP anchor
+  box.style.insetInlineStart = x + 'px';
+  box.style.insetBlockStart  = y + 'px';
+  box.style.inlineSize = w + 'px';
+  box.style.blockSize  = h + 'px';
+  box.style.setProperty('--d', (idx * 55) + 'ms');
+  box.style.backdropFilter = 'blur(20px) saturate(1.2)';
+  box.style.webkitBackdropFilter = 'blur(20px) saturate(1.2)';
+
+  const fs = Math.max(11, Math.min(22, Math.sqrt(Math.max(0, w * h)) / 11));
+  const head = document.createElement('div');
+  head.className = 'opname';
+  head.innerHTML =
+    '<b style="font-size:' + fs.toFixed(1) + 'px">' + node.op.name + '</b>' +
+    '<span class="tnum"><span class="ltr">' + nf(node.value) + '</span> مراجعة · دقة ' +
+      '<span class="ltr">' + node.op.acc + '%</span></span>';
+  box.appendChild(head);
+  const headH = fs * 1.3 + 18;
+
+  const blocks = timeBlocks();
+  const weights = blocks.map(b => b.hours.reduce((s,hh) => s + GH[gid].total[hh], 0));
+  const parts = apportion(node.value, weights);
+  const bnodes = blocks.map((b, k) => ({
+    key:'b' + k, kind:'block', block:b, blockIndex:k, value:parts[k],
+    wanted: b.hours.reduce((s,hh) => s + GH[gid].wanted[hh], 0)
+  }));
+  const maxV = Math.max(1, ...bnodes.map(b => b.value));
+  const laid = squarify(bnodes, { x:0, y: h > headH + 24 ? headH : 4, w:w, h: Math.max(0, h - (h > headH + 24 ? headH : 4) - 3) });
+
+  const wrap = document.createElement('div');
+  wrap.className = 'tilewrap';
+  laid.forEach((t, k) => {
+    /* 2px gutter between adjacent marks (SPEC §9) */
+    const tw = Math.max(0, t.w - 2), th = Math.max(0, t.h - 2);
+    if(tw < 2 || th < 2) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tile' + (t.node.wanted > 0 ? ' hasWanted' : '') + (flip ? '' : ' enter');
+    b.tabIndex = k === 0 ? 0 : -1;
+    b.dataset.gid = gid;
+    b.dataset.op = String(node.opIndex);
+    b.dataset.block = String(t.node.blockIndex);
+    b.dataset.tidx = String(k);
+    b.style.insetInlineStart = t.x + 'px';
+    b.style.insetBlockStart  = t.y + 'px';
+    b.style.inlineSize = tw + 'px';
+    b.style.blockSize  = th + 'px';
+    b.style.setProperty('--d', (idx * 55 + Math.min(k * 8, 96)) + 'ms');
+    const a = 0.018 + 0.115 * Math.pow(t.node.value / maxV, .75);
+    b.style.background = 'rgba(255,255,255,' + a.toFixed(3) + ')';
+    b.setAttribute('aria-label',
+      node.op.name + ' — ' + gate.name + ' — الساعات ' + t.node.block.label + ' — ' + nf(t.node.value) + ' مراجعة');
+    if(tw > 48 && th > 20){
+      const i = document.createElement('i');
+      i.textContent = t.node.block.label;
+      b.appendChild(i);
+    }
+    wrap.appendChild(b);
+  });
+  box.appendChild(wrap);
+  return box;
+}
+
+/* ---- small gates get their label outside, on a leader line ------------- */
+function renderLeaders(list, W, H){
+  list.forEach(item => {
+    // physical x for the LTR SVG viewBox — the wall itself is laid out RTL
+    const px = W - (item.x + item.w / 2);
+    const below = item.y + item.h + 34 < H;
+    const y0 = below ? item.y + item.h : item.y;
+    const y1 = below ? y0 + 13 : y0 - 13;
+    const ty = below ? y1 + 12 : y1 - 4;
+    const label = item.name + ' · ' + nf(item.total);
+    const bw = Math.min(W - 8, label.length * 7 + 16);
+    const bx = Math.max(4, Math.min(W - bw - 4, px - bw / 2));   // one clamp, box and text agree
+
+    el.leaders.appendChild(svg('path', {
+      d: 'M ' + px + ' ' + y0 + ' L ' + px + ' ' + y1,
+      stroke:'rgba(255,255,255,.28)', 'stroke-width':'1', fill:'none'
+    }));
+    el.leaders.appendChild(svg('circle', { cx:px, cy:y0, r:1.6, fill:'rgba(255,255,255,.4)' }));
+    el.leaders.appendChild(svg('rect', {
+      x: bx, y: ty - 12, width:bw, height:18, rx:6,
+      fill:'rgba(6,16,12,.72)', stroke:'rgba(255,255,255,.10)'
+    }));
+    const t = svg('text', {
+      x: bx + bw / 2, y: ty + 1,
+      'text-anchor':'middle', fill:'var(--ink-2)', 'font-size':'11',
+      'font-family':"'IBM Plex Sans Arabic', system-ui, sans-serif",
+      style:'direction:rtl; unicode-bidi:isolate;'
+    });
+    /* an SVG viewBox is always LTR — the Arabic run is isolated by the text
+       element, and the figure gets its own LTR isolate so "2,413" cannot split */
+    t.appendChild(document.createTextNode(item.name + ' · '));
+    const num = svg('tspan', { style:'direction:ltr; unicode-bidi:isolate;' });
+    num.textContent = nf(item.total);
+    t.appendChild(num);
+    el.leaders.appendChild(t);
+  });
+}
+
+/* ---- FLIP: the zoom is a real geometric animation ---------------------- */
+function runFlip(){
+  if(!flip) return;
+  const target = el.wallInner.querySelector('[data-gate="' + flip.id + '"]');
+  const from = flip.from;
+  flip = null;
+  if(!target || !from || REDUCED) return;
+  const to = target.getBoundingClientRect();
+  if(!to.width || !to.height) return;
+  const dx = from.left - to.left, dy = from.top - to.top;
+  const sx = from.width / to.width, sy = from.height / to.height;
+  target.style.transformOrigin = '0 0';
+  target.style.transition = 'none';
+  target.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')';
+  target.getBoundingClientRect();   // force reflow
+  target.style.transition = 'transform 520ms cubic-bezier(.22,.61,.36,1)';
+  target.style.transform = 'none';
+  target.addEventListener('transitionend', function done(){
+    target.style.transition = '';
+    target.style.transformOrigin = '';
+    target.removeEventListener('transitionend', done);
+  });
+}
+
+function zoomIn(gid, srcEl){
+  if(state.zoom === gid) return;
+  flip = { id: gid, from: srcEl.getBoundingClientRect() };
+  state.zoom = gid;
+  state.tile = null;
+  hideReadout();
+  render();
+  /* land on the breadcrumb, not a tile — focusing a tile mid-FLIP would open
+     the readout over a rectangle that is still moving */
+  el.crumbBack.focus({ preventScroll:true });
+}
+function zoomOut(){
+  if(!state.zoom) return;
+  const cur = el.wallInner.querySelector('[data-gate="' + state.zoom + '"]');
+  const gid = state.zoom;
+  flip = cur ? { id: gid, from: cur.getBoundingClientRect() } : null;
+  state.zoom = null;
+  hideReadout();
+  render();
+  const back = el.wallInner.querySelector('[data-gate="' + gid + '"] .ghead') ||
+               el.wallInner.querySelector('[data-gate="' + gid + '"] .ghit');
+  if(back) back.focus({ preventScroll:true });
+}
+
+/* ==========================================================================
+   9. READOUT — floating glass panel that follows the pointer
+   ========================================================================== */
+/* the sparkline is two stacked panels, each on its own declared scale */
+function sparkScales(gid){
+  return {
+    t: niceMax(Math.max.apply(null, GH[gid].total)),
+    w: niceMax(Math.max(1, Math.max.apply(null, GH[gid].wanted)))
+  };
+}
+function sparkline(gid, hour){
+  const W = 208, H = 34, TOP = 22, BOT_Y = 27, BOT_H = 6;
+  const v = GH[gid].total, wv = GH[gid].wanted;
+  const sc = sparkScales(gid);
+  const maxT = sc.t, maxW = sc.w;
+  const step = W / 23;
+  const pts = [];
+  for(let h = 0; h < 24; h++){
+    const x = (23 - h) * step;                       // reversed: hour 0 at the far end
+    const y = TOP - (v[h] / maxT) * (TOP - 3);
+    pts.push([x, y]);
+  }
+  pts.sort((a,b) => a[0] - b[0]);
+  const line = pts.map((p,i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = line + ' L ' + W + ' ' + TOP + ' L 0 ' + TOP + ' Z';
+
+  let ticks = '';
+  for(let h = 0; h < 24; h++){
+    if(!wv[h]) continue;
+    const x = (23 - h) * step;
+    const th = Math.max(1.5, (wv[h] / maxW) * BOT_H);
+    ticks += '<rect x="' + (x - 1.4).toFixed(1) + '" y="' + (BOT_Y + BOT_H - th).toFixed(1) +
+             '" width="2.8" height="' + th.toFixed(1) + '" rx="1" fill="var(--wanted)" opacity=".8"/>';
+  }
+  const hx = (23 - hour) * step;
+  const hy = TOP - (v[hour] / maxT) * (TOP - 3);
+
+  return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
+    '<path d="' + area + '" fill="rgba(255,255,255,.10)"/>' +
+    '<path d="' + line + '" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" ' +
+      'stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<line x1="' + hx.toFixed(1) + '" y1="0" x2="' + hx.toFixed(1) + '" y2="' + TOP +
+      '" stroke="var(--accent)" stroke-width="1"/>' +
+    '<circle cx="' + hx.toFixed(1) + '" cy="' + hy.toFixed(1) + '" r="2.6" fill="var(--accent)"/>' +
+    '<line x1="0" y1="' + (TOP + 1.5) + '" x2="' + W + '" y2="' + (TOP + 1.5) +
+      '" stroke="rgba(255,255,255,.08)" stroke-width="1"/>' + ticks +
+  '</svg>';
+}
+
+function readoutHTML(t){
+  if(t.dataset.op !== undefined && state.zoom){
+    const gid = state.zoom;
+    const gate = GATES.find(g => g.id === gid);
+    const op = OPERATORS[+t.dataset.op];
+    const blocks = timeBlocks();
+    const blk = blocks[+t.dataset.block];
+    const s = gateScope(gid);
+    const split = gateOperatorSplit(gid, s.total)[+t.dataset.op];
+    const weights = blocks.map(b => b.hours.reduce((a,hh) => a + GH[gid].total[hh], 0));
+    const val = apportion(split.value, weights)[+t.dataset.block];
+    return '<div class="rt">' + op.name + '</div>' +
+      '<div class="rs">' + gate.name + ' · الساعات <span class="ltr tnum">' + blk.label + '</span></div>' +
+      '<dl>' +
+        '<dt>مراجعات في هذه الفترة</dt><dd class="tnum ltr">' + nf(val) + '</dd>' +
+        '<dt>إجمالي على البوابة</dt><dd class="tnum ltr">' + nf(split.value) + '</dd>' +
+        '<dt>دقة المراجعة</dt><dd class="tnum ltr">' + op.acc + '%</dd>' +
+        '<dt>بلاغات مطلوب</dt><dd class="w tnum ltr">' + op.wanted + '</dd>' +
+      '</dl>' +
+      '<div class="hint">اضغط لفتح سجل الأحداث</div>';
+  }
+
+  const gid = t.dataset.gid, hour = +t.dataset.hour;
+  const g = GATES.find(x => x.id === gid);
+  const v = GH[gid];
+  const share = ((v.total[hour] / Math.max(1, g.total)) * 100).toFixed(1);
+  return '<div class="rt">' + g.name + '</div>' +
+    '<div class="rs"><span class="ltr tnum">' + pad(hour) + ':00 – ' + pad(hour) + ':59</span> · ' +
+      STATUS_AR[g.status] + '</div>' +
+    '<dl>' +
+      '<dt>عمليات المسح</dt><dd class="tnum ltr">' + nf(v.total[hour]) + '</dd>' +
+      '<dt>مركبات مطلوبة</dt><dd class="w tnum ltr">' + v.wanted[hour] + '</dd>' +
+      '<dt>لوحات غير مقروءة</dt><dd class="u tnum ltr">' + v.unread[hour] + '</dd>' +
+      '<dt>زمن المعالجة</dt><dd class="tnum ltr">' + g.ms + '</dd>' +
+      '<dt>نسبة من يوم البوابة</dt><dd class="tnum ltr">' + share + '%</dd>' +
+    '</dl>' +
+    '<div class="rspark"><div class="sl">منحنى اليوم · <em>مسح</em> ' +
+      '<span class="ltr tnum">0 – ' + nf(sparkScales(gid).t) + '</span> · <em>مطلوب</em> ' +
+      '<span class="ltr tnum">0 – ' + nf(sparkScales(gid).w) + '</span></div>' + sparkline(gid, hour) + '</div>' +
+    '<div class="hint">اضغط لفتح سجل الأحداث</div>';
+}
+
+function showReadout(t, clientX, clientY){
+  el.readout.innerHTML = readoutHTML(t);
+  el.readout.classList.add('on');
+  positionReadout(clientX, clientY);
+}
+function positionReadout(cx, cy){
+  const r = el.readout.getBoundingClientRect();
+  const gap = 16;
+  // RTL: inset-inline-start is measured from the viewport's right edge
+  let inlineStart = window.innerWidth - cx + gap;
+  if(inlineStart + r.width > window.innerWidth - 8) inlineStart = Math.max(8, window.innerWidth - cx - r.width - gap);
+  let top = cy + gap;
+  if(top + r.height > window.innerHeight - 8) top = Math.max(8, cy - r.height - gap);
+  el.readout.style.insetInlineStart = inlineStart + 'px';
+  el.readout.style.insetBlockStart  = top + 'px';
+}
+function hideReadout(){
+  el.readout.classList.remove('on');
+  if(hotTile){ hotTile.classList.remove('hot'); hotTile = null; }
+}
+
+/* ==========================================================================
+   10. DRAWER — events, only on a tile click
+   ========================================================================== */
+function eventHour(e){ return parseInt(e.t.slice(0, 2), 10); }
+
+/* selection is a class toggle, not a rebuild — clicking a tile must not
+   replay the wall's entrance animation */
+/* Must resolve to exactly ONE tile. `.sel` carries the only discretionary glow
+   on the page (SPEC §1: no more than two glowing elements) — matching every
+   block of an operator would light six rectangles at once, which is not
+   emphasis, it is a smear. */
+function tileSelector(t){
+  if(!t) return null;
+  if(t.opIndex !== null && t.opIndex !== undefined)
+    return '.tile[data-op="' + t.opIndex + '"][data-block="' + t.block + '"]';
+  return '.tile[data-gid="' + t.gid + '"][data-hour="' + t.hour + '"]';
+}
+
+function markSelection(){
+  el.wallInner.querySelectorAll('.tile.sel').forEach(t => t.classList.remove('sel'));
+  const sel = tileSelector(state.tile);
+  if(!sel) return;
+  el.wallInner.querySelectorAll(sel).forEach(t => t.classList.add('sel'));
+}
+
+function openDrawer(gid, hour, opIndex, block){
+  state.tile = {
+    gid,
+    hour:    (hour    === undefined ? null : hour),
+    opIndex: (opIndex === undefined ? null : opIndex),
+    block:   (block   === undefined ? null : block)
+  };
+  state.drawer = true;
+  state.drawerVerdict = 'all';
+  state.drawerHourOnly = hour !== undefined && hour !== null;
+  el.drawer.classList.add('on');
+  el.drawer.setAttribute('aria-hidden', 'false');
+  el.scrim.classList.add('on');
+  renderDrawer();
+  markSelection();
+  el.drawerClose.focus({ preventScroll:true });
+}
+function closeDrawer(){
+  const back = state.tile;
+  state.drawer = false;
+  state.tile = null;
+  el.drawer.classList.remove('on');
+  el.drawer.setAttribute('aria-hidden', 'true');
+  el.scrim.classList.remove('on');
+  markSelection();
+  /* return focus to the tile that opened it, found again by its data, since
+     a relayout may have replaced the original node */
+  if(back){
+    const sel = tileSelector(back);
+    const t = sel && el.wallInner.querySelector(sel);
+    if(t){ t.tabIndex = 0; t.focus({ preventScroll:true }); }
+  }
+}
+
+function evRow(e){
+  const g = GATES.find(x => x.id === e.gate);
+  let meta = '';
+  if(e.reason) meta += '<b>' + e.reason + '</b>';
+  if(e.ref) meta += ' · مرجع <span class="ltr">' + e.ref + '</span>';
+  if(e.by) meta += ' · راجعها ' + e.by;
+  if(!meta) meta = 'مطابقة آلية — لا إجراء مطلوب';
+  return '<div class="ev">' +
+      '<span class="t">' + e.t + '</span>' +
+      '<span class="p">' + e.plate + '</span>' +
+      '<span class="chip ' + VERDICT_CLS[e.verdict] + '">' + VERDICT_AR[e.verdict] + '</span>' +
+      '<span class="meta">' + (g ? g.name : '—') + ' · ' + meta + '</span>' +
+    '</div>';
+}
+
+function renderDrawer(){
+  if(!state.tile) return;
+  const { gid, hour, opIndex, block } = state.tile;
+  const g = GATES.find(x => x.id === gid);
+  const s = gateScope(gid);
+  const v = GH[gid];
+
+  el.drawerTitle.textContent = g.name;
+  const bits = [];
+  if(hour !== null && hour !== undefined)
+    bits.push('<span class="ltr tnum">' + pad(hour) + ':00 – ' + pad(hour) + ':59</span>');
+  if(opIndex !== null && opIndex !== undefined) bits.push('المراجع ' + OPERATORS[opIndex].name);
+  if(block !== null && block !== undefined){
+    const b = timeBlocks()[block];
+    if(b) bits.push('الساعات <span class="ltr tnum">' + b.label + '</span>');
+  }
+  bits.push(scopeLabel());
+  bits.push('الحالة ' + STATUS_AR[g.status]);
+  el.drawerSub.innerHTML = bits.join(' · ');
+
+  const hv = (hour !== null && hour !== undefined);
+  el.drawerStats.innerHTML =
+    '<div><b class="tnum ltr">' + nf(hv ? v.total[hour] : s.total) + '</b><span>عمليات المسح</span></div>' +
+    '<div class="w"><b class="tnum ltr">' + (hv ? v.wanted[hour] : s.wanted) + '</b><span>مطلوبة</span></div>' +
+    '<div class="u"><b class="tnum ltr">' + (hv ? v.unread[hour] : s.unread) + '</b><span>غير مقروءة</span></div>' +
+    '<div><b class="tnum ltr">' + g.ms + '</b><span>مللي/ث</span></div>';
+
+  const filters = [['all','الكل'],['wanted','مطلوب'],['clean','سليم'],['unread','غير مقروء']];
+  el.drawerFilters.innerHTML = filters.map(f =>
+    '<button type="button" class="fchip" data-verdict="' + f[0] + '" aria-pressed="' +
+      (state.drawerVerdict === f[0] ? 'true' : 'false') + '">' + f[1] + '</button>').join('');
+
+  /* gate events, optionally narrowed to the clicked hour */
+  let gateEvents = EVENTS.filter(e => e.gate === gid);
+  if(state.drawerHourOnly && hv) gateEvents = gateEvents.filter(e => eventHour(e) === hour);
+  if(state.drawerVerdict !== 'all') gateEvents = gateEvents.filter(e => e.verdict === state.drawerVerdict);
+
+  let sysEvents = EVENTS.slice();
+  if(state.drawerVerdict !== 'all') sysEvents = sysEvents.filter(e => e.verdict === state.drawerVerdict);
+
+  const ops = gateOperatorSplit(gid, s.total);
+  const maxOp = Math.max(1, ...ops.map(o => o.value));
+
+  let html = '';
+
+  html += '<div class="dsec"><h3>أحداث هذه البوابة</h3>';
+  if(gateEvents.length){
+    html += gateEvents.map(evRow).join('');
+  }else{
+    html += '<div class="empty">لا توجد سجلات مطابقة' +
+      (state.drawerHourOnly && hv
+        ? '<br><button type="button" data-act="widen">عرض كل أحداث البوابة</button>'
+        : '') + '</div>';
+  }
+  html += '</div>';
+
+  html += '<div class="dsec"><h3>المراجعون على هذه البوابة</h3>';
+  html += ops.map((o, k) => {
+    const hi = (opIndex !== null && opIndex !== undefined && opIndex === k);
+    return '<div class="oprow"' + (hi ? ' style="background:rgba(255,255,255,.04);border-radius:8px;padding-inline:8px"' : '') + '>' +
+      '<span class="n">' + o.op.name + '</span>' +
+      '<span class="v tnum ltr">' + nf(o.value) + '</span>' +
+      '<span class="bar"><i style="inline-size:' + ((o.value / maxOp) * 100).toFixed(1) + '%"></i></span>' +
+      '<span class="m">دقة <span class="ltr tnum">' + o.op.acc + '%</span> · ' +
+        '<span class="ltr tnum">' + o.op.wanted + '</span> بلاغ مطلوب · ' +
+        '<span class="ltr tnum">' + nf(o.op.reviews) + '</span> مراجعة اليوم</span>' +
+    '</div>';
+  }).join('');
+  html += '</div>';
+
+  html += '<div class="dsec"><h3>أحدث الأحداث على مستوى النظام</h3>';
+  html += sysEvents.length ? sysEvents.map(evRow).join('') : '<div class="empty">لا توجد سجلات مطابقة</div>';
+  html += '</div>';
+
+  html += '<div class="dsec"><h3>حالة الشبكة</h3>' +
+    GATES.map(gg => {
+      const sc = gg.total ? gateScope(gg.id) : { total:0 };
+      return '<div class="oprow"><span class="n">' + gg.name + '</span>' +
+        '<span class="v tnum ltr">' + nf(sc.total) + '</span>' +
+        '<span class="m">' + STATUS_AR[gg.status] +
+          (gg.ms ? ' · <span class="ltr tnum">' + gg.ms + '</span> مللي/ث' : ' · لا توجد تغذية') + '</span></div>';
+    }).join('') + '</div>';
+
+  el.drawerBody.innerHTML = html;
+  el.drawerBody.scrollTop = 0;
+}
+
+/* ==========================================================================
+   11. RENDER + EVENTS
+   ========================================================================== */
+function renderChrome(){
+  el.crumb.hidden = !state.zoom;
+  if(state.zoom){
+    const g = GATES.find(x => x.id === state.zoom);
+    el.crumbNow.textContent = g.name + ' — حسب المراجع';
+  }
+  document.querySelectorAll('.range button').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.range === state.range ? 'true' : 'false');
+  });
+  const dg = GATES.find(g => g.status === 'degraded');
+  el.degradedNote.textContent = dg ? (dg.name + ' ' + STATUS_AR[dg.status] +
+    ' (' + dg.ms + ' مللي/ث)') : 'الشبكة مستقرة';
+}
+
+function render(){
+  renderChrome();
+  renderFigures();
+  renderRuler();
+  renderWall();
+  markSelection();
+  if(state.drawer) renderDrawer();
+}
+
+/* -- range control: rescopes every figure, the ruler and the whole wall -- */
+document.querySelector('.range').addEventListener('click', e => {
+  const b = e.target.closest('button[data-range]');
+  if(!b) return;
+  state.range = b.dataset.range;
+  if(state.hour !== null && !RANGES[state.range].hours.includes(state.hour)) state.hour = null;
+  hideReadout();
+  render();
+});
+
+/* -- hour ruler: scrub one hour, re-subdividing the wall ----------------- */
+function toggleHour(h){
+  state.hour = (state.hour === h) ? null : h;
+  if(state.hour !== null && !RANGES[state.range].hours.includes(state.hour)){
+    state.range = state.hour >= 18 ? '6' : (state.hour >= 12 ? '12' : '24');
+  }
+  hideReadout();
+  render();
+}
+el.ruler.addEventListener('click', e => {
+  const g = e.target.closest('g.hr');
+  if(g) toggleHour(+g.dataset.hour);
+});
+el.ruler.addEventListener('keydown', e => {
+  const g = e.target.closest('g.hr');
+  if(!g) return;
+  if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); toggleHour(+g.dataset.hour); }
+});
+
+/* -- wall: hover raises a tile, click opens the drawer ------------------- */
+el.wallInner.addEventListener('pointerover', e => {
+  const t = e.target.closest('.tile');
+  if(!t) return;
+  if(hotTile && hotTile !== t) hotTile.classList.remove('hot');
+  hotTile = t;
+  showReadout(t, e.clientX, e.clientY);
+});
+el.wallInner.addEventListener('pointermove', e => {
+  if(el.readout.classList.contains('on') && e.target.closest('.tile')) positionReadout(e.clientX, e.clientY);
+});
+el.wallInner.addEventListener('pointerout', e => {
+  const t = e.target.closest('.tile');
+  if(t && !t.contains(e.relatedTarget)) hideReadout();
+});
+el.wallInner.addEventListener('focusin', e => {
+  const t = e.target.closest('.tile');
+  if(!t) return;
+  const r = t.getBoundingClientRect();
+  t.classList.add('hot');
+  if(hotTile && hotTile !== t) hotTile.classList.remove('hot');
+  hotTile = t;
+  showReadout(t, r.left + r.width / 2, r.top + r.height);
+});
+el.wallInner.addEventListener('focusout', e => {
+  const t = e.target.closest('.tile');
+  if(t) hideReadout();
+});
+el.wallInner.addEventListener('click', e => {
+  const t = e.target.closest('.tile');
+  if(!t) return;
+  e.stopPropagation();
+  if(t.dataset.op !== undefined && state.zoom){
+    openDrawer(state.zoom, undefined, +t.dataset.op, +t.dataset.block);
+  }else{
+    openDrawer(t.dataset.gid, +t.dataset.hour);
+  }
+});
+
+/* roving tabindex inside a gate: arrows walk the tiles, one tab stop each gate */
+el.wallInner.addEventListener('keydown', e => {
+  const t = e.target.closest('.tile');
+  if(!t) return;
+  const keys = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
+  if(!keys.includes(e.key)) return;
+  e.preventDefault();
+  const wrap = t.parentElement;
+  const tiles = Array.from(wrap.querySelectorAll('.tile'));
+  const i = tiles.indexOf(t);
+  let n = i;
+  if(e.key === 'ArrowLeft'  || e.key === 'ArrowDown') n = i + 1;   // RTL: left is forward
+  if(e.key === 'ArrowRight' || e.key === 'ArrowUp')   n = i - 1;
+  if(e.key === 'Home') n = 0;
+  if(e.key === 'End')  n = tiles.length - 1;
+  n = Math.max(0, Math.min(tiles.length - 1, n));
+  tiles.forEach(x => { x.tabIndex = -1; });
+  tiles[n].tabIndex = 0;
+  tiles[n].focus({ preventScroll:true });
+});
+
+/* -- breadcrumb, drawer wiring ------------------------------------------ */
+el.crumbBack.addEventListener('click', zoomOut);
+el.drawerClose.addEventListener('click', closeDrawer);
+el.scrim.addEventListener('click', closeDrawer);
+
+el.drawerFilters.addEventListener('click', e => {
+  const b = e.target.closest('button[data-verdict]');
+  if(!b) return;
+  state.drawerVerdict = b.dataset.verdict;
+  renderDrawer();
+});
+el.drawerBody.addEventListener('click', e => {
+  const b = e.target.closest('button[data-act="widen"]');
+  if(!b) return;
+  state.drawerHourOnly = false;
+  renderDrawer();
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(state.drawer) closeDrawer();
+  else if(state.zoom) zoomOut();
+  else if(state.hour !== null){ state.hour = null; render(); }
+});
+
+/* keep the drawer's focus inside it while it is open */
+el.drawer.addEventListener('keydown', e => {
+  if(e.key !== 'Tab' || !state.drawer) return;
+  const f = el.drawer.querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])');
+  if(!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+
+/* -- relayout: the wall is laid out from measured pixels, so it has to be
+      rebuilt whenever its box genuinely changes — a window resize, a font
+      swap, or the first paint arriving after the initial synchronous render.
+      Guarded on the rounded box so it can never loop, and never replays the
+      entrance for a size that did not move. --------------------------------- */
+let lastBox = '';
+function relayoutWall(){
+  const b = el.wallInner.getBoundingClientRect();
+  const key = Math.round(b.width) + 'x' + Math.round(b.height);
+  if(key === lastBox) return;
+  lastBox = key;
+  renderWall();
+  markSelection();
+}
+
+let rt = null;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  hideReadout();
+  rt = setTimeout(relayoutWall, 130);
+});
+
+/* -- boot --------------------------------------------------------------- */
+counters.set('total', 0); counters.set('wanted', 0); counters.set('clean', 0);
+counters.set('unread', 0); counters.set('latency', 0);
+document.querySelector('.avatar').textContent = ADMIN.initial;
+render();
+
+/* seed the guard with whatever the first render actually saw, then watch */
+lastBox = (r => Math.round(r.width) + 'x' + Math.round(r.height))(el.wallInner.getBoundingClientRect());
+if(window.ResizeObserver) new ResizeObserver(relayoutWall).observe(el.wallInner);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(relayoutWall);
+</script>
+</body>
+</html>

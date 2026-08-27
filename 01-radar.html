@@ -1,0 +1,1593 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>الرادار</title>
+<style>
+/* ============================================================
+   الرادار — شاشة قطبية لفحص اللوحات
+   الزاوية = ساعة اليوم · القُطر = البوابة · العتامة = الحجم
+   ============================================================ */
+
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  --glass:    rgba(255,255,255,.045);
+  --glass-2:  rgba(255,255,255,.032);
+  --glass-3:  rgba(255,255,255,.065);
+  --brd:      1px solid rgba(255,255,255,.085);
+  --sheen:    0 1px 0 0 rgba(255,255,255,.10) inset;
+  --drop:     0 20px 50px -20px rgba(0,0,0,.55);
+  --ease:     cubic-bezier(.22,.61,.36,1);
+}
+
+*{ box-sizing: border-box; }
+
+html, body{ height: 100%; }
+
+body{
+  margin: 0;
+  background: #06100c;
+  color: var(--ink);
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: normal;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- the scene: the only saturated colour on the page ---------- */
+.scene{ position: fixed; inset: 0; z-index: -3; overflow: hidden; }
+.lt{ position: absolute; border-radius: 50%; filter: blur(90px); }
+.lt-a{ inline-size: 46vw; block-size: 46vw; inset-block-start: -12vh; inset-inline-start: -8vw;
+       background: radial-gradient(circle, #10613f 0%, rgba(16,97,63,0) 70%); opacity: .20; }
+.lt-b{ inline-size: 52vw; block-size: 52vw; inset-block-start: 18vh; inset-inline-start: 22vw;
+       background: radial-gradient(circle, #0f4d38 0%, rgba(15,77,56,0) 70%); opacity: .17; }
+.lt-c{ inline-size: 38vw; block-size: 38vw; inset-block-end: -14vh; inset-inline-end: -6vw;
+       background: radial-gradient(circle, #145a45 0%, rgba(20,90,69,0) 70%); opacity: .15; }
+.lt-d{ inline-size: 34vw; block-size: 34vw; inset-block-end: 6vh; inset-inline-start: 6vw;
+       background: radial-gradient(circle, #0b3a30 0%, rgba(11,58,48,0) 70%); opacity: .18; }
+.lt-e{ inline-size: 30vw; block-size: 30vw; inset-block-start: 40vh; inset-inline-end: 28vw;
+       background: radial-gradient(circle, #08302a 0%, rgba(8,48,42,0) 70%); opacity: .14; }
+
+.vig{ position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(125% 105% at 52% 38%, rgba(0,0,0,0) 38%, rgba(0,0,0,.58) 100%); }
+
+.grain{ position: fixed; inset: 0; z-index: 999; pointer-events: none; opacity: .035;
+        inline-size: 100%; block-size: 100%; }
+
+/* ---------- shell ---------- */
+.shell{
+  position: relative;
+  z-index: 1;
+  /* a definite height, so .stage gets a definite basis and .col scrolls inside
+     itself instead of stretching the whole page */
+  block-size: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px clamp(14px, 2.2vw, 30px) 12px;
+}
+
+.pane{
+  background: var(--glass);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  border: var(--brd);
+  border-radius: 16px;
+  box-shadow: var(--sheen), var(--drop);
+  animation: rise .58s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes rise{ from{ opacity: 0; transform: translateY(16px); } to{ opacity: 1; transform: none; } }
+
+/* nearer panels sharper + lighter, farther panels blurrier + dimmer */
+.pane--near{ background: var(--glass-3); backdrop-filter: blur(14px) saturate(1.25); -webkit-backdrop-filter: blur(14px) saturate(1.25); }
+.pane--far { background: var(--glass-2); backdrop-filter: blur(34px) saturate(1.2);  -webkit-backdrop-filter: blur(34px) saturate(1.2); }
+
+/* ---------- top bar ---------- */
+.topbar{
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 10px 18px;
+}
+.brand{ display: flex; align-items: center; gap: 11px; }
+.brand-mark{ inline-size: 30px; block-size: 30px; display: grid; place-items: center; }
+.brand-t{ font-size: 15px; font-weight: 600; line-height: 1.4; }
+.brand-s{ font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.tb-sep{ inline-size: 1px; block-size: 26px; background: var(--line); }
+.tb-meta{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); }
+.tb-spacer{ margin-inline-start: auto; }
+/* the single permitted looping animation: one small live dot */
+.dot-live{ inline-size: 7px; block-size: 7px; border-radius: 50%; background: var(--clean);
+           box-shadow: 0 0 9px -2px rgba(61,220,151,.5); animation: blip 2.6s ease-in-out infinite; }
+@keyframes blip{ 0%,100%{ opacity: 1; } 50%{ opacity: .35; } }
+.who{ display: flex; align-items: center; gap: 10px; }
+.who-n{ font-size: 13px; font-weight: 500; line-height: 1.35; }
+.who-r{ font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+.avatar{
+  inline-size: 34px; block-size: 34px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 14px; font-weight: 600;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+}
+
+/* ---------- stage ---------- */
+.stage{
+  flex: 1 1 auto;
+  display: grid;
+  /* the dial is the design; the reading rail is deliberately the minor column */
+  grid-template-columns: minmax(0, 1.78fr) minmax(320px, .82fr);
+  gap: 14px;
+  align-items: stretch;
+  min-block-size: 0;
+}
+
+/* ---------- dial panel ---------- */
+.dialpane{
+  display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 0;
+  padding: 14px 16px 10px;
+  box-shadow: var(--sheen), var(--drop), 0 0 40px -12px rgba(110,196,155,.35);
+}
+.dial-head{ display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding-block-end: 10px; }
+.dial-head > .dial-titles{ flex: 1 1 240px; min-inline-size: 0; }
+.dial-head > .chips{ margin-inline-start: auto; }
+.dial-title{ font-size: 15px; font-weight: 600; margin: 0; }
+.dial-sub{ font-size: 11.5px; color: var(--ink-3); }
+.scope-pill{
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px;
+  background: rgba(255,255,255,.03);
+}
+.scope-pill b{ font-weight: 600; color: var(--ink); }
+.btn{
+  font-family: inherit; font-size: 12px; color: var(--ink-2);
+  background: rgba(255,255,255,.05); border: 1px solid var(--line);
+  border-radius: 999px; padding: 4px 13px; cursor: pointer;
+  transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
+}
+.btn:hover{ background: rgba(255,255,255,.10); color: var(--ink); }
+.btn[hidden]{ display: none; }
+
+.dial-body{ flex: 1 1 auto; display: flex; gap: 10px; min-block-size: 0; min-inline-size: 0; }
+
+/* ring legend — hugs the inline-start edge of the dial panel */
+.rl-wrap{
+  flex: 0 0 auto; inline-size: 196px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.ringlegend{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.rl-h{ font-size: 10.5px; color: var(--ink-3); padding-inline: 8px; padding-block-end: 4px; }
+.rl-btn{
+  inline-size: 100%; display: grid; grid-template-columns: 20px 1fr auto; align-items: center;
+  gap: 8px; padding: 4px 8px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--ink-2); font-family: inherit; font-size: 12px;
+  text-align: start; cursor: pointer; line-height: 1.5;
+  border-block-end: 1px solid var(--line-2);
+  transition: background .16s var(--ease), color .16s var(--ease);
+}
+.rl-btn:hover, .rl-btn.hov{ background: rgba(255,255,255,.06); color: var(--ink); }
+/* selection is neutral like every other surface; only the figure carries accent */
+.rl-btn[aria-pressed="true"]{ background: rgba(255,255,255,.11); color: var(--ink); }
+.rl-btn[aria-pressed="true"] .rl-n{ color: var(--accent); }
+.rl-name{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          unicode-bidi: isolate; direction: rtl; }
+.rl-n{ font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.rl-glyph{ display: block; }
+.rl-w{ color: var(--wanted); font-size: 10.5px; }
+
+.dial-wrap{ position: relative; flex: 1 1 auto; min-inline-size: 0; display: grid; place-items: center; }
+#dial{ inline-size: 100%; block-size: 100%; max-block-size: 80vh; display: block; overflow: visible; }
+
+.dial-key{
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+  padding-block-start: 8px; border-block-start: 1px solid var(--line-2);
+  font-size: 11px; color: var(--ink-3);
+}
+.dial-key span{ display: inline-flex; align-items: center; gap: 6px; }
+.kd{ inline-size: 8px; block-size: 8px; border-radius: 50%; background: rgba(255,255,255,.85); }
+.kd.a{ opacity: .28; }
+/* no glow here — the dial panel and the live dot are the only two glowing things */
+.kd.w{ background: var(--wanted); }
+
+/* ---------- svg dial internals ---------- */
+.ring{ fill: none; stroke: rgba(255,255,255,.07); stroke-width: 1; transition: stroke .16s var(--ease); }
+.ring.on{ stroke: rgba(110,196,155,.42); }
+.rim{ fill: none; stroke: rgba(255,255,255,.13); stroke-width: 1; }
+.spoke{ stroke: rgba(255,255,255,.055); stroke-width: 1; }
+.tick{ stroke: rgba(255,255,255,.16); stroke-width: 1; }
+.tick.maj{ stroke: rgba(255,255,255,.34); }
+.hlab{
+  fill: var(--ink-3); font-size: 11px; font-family: inherit;
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate;
+  transition: fill .16s var(--ease);
+}
+.hlab.on{ fill: var(--accent); }
+
+.mk{
+  fill: #ffffff; opacity: var(--o, .3);
+  transform-box: fill-box; transform-origin: 50% 50%;
+  transition: opacity .16s var(--ease), transform .16s var(--ease);
+  animation: mkIn .46s var(--ease) both;
+}
+#dial.ready .mk, #dial.ready .wk{ animation: none; }
+@keyframes mkIn{ from{ opacity: 0; transform: scale(.35); } to{ opacity: var(--o, .3); transform: none; } }
+.mk.hot{ opacity: calc(var(--o, .3) + .3); transform: scale(1.5); }
+.mk.dim{ opacity: calc(var(--o, .3) * .30); }
+
+.wk{
+  transform-box: fill-box; transform-origin: 50% 50%;
+  transition: opacity .16s var(--ease), transform .16s var(--ease);
+  animation: wkIn .5s var(--ease) both;
+}
+@keyframes wkIn{ from{ opacity: 0; transform: scale(.2); } to{ opacity: 1; transform: none; } }
+.wk .halo-a{ fill: var(--wanted); opacity: .13; }
+.wk .halo-b{ fill: var(--wanted); opacity: .22; }
+.wk .core{ fill: var(--wanted); }
+.wk.dim{ opacity: .16; }
+.wk.hot{ transform: scale(1.25); }
+
+.hub-v{ fill: var(--ink); font-size: 34px; font-weight: 600; font-family: inherit;
+        font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+/* these carry mixed Arabic + Western-digit runs ("38 مطلوب", "الميناء 3 · 08:00") */
+.hub-l{ fill: var(--ink-3); font-size: 11.5px; font-family: inherit;
+        direction: rtl; unicode-bidi: isolate; }
+.hub-s{ fill: var(--ink-2); font-size: 11.5px; font-family: inherit;
+        direction: rtl; unicode-bidi: isolate; }
+.hub-ring{ fill: rgba(255,255,255,.022); stroke: rgba(255,255,255,.08); stroke-width: 1; }
+
+/* these suppress the global outline (an SVG outline boxes the whole circle), so the
+   focus ring has to be drawn in-place — and it has to actually be visible */
+.bandhit{ fill: none; stroke: rgba(0,0,0,0); pointer-events: stroke; cursor: pointer; outline: none; }
+.bandhit:focus-visible{ stroke: rgba(110,196,155,.26); }
+.hourhit{ fill: rgba(255,255,255,0); stroke: rgba(0,0,0,0); stroke-width: 1.5;
+          cursor: pointer; outline: none;
+          transition: fill .16s var(--ease), stroke .16s var(--ease); }
+.hourhit:hover{ fill: rgba(255,255,255,.05); }
+.hourhit:focus-visible{ fill: rgba(110,196,155,.22); stroke: rgba(110,196,155,.9); }
+.sectorsel{ fill: rgba(255,255,255,.045); stroke: rgba(110,196,155,.30); stroke-width: 1; pointer-events: none; }
+.chip-bg{ fill: rgba(6,16,12,.82); stroke: rgba(255,255,255,.14); stroke-width: 1; }
+.chip-tx{ fill: var(--ink); font-size: 12px; font-family: inherit;
+          direction: rtl; unicode-bidi: isolate; }
+
+#sweep .wedge{ fill: var(--accent); }
+#sweep .edge{ stroke: rgba(110,196,155,.55); stroke-width: 1.5; }
+#sweep{
+  transform-box: view-box; transform-origin: 430px 430px; pointer-events: none;
+  animation: sweep 1.6s linear .12s 1 both, sweepOut .34s ease 1.48s 1 both;
+}
+@keyframes sweep{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+@keyframes sweepOut{ from{ opacity: 1; } to{ opacity: 0; } }
+
+/* floating readout pinned near the pointer */
+.readout{
+  position: absolute; inset-block-start: 0; inset-inline-start: 0;
+  min-inline-size: 178px; padding: 9px 12px 10px;
+  background: rgba(255,255,255,.075);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  border: var(--brd); border-radius: 12px;
+  box-shadow: var(--sheen), 0 14px 34px -16px rgba(0,0,0,.7);
+  pointer-events: none; opacity: 0; transition: opacity .14s var(--ease);
+  z-index: 5;
+}
+.readout.show{ opacity: 1; }
+.ro-t{ font-size: 12px; font-weight: 600; margin-block-end: 5px;
+       direction: rtl; unicode-bidi: isolate; }
+.ro-r{ display: flex; justify-content: space-between; gap: 14px; font-size: 11.5px; color: var(--ink-3); line-height: 1.7; }
+.ro-r b{ color: var(--ink-2); font-weight: 500; }
+.ro-h{ font-size: 10.5px; color: var(--ink-3); border-block-start: 1px solid var(--line-2);
+       margin-block-start: 5px; padding-block-start: 4px; }
+
+/* ---------- side column ---------- */
+.col{
+  display: flex; flex-direction: column; gap: 12px;
+  min-block-size: 0; overflow-y: auto; overflow-x: hidden;
+  padding-inline-end: 4px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.14) transparent;
+}
+.col::-webkit-scrollbar{ inline-size: 6px; }
+.col::-webkit-scrollbar-track{ background: transparent; }
+.col::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.13); border-radius: 999px; }
+
+.sec-h{
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 11px 14px 7px;
+}
+.sec-h h2{ font-size: 12.5px; font-weight: 600; margin: 0; }
+.sec-h .sub{ font-size: 10.5px; color: var(--ink-3); margin-inline-start: auto; }
+
+/* ledger — a ruled list, not cards */
+.ledger{ padding: 0 14px 10px; }
+.lg-row{
+  display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px;
+  padding-block: 7px; border-block-end: 1px solid var(--line-2);
+}
+.lg-row:last-child{ border-block-end: 0; }
+.lg-lab{ font-size: 12px; color: var(--ink-2); }
+.lg-sub{ font-size: 10.5px; color: var(--ink-3); display: block; line-height: 1.5; }
+.lg-val{
+  font-size: 21px; font-weight: 600; line-height: 1.15;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+  direction: ltr; unicode-bidi: isolate; text-align: end; min-inline-size: 74px;
+}
+.lg-unit{ font-size: 10.5px; color: var(--ink-3); display: block; text-align: end; line-height: 1.4; }
+.lg-delta{ display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--ink-3);
+           font-variant-numeric: tabular-nums; min-inline-size: 58px; justify-content: flex-end; }
+.lg-delta span{ direction: ltr; unicode-bidi: isolate; }
+
+/* verdict chips — they live on the dial head, because the dial is what they refilter */
+.chips{ display: flex; gap: 6px; flex-wrap: wrap; padding: 0; }
+.chip{
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: inherit; font-size: 11.5px; color: var(--ink-2);
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: 999px; padding: 4px 11px; cursor: pointer;
+  transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
+}
+.chip:hover{ background: rgba(255,255,255,.09); color: var(--ink); }
+.chip[aria-pressed="true"]{ background: rgba(255,255,255,.11); color: var(--ink); border-color: rgba(255,255,255,.20); }
+.chip .cd{ inline-size: 7px; block-size: 7px; border-radius: 50%; }
+.chip .cn{ color: var(--ink-3); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+/* gate health */
+.health{ padding: 0 14px 12px; }
+.health-line{ display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-2);
+              padding-block-end: 8px; }
+.health-grid{ display: flex; flex-wrap: wrap; gap: 5px; }
+.hg{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; color: var(--ink-3);
+  border: 1px solid var(--line-2); border-radius: 999px; padding: 2px 9px;
+  background: rgba(255,255,255,.02);
+}
+.hg .sd{ inline-size: 6px; block-size: 6px; border-radius: 50%; flex: none; }
+.hg-n{ direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
+.hg.down{ border-color: rgba(255,107,107,.28); color: var(--ink-2); }
+.hg.warn{ border-color: rgba(232,176,85,.26); color: var(--ink-2); }
+
+/* operators */
+.ops{ padding: 0 6px 10px; }
+.ops table{ inline-size: 100%; border-collapse: collapse; }
+.ops th{
+  font-size: 10.5px; font-weight: 500; color: var(--ink-3); text-align: start;
+  padding: 4px 8px; border-block-end: 1px solid var(--line);
+}
+.ops th.n, .ops td.n{ text-align: end; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.ops td{ font-size: 12px; color: var(--ink-2); padding: 6px 8px; border-block-end: 1px solid var(--line-2); }
+.ops tr:last-child td{ border-block-end: 0; }
+.ops tr.mark td{ color: var(--ink); background: rgba(255,255,255,.05); }
+.ops tr.mark td:first-child{ border-start-start-radius: 8px; border-end-start-radius: 8px; }
+.ops tr.mark td:last-child{ border-start-end-radius: 8px; border-end-end-radius: 8px; }
+.acc{ display: inline-flex; align-items: center; gap: 6px; }
+.acc svg{ display: block; }
+.acc-arc{ fill: none; stroke: rgba(255,255,255,.55); stroke-width: 2; stroke-linecap: round;
+          transition: stroke-dashoffset .7s var(--ease); }
+.acc-bg{ fill: none; stroke: rgba(255,255,255,.10); stroke-width: 2; }
+
+/* events */
+.events{ padding: 0 8px 8px; }
+.ev{
+  display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center;
+  padding: 7px 8px; border-block-end: 1px solid var(--line-2);
+  border-inline-start: 2px solid transparent; border-start-start-radius: 6px; border-end-start-radius: 6px;
+  transition: background .16s var(--ease);
+}
+.ev:hover{ background: rgba(255,255,255,.04); }
+.ev:last-child{ border-block-end: 0; }
+.ev.w{ border-inline-start-color: var(--wanted); background: rgba(255,107,107,.045); }
+.ev-t{ font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+       direction: ltr; unicode-bidi: isolate; }
+.ev-p{ font-size: 12.5px; font-weight: 500; color: var(--ink);
+       unicode-bidi: isolate; direction: rtl; }
+.ev-v{ display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-2); }
+.ev-v .vd{ inline-size: 7px; block-size: 7px; border-radius: 50%; }
+.ev-meta{ grid-column: 1 / -1; font-size: 10.5px; color: var(--ink-3); display: flex; gap: 8px; flex-wrap: wrap; }
+.ev-meta .rf{ direction: ltr; unicode-bidi: isolate; }
+.empty{ padding: 26px 14px; text-align: center; color: var(--ink-3); font-size: 12.5px; }
+/* no extra opacity here — --ink-3 is already at the 4.5:1 floor over the glass */
+.empty .hint{ display: block; font-size: 11px; margin-block-start: 5px; color: var(--ink-3); }
+
+/* footer */
+.foot{ text-align: center; font-size: 11px; color: var(--ink-3); padding-block: 4px 8px;
+       animation: rise .58s var(--ease) both; animation-delay: 420ms; }
+
+/* any Arabic run that may contain Western digits ("الميناء 3") */
+.iso{ unicode-bidi: isolate; direction: rtl; }
+
+:focus-visible{ outline: 2px solid rgba(110,196,155,.75); outline-offset: 2px; border-radius: 8px; }
+
+/* ---------- responsive ---------- */
+/* desktop: the shell is exactly one viewport, so only .col scrolls — this also
+   swallows the transient 16px the entrance transform borrows on first paint */
+@media (min-width: 1141px){ body{ overflow: hidden; } }
+
+@media (max-width: 1140px){
+  /* stacked: the page itself scrolls, nothing scrolls inside */
+  .shell{ block-size: auto; min-block-size: 100vh; }
+  .stage{ grid-template-columns: 1fr; }
+  .col{ overflow: visible; max-block-size: none; }
+  .dialpane{ min-block-size: 68vh; }
+  #dial{ max-block-size: 60vh; }
+  body{ overflow-y: auto; }
+}
+@media (max-width: 720px){
+  .dial-body{ flex-direction: column-reverse; }
+  .rl-wrap{ inline-size: 100%; }
+  .rl-btn{ font-size: 11.5px; }
+  .shell{ padding-inline: 10px; }
+  .tb-sep{ display: none; }
+}
+@media (max-width: 430px){
+  .lg-val{ font-size: 18px; min-inline-size: 62px; }
+  .brand-t{ font-size: 14px; }
+  #dial{ max-block-size: 54vh; }
+}
+
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{
+  animation-duration:.01ms !important; animation-iteration-count:1 !important;
+  transition-duration:.01ms !important; } }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lt lt-a"></div>
+  <div class="lt lt-b"></div>
+  <div class="lt lt-c"></div>
+  <div class="lt lt-d"></div>
+  <div class="lt lt-e"></div>
+</div>
+<div class="vig" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <filter id="grainf"><feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/></filter>
+  <rect width="100%" height="100%" filter="url(#grainf)"/>
+</svg>
+
+<div class="shell">
+
+  <!-- ===================== top bar ===================== -->
+  <header class="pane pane--near topbar" style="--d:0ms">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9.2" opacity=".45"/>
+          <circle cx="12" cy="12" r="5.4" opacity=".7"/>
+          <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+          <path d="M12 12 L12 2.8" opacity=".9"/>
+        </svg>
+      </span>
+      <span>
+        <span class="brand-t">الرادار — النظرة العامة</span>
+        <span class="brand-s">نظام العربي لفحص اللوحات</span>
+      </span>
+    </div>
+
+    <span class="tb-sep" aria-hidden="true"></span>
+
+    <div class="tb-meta">
+      <span class="dot-live" aria-hidden="true"></span>
+      <span>البث مباشر · آخر تحديث <span style="unicode-bidi:isolate" id="tbUpdated">اليوم 14:32</span></span>
+    </div>
+
+    <span class="tb-sep" aria-hidden="true"></span>
+
+    <div class="tb-meta">
+      <span>نطاق زمني: <span style="unicode-bidi:isolate; direction:ltr">24</span> ساعة</span>
+      <span>·</span>
+      <span>البوابات النشطة <span style="unicode-bidi:isolate; direction:ltr">9 / 11</span></span>
+    </div>
+
+    <div class="tb-spacer"></div>
+
+    <div class="who">
+      <span style="text-align:end">
+        <span class="who-n" id="tbName">أحمد عماد</span>
+        <span class="who-r" id="tbRole">مدير النظام</span>
+      </span>
+      <span class="avatar" aria-hidden="true" id="tbInitial">أ</span>
+    </div>
+  </header>
+
+  <!-- ===================== stage ===================== -->
+  <main class="stage">
+
+    <!-- ---------- the dial ---------- -->
+    <section class="pane dialpane" style="--d:70ms" aria-labelledby="dialTitle">
+      <div class="dial-head">
+        <div class="dial-titles">
+          <h1 class="dial-title" id="dialTitle">قرص الرادار — مسح <span style="unicode-bidi:isolate; direction:ltr">24</span> ساعة</h1>
+          <div class="dial-sub">الزاوية = ساعة اليوم (<span style="unicode-bidi:isolate; direction:ltr">00:00</span> أعلى، باتجاه عقارب الساعة) · القُطر = البوابة</div>
+        </div>
+        <div class="chips" id="verdictChips" role="group" aria-label="تصفية حسب الحكم — تُعيد رسم القرص والسجل"></div>
+        <div class="scope-pill" id="scopePill">النطاق: <b>كل البوابات</b> · <b>اليوم كامل</b></div>
+        <button class="btn" id="resetBtn" type="button" hidden>إلغاء التصفية</button>
+      </div>
+
+      <div class="dial-body">
+        <div class="rl-wrap">
+          <div class="rl-h">البوابات — من الحلقة الخارجية إلى الداخلية</div>
+          <ol class="ringlegend" id="ringLegend"></ol>
+        </div>
+
+        <div class="dial-wrap">
+          <svg id="dial" viewBox="0 0 860 860" role="img" aria-label="قرص قطبي يوزّع عمليات المسح على 24 ساعة وتسع بوابات">
+            <g id="gGrid"></g>
+            <g id="gTicks"></g>
+            <g id="gSector"></g>
+            <g id="gMarks"></g>
+            <g id="gWanted"></g>
+            <g id="gHub"></g>
+            <g id="gChip" style="display:none">
+              <rect class="chip-bg" id="chipBg" x="0" y="0" width="10" height="22" rx="8"></rect>
+              <text class="chip-tx" id="chipTx" x="0" y="0" text-anchor="middle" dominant-baseline="middle"></text>
+            </g>
+            <g id="gHit"></g>
+            <g id="sweep"></g>
+          </svg>
+          <div class="readout" id="readout" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="dial-key">
+        <span><i class="kd" aria-hidden="true"></i> عتامة عالية = حجم مسح أكبر</span>
+        <span><i class="kd a" aria-hidden="true"></i> عتامة منخفضة = حجم أقل</span>
+        <span><i class="kd w" aria-hidden="true"></i> رصد مركبة مطلوبة</span>
+        <span>مرّر فوق حلقة أو قطاع · انقر للتثبيت</span>
+      </div>
+    </section>
+
+    <!-- ---------- narrow column ---------- -->
+    <aside class="col">
+
+      <!-- six headline figures, as a ruled ledger -->
+      <section class="pane pane--near" style="--d:130ms" aria-labelledby="ledgerH">
+        <div class="sec-h">
+          <h2 id="ledgerH">الأرقام الرئيسية</h2>
+          <span class="sub iso" id="ledgerScope">اليوم كامل · كل البوابات</span>
+        </div>
+        <div class="ledger">
+          <div class="lg-row">
+            <span class="lg-lab">إجمالي عمليات المسح<span class="lg-sub" id="sub-total">جميع البوابات النشطة</span></span>
+            <span class="lg-delta" id="d-total"></span>
+            <span><span class="lg-val" id="v-total" data-v="0">12,847</span></span>
+          </div>
+          <div class="lg-row">
+            <span class="lg-lab">مركبات مطلوبة<span class="lg-sub" id="sub-wanted">تطابق مع قوائم البحث</span></span>
+            <span class="lg-delta" id="d-wanted"></span>
+            <span><span class="lg-val" id="v-wanted" data-v="0">38</span></span>
+          </div>
+          <div class="lg-row">
+            <span class="lg-lab">مركبات سليمة<span class="lg-sub" id="sub-clean">لا يوجد تطابق</span></span>
+            <span class="lg-delta" id="d-clean"></span>
+            <span><span class="lg-val" id="v-clean" data-v="0">12,782</span></span>
+          </div>
+          <div class="lg-row">
+            <span class="lg-lab">لوحات غير مقروءة<span class="lg-sub" id="sub-unread">تحتاج مراجعة بشرية</span></span>
+            <span class="lg-delta" id="d-unread"></span>
+            <span><span class="lg-val" id="v-unread" data-v="0">27</span></span>
+          </div>
+          <div class="lg-row">
+            <span class="lg-lab">متوسط زمن المعالجة<span class="lg-sub" id="sub-latency">من الالتقاط حتى الحكم</span></span>
+            <span class="lg-delta" id="d-latency"></span>
+            <span><span class="lg-val" id="v-latency" data-v="0">412</span><span class="lg-unit">مللي/ث</span></span>
+          </div>
+          <div class="lg-row">
+            <span class="lg-lab">بوابات نشطة<span class="lg-sub">اثنتان خارج الخدمة</span></span>
+            <span class="lg-delta" id="d-gates"></span>
+            <span><span class="lg-val" id="v-gates" data-v="0">9</span><span class="lg-unit">من <span style="unicode-bidi:isolate; direction:ltr">11</span></span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- gate health -->
+      <section class="pane pane--far" style="--d:180ms" aria-labelledby="healthH">
+        <div class="sec-h">
+          <h2 id="healthH">حالة البوابات</h2>
+          <span class="sub" id="healthSub">بوابتان متوقفتان من <span style="unicode-bidi:isolate; direction:ltr">11</span></span>
+        </div>
+        <div class="health">
+          <div class="health-line" id="healthLine"></div>
+          <div class="health-grid" id="healthGrid"></div>
+        </div>
+      </section>
+
+      <!-- operators -->
+      <section class="pane" style="--d:230ms" aria-labelledby="opsH">
+        <div class="sec-h">
+          <h2 id="opsH">المراجعون</h2>
+          <span class="sub" id="opsScope">على مستوى النظام</span>
+        </div>
+        <div class="ops">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">المراجع</th>
+                <th scope="col" class="n">مراجعات</th>
+                <th scope="col" class="n">مطلوب</th>
+                <th scope="col" class="n">الدقة</th>
+              </tr>
+            </thead>
+            <tbody id="opsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- events -->
+      <section class="pane pane--near" style="--d:280ms" aria-labelledby="evH">
+        <div class="sec-h">
+          <h2 id="evH">أحدث الأحداث</h2>
+          <span class="sub" id="evCount"></span>
+        </div>
+        <div class="events" id="evList"></div>
+      </section>
+
+    </aside>
+  </main>
+
+  <footer class="foot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   1. THE DATASET — copied verbatim from SPEC §7
+   ============================================================ */
+
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+// index = hour 0..23
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+// status labels: online "تعمل" · degraded "بطيئة" · offline "خارج الخدمة" · maint "صيانة"
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+// verdict: "wanted" مطلوب · "clean" سليم · "unread" غير مقروء
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+/* ============================================================
+   2. Derived structures
+   ============================================================ */
+
+const SVGNS = "http://www.w3.org/2000/svg";
+const fmt = n => (n === null || n === undefined) ? "—" : Number(n).toLocaleString('en-US');
+const $  = id => document.getElementById(id);
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const STATUS_LABEL = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+const STATUS_COLOR = { online:"var(--clean)", degraded:"var(--unread)", offline:"var(--wanted)", maint:"var(--ink-3)" };
+const VERDICT_LABEL = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+const VERDICT_COLOR = { wanted:"var(--wanted)", clean:"var(--clean)", unread:"var(--unread)" };
+
+// nine active gates; RANK[0] = innermost ring (quietest), RANK[8] = outermost (busiest)
+const ACTIVE = GATES.filter(g => g.total > 0);
+const RANK   = ACTIVE.slice().sort((a,b) => a.total - b.total);
+const RING_OF = {};                        // gate id -> ring index 0..8
+RANK.forEach((g,i) => { RING_OF[g.id] = i; });
+const GATE_BY_ID = {};
+GATES.forEach(g => { GATE_BY_ID[g.id] = g; });
+
+// each gate has a different daily shape; the matrix is then fitted so that
+// every hour column sums to HOURLY.total[h] and every gate row sums to gate.total.
+const PEAK = { g1:8, g2:10, g3:17, g4:7, g5:11, g6:18, g7:13, g8:15, g9:20 };
+
+function buildMatrix(){
+  const M = {};
+  ACTIVE.forEach(g => {
+    M[g.id] = HOURLY.total.map((t,h) =>
+      t * (g.total / 12847) * (1 + 0.38 * Math.cos((h - PEAK[g.id]) * Math.PI / 12))
+    );
+  });
+  for (let it = 0; it < 14; it++){
+    ACTIVE.forEach(g => {                                   // fit rows to gate totals
+      const s = M[g.id].reduce((a,b) => a + b, 0);
+      const k = g.total / s;
+      M[g.id] = M[g.id].map(v => v * k);
+    });
+    for (let h = 0; h < 24; h++){                           // fit columns to hour totals
+      let s = 0;
+      ACTIVE.forEach(g => { s += M[g.id][h]; });
+      const k = HOURLY.total[h] / s;
+      ACTIVE.forEach(g => { M[g.id][h] *= k; });
+    }
+  }
+  const R = {};
+  ACTIVE.forEach(g => { R[g.id] = M[g.id].map(v => Math.max(0, Math.round(v))); });
+  for (let h = 0; h < 24; h++){                             // absorb rounding drift per hour
+    let s = 0;
+    ACTIVE.forEach(g => { s += R[g.id][h]; });
+    const d = HOURLY.total[h] - s;
+    if (d !== 0){
+      let best = ACTIVE[0];
+      ACTIVE.forEach(g => { if (R[g.id][h] > R[best.id][h]) best = g; });
+      R[best.id][h] = Math.max(0, R[best.id][h] + d);
+    }
+  }
+  return R;
+}
+const MATRIX = buildMatrix();
+
+let MAXV = 0;
+ACTIVE.forEach(g => MATRIX[g.id].forEach(v => { if (v > MAXV) MAXV = v; }));
+
+// exact placement of the 38 مطلوب hits: row sums = gate.wanted, column sums = HOURLY.wanted
+function assignWanted(){
+  const rem = {};
+  ACTIVE.forEach(g => { rem[g.id] = g.wanted; });
+  const hits = [];
+  for (let h = 0; h < 24; h++){
+    const c = HOURLY.wanted[h];
+    if (!c) continue;
+    const order = ACTIVE.slice().sort((a,b) => (rem[b.id] - rem[a.id]) || (MATRIX[b.id][h] - MATRIX[a.id][h]));
+    let placed = 0;
+    for (let i = 0; i < order.length && placed < c; i++){
+      const g = order[i];
+      if (rem[g.id] <= 0) continue;
+      rem[g.id]--; placed++;
+      hits.push({ g: g.id, h: h });
+    }
+  }
+  return hits;
+}
+const WANTED_HITS = assignWanted();
+const WANTED_SET  = new Set(WANTED_HITS.map(w => w.g + "|" + w.h));
+
+/* ============================================================
+   3. Geometry — an SVG viewBox is always LTR; all maths below is plain LTR
+   ============================================================ */
+
+const CX = 430, CY = 430;
+const R_IN = 104, R_OUT = 330;
+const STEP = (R_OUT - R_IN) / 8;
+const R_TICK_0 = 338, R_TICK_1 = 372, R_LABEL = 394;
+
+// a = degrees clockwise from 12 o'clock
+function pt(a, r){
+  const t = (a - 90) * Math.PI / 180;
+  return [CX + r * Math.cos(t), CY + r * Math.sin(t)];
+}
+function ringR(i){ return R_IN + i * STEP; }
+function sector(a0, a1, r0, r1){
+  const [x0,y0] = pt(a0,r1), [x1,y1] = pt(a1,r1), [x2,y2] = pt(a1,r0), [x3,y3] = pt(a0,r0);
+  const big = (a1 - a0) > 180 ? 1 : 0;
+  return "M"+x0.toFixed(2)+" "+y0.toFixed(2)+
+         "A"+r1+" "+r1+" 0 "+big+" 1 "+x1.toFixed(2)+" "+y1.toFixed(2)+
+         "L"+x2.toFixed(2)+" "+y2.toFixed(2)+
+         "A"+r0+" "+r0+" 0 "+big+" 0 "+x3.toFixed(2)+" "+y3.toFixed(2)+"Z";
+}
+function el(name, attrs){
+  const n = document.createElementNS(SVGNS, name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+const hh = h => (h < 10 ? "0" + h : "" + h) + ":00";
+
+/* ============================================================
+   4. State — everything renders out of this object
+   ============================================================ */
+
+const state = { gate: null, hour: null, verdict: null, hoverGate: null, hoverHour: null };
+
+/* ============================================================
+   5. Build the dial
+   ============================================================ */
+
+const dial   = $("dial");
+const gGrid  = $("gGrid"), gTicks = $("gTicks"), gSector = $("gSector");
+const gMarks = $("gMarks"), gWanted = $("gWanted"), gHub = $("gHub"), gHit = $("gHit");
+const markEls = {};   // "gid|h" -> circle
+const wantEls = {};   // "gid|h" -> g
+const ringEls = {};   // gid -> circle
+const hourEls = [];   // 24 hit wedges
+const bandEls = [];   // 9 hit bands
+const labelEls = {};  // hour -> text
+
+function buildGrid(){
+  for (let i = 0; i < 9; i++){
+    const g = RANK[i];
+    const c = el("circle", { class:"ring", cx:CX, cy:CY, r:ringR(i) });
+    ringEls[g.id] = c;
+    gGrid.appendChild(c);
+  }
+  gGrid.appendChild(el("circle", { class:"rim", cx:CX, cy:CY, r:R_OUT }));
+  gGrid.appendChild(el("circle", { class:"rim", cx:CX, cy:CY, r:R_IN }));
+  for (let h = 0; h < 24; h += 3){
+    const a = h * 15;
+    const p0 = pt(a, R_IN), p1 = pt(a, R_OUT);
+    gGrid.appendChild(el("line", { class:"spoke", x1:p0[0], y1:p0[1], x2:p1[0], y2:p1[1] }));
+  }
+}
+
+function buildTicks(){
+  for (let h = 0; h < 24; h++){
+    const a = h * 15;
+    const major = (h % 3 === 0);
+    const p0 = pt(a, major ? R_TICK_0 : R_TICK_0 + 9), p1 = pt(a, R_TICK_1);
+    gTicks.appendChild(el("line", {
+      class: major ? "tick maj" : "tick",
+      x1:p0[0], y1:p0[1], x2:p1[0], y2:p1[1]
+    }));
+    if (major){
+      const lp = pt(a + 7.5, R_LABEL);
+      const t = el("text", {
+        class:"hlab", x:lp[0], y:lp[1],
+        "text-anchor":"middle", "dominant-baseline":"middle"
+      });
+      t.textContent = hh(h);
+      labelEls[h] = t;
+      gTicks.appendChild(t);
+    }
+  }
+}
+
+function buildMarks(){
+  for (let i = 0; i < 9; i++){
+    const g = RANK[i];
+    const r = ringR(i);
+    for (let h = 0; h < 24; h++){
+      const v = MATRIX[g.id][h];
+      const a = h * 15 + 7.5;
+      const p = pt(a, r);
+      const o = 0.10 + 0.78 * Math.pow(v / MAXV, 0.6);
+      const c = el("circle", {
+        class:"mk", cx:p[0].toFixed(2), cy:p[1].toFixed(2),
+        r: (3.1 + i * 0.16).toFixed(2),
+        "data-g": g.id, "data-h": h
+      });
+      c.style.setProperty("--o", o.toFixed(3));
+      c.style.animationDelay = (120 + 1600 * (a / 360)).toFixed(0) + "ms";
+      markEls[g.id + "|" + h] = c;
+      gMarks.appendChild(c);
+    }
+  }
+}
+
+function buildWanted(){
+  WANTED_HITS.forEach(w => {
+    const r = ringR(RING_OF[w.g]);
+    const a = w.h * 15 + 7.5;
+    const p = pt(a, r);
+    const grp = el("g", { class:"wk", "data-g":w.g, "data-h":w.h });
+    grp.appendChild(el("circle", { class:"halo-a", cx:p[0].toFixed(2), cy:p[1].toFixed(2), r:13 }));
+    grp.appendChild(el("circle", { class:"halo-b", cx:p[0].toFixed(2), cy:p[1].toFixed(2), r:8 }));
+    grp.appendChild(el("circle", { class:"core",   cx:p[0].toFixed(2), cy:p[1].toFixed(2), r:4.4 }));
+    grp.style.animationDelay = (160 + 1600 * (a / 360)).toFixed(0) + "ms";
+    wantEls[w.g + "|" + w.h] = grp;
+    gWanted.appendChild(grp);
+  });
+}
+
+function buildHub(){
+  gHub.appendChild(el("circle", { class:"hub-ring", cx:CX, cy:CY, r:R_IN - 12 }));
+  const v = el("text", { class:"hub-v", id:"hubV", x:CX, y:CY - 6, "text-anchor":"middle" });
+  v.textContent = fmt(12847);
+  const l = el("text", { class:"hub-l", id:"hubL", x:CX, y:CY + 18, "text-anchor":"middle" });
+  l.textContent = "عملية مسح";
+  const s = el("text", { class:"hub-s", id:"hubS", x:CX, y:CY + 44, "text-anchor":"middle" });
+  s.textContent = "كل البوابات";
+  const w = el("text", { class:"hub-l", id:"hubW", x:CX, y:CY - 44, "text-anchor":"middle" });
+  w.setAttribute("fill", "var(--wanted)");
+  w.textContent = "38 مطلوب";
+  gHub.appendChild(w); gHub.appendChild(v); gHub.appendChild(l); gHub.appendChild(s);
+}
+
+function buildHits(){
+  // 24 hour wedges in the tick band — keyboard reachable via roving tabindex
+  for (let h = 0; h < 24; h++){
+    const p = el("path", {
+      // starts clear of the outermost ring's hit band so the two never overlap
+      class:"hourhit", d: sector(h * 15, h * 15 + 15, R_OUT + STEP / 2 + 3, R_LABEL + 14),
+      "data-h": h, role:"button", tabindex: h === 0 ? "0" : "-1",
+      "aria-label": "الساعة " + hh(h)
+    });
+    hourEls.push(p);
+    gHit.appendChild(p);
+  }
+  // 9 annular bands, one per gate ring
+  for (let i = 0; i < 9; i++){
+    const g = RANK[i];
+    const c = el("circle", {
+      class:"bandhit", cx:CX, cy:CY, r:ringR(i),
+      "stroke-width": STEP.toFixed(2),
+      "data-g": g.id, role:"button", tabindex: i === 8 ? "0" : "-1",
+      "aria-label": g.name + " — حلقة رقم " + (i + 1)
+    });
+    bandEls.push(c);
+    gHit.appendChild(c);
+  }
+}
+
+function buildSweep(){
+  const sw = $("sweep");
+  const N = 14, SPAN = 56;
+  for (let i = 0; i < N; i++){
+    const a1 = -(i * SPAN / N), a0 = -((i + 1) * SPAN / N);
+    const p = el("path", { class:"wedge", d: sector(a0, a1, R_IN - 10, R_OUT + 6) });
+    p.setAttribute("opacity", (0.085 * (1 - i / N)).toFixed(4));
+    sw.appendChild(p);
+  }
+  const e0 = pt(0, R_IN - 10), e1 = pt(0, R_OUT + 6);
+  sw.appendChild(el("line", { class:"edge", x1:e0[0], y1:e0[1], x2:e1[0], y2:e1[1] }));
+}
+
+buildGrid(); buildTicks(); buildMarks(); buildWanted(); buildHub(); buildHits(); buildSweep();
+
+// the sweep runs exactly once, then it is taken out of the document for good
+(function retireSweep(){
+  const sw = $("sweep");
+  const kill = () => { if (sw && sw.parentNode) sw.parentNode.removeChild(sw); dial.classList.add("ready"); };
+  window.setTimeout(kill, REDUCED ? 60 : 1950);
+})();
+
+/* ============================================================
+   6. Counters — the real figure is written first, the animation rides on top
+   ============================================================ */
+
+const counters = [];
+function countTo(el, to){
+  if (counters.indexOf(el) === -1) counters.push(el);
+  const from = Number(el.dataset.v || 0);
+  if (to === null || to === undefined){
+    el.dataset.v = ""; el.textContent = "—"; return;
+  }
+  el.dataset.v = to;
+  el.textContent = fmt(to);                 // real value in the DOM before any animation
+  // never animate into a hidden tab: rAF is throttled there and the figure would stick
+  if (REDUCED || to === from || document.hidden) return;
+  if (el._raf) cancelAnimationFrame(el._raf);
+  if (el._safety) clearTimeout(el._safety);
+  const t0 = performance.now(), dur = 620;
+  const settle = () => {
+    if (el._raf){ cancelAnimationFrame(el._raf); el._raf = 0; }
+    el._safety = 0;
+    el.textContent = fmt(Number(el.dataset.v));
+  };
+  const step = now => {
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(Math.round(from + (to - from) * e));
+    if (p < 1) el._raf = requestAnimationFrame(step);
+    else settle();
+  };
+  el._raf = requestAnimationFrame(step);
+  el._safety = setTimeout(settle, dur + 280);   // backstop if frames stop arriving
+}
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden) counters.forEach(function(el){
+    if (el._raf){ cancelAnimationFrame(el._raf); el._raf = 0; }
+    if (el._safety){ clearTimeout(el._safety); el._safety = 0; }
+    el.textContent = el.dataset.v === "" ? "—" : fmt(Number(el.dataset.v));
+  });
+});
+
+/* ============================================================
+   7. Ring legend (inline-start edge of the dial)
+   ============================================================ */
+
+function ringGlyph(i){
+  const s = document.createElementNS(SVGNS, "svg");
+  s.setAttribute("viewBox", "0 0 20 20");
+  s.setAttribute("width", "18"); s.setAttribute("height", "18");
+  s.setAttribute("class", "rl-glyph"); s.setAttribute("aria-hidden", "true");
+  s.appendChild(el("circle", { cx:10, cy:10, r:8.2, fill:"none", stroke:"rgba(255,255,255,.14)", "stroke-width":1 }));
+  s.appendChild(el("circle", { cx:10, cy:10, r:2.4, fill:"none", stroke:"rgba(255,255,255,.14)", "stroke-width":1 }));
+  const rr = 2.4 + (i / 8) * 5.8;
+  s.appendChild(el("circle", { cx:10, cy:10, r:rr, fill:"none", stroke:"currentColor", "stroke-width":1.5, opacity:.9 }));
+  return s;
+}
+
+function buildLegend(){
+  const ol = $("ringLegend");
+  ol.textContent = "";
+  for (let i = 8; i >= 0; i--){
+    const g = RANK[i];
+    const li = document.createElement("li");
+    const b  = document.createElement("button");
+    b.type = "button";
+    b.className = "rl-btn";
+    b.dataset.g = g.id;
+    b.setAttribute("aria-pressed", "false");
+    b.appendChild(ringGlyph(i));
+
+    const nm = document.createElement("span");
+    nm.className = "rl-name";
+    nm.textContent = g.name;
+    b.appendChild(nm);
+
+    const n = document.createElement("span");
+    n.className = "rl-n";
+    n.innerHTML = fmt(g.total) + (g.wanted ? ' <span class="rl-w">' + g.wanted + '</span>' : "");
+    b.appendChild(n);
+
+    b.addEventListener("click", function(){ toggleGate(g.id); });
+    b.addEventListener("mouseenter", function(){ setHoverGate(g.id); });
+    b.addEventListener("mouseleave", function(){ setHoverGate(null); });
+    b.addEventListener("focus", function(){ setHoverGate(g.id); });
+    b.addEventListener("blur",  function(){ setHoverGate(null); });
+    li.appendChild(b);
+    ol.appendChild(li);
+  }
+}
+buildLegend();
+
+/* ============================================================
+   8. Verdict chips
+   ============================================================ */
+
+function buildChips(){
+  const wrap = $("verdictChips");
+  wrap.textContent = "";
+  const defs = [
+    { k:"wanted", n: KPI.wanted.v },
+    { k:"clean",  n: KPI.clean.v  },
+    { k:"unread", n: KPI.unread.v }
+  ];
+  defs.forEach(function(d){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.dataset.v = d.k;
+    b.setAttribute("aria-pressed", "false");
+    b.innerHTML = '<i class="cd" style="background:' + VERDICT_COLOR[d.k] + '"></i>' +
+                  '<span>' + VERDICT_LABEL[d.k] + '</span>' +
+                  '<span class="cn">' + fmt(d.n) + '</span>';
+    b.addEventListener("click", function(){
+      state.verdict = (state.verdict === d.k) ? null : d.k;
+      render();
+    });
+    wrap.appendChild(b);
+  });
+}
+buildChips();
+
+/* ============================================================
+   9. Gate health — all eleven gates, two of them down
+   ============================================================ */
+
+function buildHealth(){
+  const line = $("healthLine");
+  const down = GATES.filter(g => g.status === "offline" || g.status === "maint");
+  const slow = GATES.filter(g => g.status === "degraded");
+  line.innerHTML =
+    '<span style="unicode-bidi:isolate; direction:ltr">9 / 11</span>' +
+    '<span>بوابة تعمل · ' + down.map(g => g.name + " (" + STATUS_LABEL[g.status] + ")").join(" · ") +
+    (slow.length ? ' · ' + slow[0].name + ' بطيئة عند <span style="unicode-bidi:isolate; direction:ltr">' + slow[0].ms + '</span> مللي/ث' : '') +
+    '</span>';
+
+  const grid = $("healthGrid");
+  grid.textContent = "";
+  GATES.forEach(function(g){
+    const s = document.createElement("span");
+    s.className = "hg" + (g.status === "offline" || g.status === "maint" ? " down" : (g.status === "degraded" ? " warn" : ""));
+    const tail = g.total ? fmt(g.total) : STATUS_LABEL[g.status];
+    s.innerHTML = '<i class="sd" style="background:' + STATUS_COLOR[g.status] + '"></i>' +
+                  '<span class="iso">' + g.name + '</span>' +
+                  (g.total ? '<span class="hg-n">' + tail + '</span>'
+                           : '<span class="iso">' + tail + '</span>');
+    grid.appendChild(s);
+  });
+}
+buildHealth();
+
+/* ============================================================
+   10. Rendering out of state
+   ============================================================ */
+
+function scopedEvents(){
+  return EVENTS.filter(function(e){
+    if (state.gate && e.gate !== state.gate) return false;
+    if (state.hour !== null && parseInt(e.t.slice(0,2), 10) !== state.hour) return false;
+    if (state.verdict && e.verdict !== state.verdict) return false;
+    return true;
+  });
+}
+
+function scopedFigures(){
+  const g = state.gate ? GATE_BY_ID[state.gate] : null;
+  const h = state.hour;
+  let total, wanted, unread, latency, note;
+
+  if (g && h !== null){
+    total   = MATRIX[g.id][h];
+    wanted  = WANTED_SET.has(g.id + "|" + h) ? 1 : 0;
+    unread  = null;                                   // not resolved to gate × hour in the source
+    latency = g.ms;
+    note    = g.name + " · " + hh(h);
+  } else if (g){
+    total = g.total; wanted = g.wanted; unread = g.unread; latency = g.ms;
+    note  = g.name + " · اليوم كامل";
+  } else if (h !== null){
+    total = HOURLY.total[h]; wanted = HOURLY.wanted[h]; unread = HOURLY.unread[h];
+    latency = KPI.latency.v;
+    note = "كل البوابات · " + hh(h);
+  } else {
+    total = KPI.total.v; wanted = KPI.wanted.v; unread = KPI.unread.v; latency = KPI.latency.v;
+    note = "اليوم كامل · كل البوابات";
+  }
+  const clean = (total !== null && wanted !== null && unread !== null) ? (total - wanted - unread) : null;
+  return { total:total, wanted:wanted, clean:clean, unread:unread, latency:latency, note:note, global: !g && h === null };
+}
+
+function deltaHTML(d){
+  if (d === null || d === undefined) return '<span>—</span>';
+  const up = d > 0;
+  const arrow = up
+    ? '<svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 10V2M6 2 2.6 5.4M6 2l3.4 3.4"/></svg>'
+    : '<svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 2v8M6 10 2.6 6.6M6 10l3.4-3.4"/></svg>';
+  return arrow + '<span>' + Math.abs(d).toFixed(1) + '%</span>';
+}
+
+function renderLedger(){
+  const f = scopedFigures();
+  countTo($("v-total"),   f.total);
+  countTo($("v-wanted"),  f.wanted);
+  countTo($("v-clean"),   f.clean);
+  countTo($("v-unread"),  f.unread);
+  countTo($("v-latency"), f.latency);
+  countTo($("v-gates"),   KPI.gates.v);
+
+  $("ledgerScope").textContent = f.note;
+  $("d-total").innerHTML   = f.global ? deltaHTML(KPI.total.delta)   : deltaHTML(null);
+  $("d-wanted").innerHTML  = f.global ? deltaHTML(KPI.wanted.delta)  : deltaHTML(null);
+  $("d-clean").innerHTML   = f.global ? deltaHTML(KPI.clean.delta)   : deltaHTML(null);
+  $("d-unread").innerHTML  = f.global ? deltaHTML(KPI.unread.delta)  : deltaHTML(null);
+  $("d-latency").innerHTML = f.global ? deltaHTML(KPI.latency.delta) : deltaHTML(null);
+  $("d-gates").innerHTML   = deltaHTML(null);
+
+  const share = (!f.global && f.total !== null)
+    ? " · " + ((f.total / KPI.total.v) * 100).toFixed(1) + "% من اليوم"
+    : "";
+  $("sub-total").innerHTML   = f.global ? "جميع البوابات النشطة" : ("ضمن النطاق المحدد" + share);
+  $("sub-wanted").textContent  = f.global ? "تطابق مع قوائم البحث" : "ضمن النطاق المحدد";
+  $("sub-clean").textContent   = (f.clean === null) ? "غير محسوب على هذا المستوى" : (f.global ? "لا يوجد تطابق" : "الإجمالي ناقص المطلوب وغير المقروء");
+  $("sub-unread").textContent  = (f.unread === null) ? "غير مفصّل لكل ساعة وبوابة" : (f.global ? "تحتاج مراجعة بشرية" : "ضمن النطاق المحدد");
+  $("sub-latency").textContent = state.gate ? "متوسط هذه البوابة" : "على مستوى النظام";
+
+  // the hub at the centre of the dial reads the same scope
+  const hubV = $("hubV"), hubL = $("hubL"), hubS = $("hubS"), hubW = $("hubW");
+  hubV.textContent = fmt(f.total);
+  hubL.textContent = "عملية مسح";
+  hubS.textContent = f.note;
+  hubW.textContent = (f.wanted === null ? "—" : f.wanted) + " مطلوب";
+}
+
+function renderDial(){
+  // a ring lifts whole; an hour narrows only when the hour itself is the focus
+  const hotGate  = state.hoverGate || state.gate;
+  const hourFocus = (state.hoverGate === null && state.hoverHour !== null) ? state.hoverHour : state.hour;
+  const cellHour  = (state.hoverGate !== null) ? state.hoverHour : null;   // the exact cell under the pointer
+  const marksLive = (state.verdict !== "wanted");
+  const wantLive  = (state.verdict === null || state.verdict === "wanted");
+
+  for (let i = 0; i < 9; i++){
+    const g = RANK[i];
+    ringEls[g.id].classList.toggle("on", hotGate === g.id);
+    for (let h = 0; h < 24; h++){
+      const m = markEls[g.id + "|" + h];
+      const inScope = (!hotGate || hotGate === g.id) && (hourFocus === null || hourFocus === h);
+      const dim = !inScope || !marksLive;
+      m.classList.toggle("dim", dim);
+      m.classList.toggle("hot", !dim && (hotGate === g.id || hourFocus === h || (cellHour === h && hotGate === g.id)));
+    }
+  }
+  WANTED_HITS.forEach(function(w){
+    const node = wantEls[w.g + "|" + w.h];
+    const inScope = (!hotGate || hotGate === w.g) && (hourFocus === null || hourFocus === w.h);
+    const dim = !inScope || !wantLive;
+    node.classList.toggle("dim", dim);
+    node.classList.toggle("hot", !dim && (hotGate === w.g || hourFocus === w.h));
+  });
+
+  const litHour = (hourFocus !== null) ? hourFocus : cellHour;
+  for (let h = 0; h < 24; h += 3){
+    labelEls[h].classList.toggle("on", litHour !== null && Math.floor(litHour / 3) * 3 === h);
+  }
+
+  // locked-sector highlight
+  gSector.textContent = "";
+  if (state.hour !== null){
+    gSector.appendChild(el("path", {
+      class:"sectorsel", d: sector(state.hour * 15, state.hour * 15 + 15, R_IN - 8, R_OUT + 6)
+    }));
+  }
+
+  // the on-dial gate chip, at the inline-start (3 o'clock) crossing of its ring
+  const chip = $("gChip");
+  if (hotGate){
+    const r = ringR(RING_OF[hotGate]);
+    const p = pt(90, r);
+    const tx = $("chipTx"), bg = $("chipBg");
+    tx.textContent = GATE_BY_ID[hotGate].name;
+    tx.setAttribute("x", p[0]); tx.setAttribute("y", p[1]);
+    chip.style.display = "";
+    try {
+      const bb = tx.getBBox();
+      bg.setAttribute("x", bb.x - 10); bg.setAttribute("y", bb.y - 4);
+      bg.setAttribute("width", bb.width + 20); bg.setAttribute("height", bb.height + 8);
+      bg.setAttribute("rx", (bb.height + 8) / 2);
+    } catch (err){ /* getBBox can throw while hidden */ }
+  } else {
+    chip.style.display = "none";
+  }
+
+  bandEls.forEach(function(b){
+    b.setAttribute("aria-pressed", String(state.gate === b.dataset.g));
+  });
+  hourEls.forEach(function(p){
+    p.setAttribute("aria-pressed", String(state.hour === Number(p.dataset.h)));
+  });
+}
+
+function renderLegend(){
+  const btns = $("ringLegend").querySelectorAll(".rl-btn");
+  Array.prototype.forEach.call(btns, function(b){
+    b.setAttribute("aria-pressed", String(state.gate === b.dataset.g));
+  });
+}
+
+function renderChips(){
+  const btns = $("verdictChips").querySelectorAll(".chip");
+  Array.prototype.forEach.call(btns, function(b){
+    b.setAttribute("aria-pressed", String(state.verdict === b.dataset.v));
+  });
+}
+
+function renderOps(){
+  const filtered = !!(state.gate || state.hour !== null || state.verdict);
+  const rows = filtered ? scopedEvents() : [];
+  const active = new Set(rows.map(e => e.by).filter(Boolean));
+  const body = $("opsBody");
+  body.textContent = "";
+  OPERATORS.forEach(function(o){
+    const tr = document.createElement("tr");
+    if (active.has(o.name)) tr.className = "mark";
+    const C = 2 * Math.PI * 8;
+    tr.innerHTML =
+      '<td>' + o.name + '</td>' +
+      '<td class="n">' + fmt(o.reviews) + '</td>' +
+      '<td class="n">' + o.wanted + '</td>' +
+      '<td class="n"><span class="acc">' +
+        '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">' +
+          '<circle class="acc-bg" cx="10" cy="10" r="8"/>' +
+          '<circle class="acc-arc" cx="10" cy="10" r="8" transform="rotate(-90 10 10)" ' +
+            'stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - o.acc / 100)).toFixed(2) + '"/>' +
+        '</svg>' +
+        '<span>' + o.acc + '%</span>' +
+      '</span></td>';
+    body.appendChild(tr);
+  });
+  $("opsScope").textContent = active.size
+    ? ("مميّز: " + active.size + " ضمن النطاق")
+    : "على مستوى النظام";
+}
+
+function renderEvents(){
+  const rows = scopedEvents();
+  const list = $("evList");
+  list.textContent = "";
+  $("evCount").innerHTML = '<span style="unicode-bidi:isolate; direction:ltr">' + rows.length + '</span> من <span style="unicode-bidi:isolate; direction:ltr">' + EVENTS.length + '</span>';
+
+  if (!rows.length){
+    const d = document.createElement("div");
+    d.className = "empty";
+    d.innerHTML = 'لا توجد سجلات مطابقة' +
+      '<span class="hint">السجل الحي يغطي الساعة <span style="unicode-bidi:isolate; direction:ltr">14:00</span> فقط — جرّب قطاعًا آخر أو ألغِ التصفية</span>';
+    list.appendChild(d);
+    return;
+  }
+
+  rows.forEach(function(e){
+    const g = GATE_BY_ID[e.gate];
+    const d = document.createElement("div");
+    d.className = "ev" + (e.verdict === "wanted" ? " w" : "");
+    let html =
+      '<span class="ev-t">' + e.t + '</span>' +
+      '<span class="ev-p">' + e.plate + '</span>' +
+      '<span class="ev-v"><i class="vd" style="background:' + VERDICT_COLOR[e.verdict] + '"></i>' + VERDICT_LABEL[e.verdict] + '</span>';
+    const meta = [];
+    meta.push('<span class="iso">' + g.name + '</span>');   // "الميناء 3" mixes script and digits
+    if (e.reason) meta.push(e.reason);
+    if (e.ref)    meta.push('<span class="rf">' + e.ref + '</span>');
+    if (e.by)     meta.push('راجعها ' + e.by);
+    html += '<span class="ev-meta">' + meta.join(' <span style="opacity:.4">·</span> ') + '</span>';
+    d.innerHTML = html;
+    list.appendChild(d);
+  });
+}
+
+function renderScope(){
+  const gLab = state.gate ? GATE_BY_ID[state.gate].name : "كل البوابات";
+  const hLab = state.hour !== null
+    ? '<span style="direction:ltr; unicode-bidi:isolate">' + hh(state.hour) + " – " + hh((state.hour + 1) % 24) + '</span>'
+    : "اليوم كامل";
+  const vLab = state.verdict ? (" · <b>" + VERDICT_LABEL[state.verdict] + "</b>") : "";
+  $("scopePill").innerHTML = 'النطاق: <b class="iso">' + gLab + "</b> · <b>" + hLab + "</b>" + vLab;
+  $("resetBtn").hidden = !(state.gate || state.hour !== null || state.verdict);
+}
+
+function render(){
+  renderScope();
+  renderLedger();
+  renderDial();
+  renderLegend();
+  renderChips();
+  renderOps();
+  renderEvents();
+}
+
+/* ============================================================
+   11. Interaction
+   ============================================================ */
+
+function toggleGate(id){
+  state.gate = (state.gate === id) ? null : id;
+  render();
+}
+function toggleHour(h){
+  state.hour = (state.hour === h) ? null : h;
+  render();
+}
+function setHoverGate(id){
+  state.hoverGate = id;
+  renderDial();
+  renderLegendHover(id);
+}
+function renderLegendHover(id){
+  const btns = $("ringLegend").querySelectorAll(".rl-btn");
+  Array.prototype.forEach.call(btns, function(b){
+    b.classList.toggle("hov", !!id && b.dataset.g === id);
+  });
+}
+
+// ---- the floating readout, pinned near the pointer ----
+const readout = $("readout");
+const wrapEl  = document.querySelector(".dial-wrap");
+const isRTL   = getComputedStyle(document.documentElement).direction === "rtl";
+
+function placeReadout(clientX, clientY){
+  const rect = wrapEl.getBoundingClientRect();
+  const px = clientX - rect.left;               // pointer maths is always LTR
+  const py = clientY - rect.top;
+  const w  = readout.offsetWidth  || 190;
+  const hgt= readout.offsetHeight || 90;
+  let x = px + 18, y = py + 16;
+  if (x + w > rect.width)  x = px - w - 18;
+  if (y + hgt > rect.height) y = py - hgt - 14;
+  x = Math.max(0, Math.min(x, Math.max(0, rect.width - w)));
+  y = Math.max(0, Math.min(y, Math.max(0, rect.height - hgt)));
+  const tx = isRTL ? -(rect.width - w - x) : x;
+  readout.style.transform = "translate(" + tx.toFixed(0) + "px," + y.toFixed(0) + "px)";
+}
+
+function hourFromPoint(clientX, clientY){
+  // the viewBox is letterboxed by preserveAspectRatio, so undo one uniform scale
+  const r  = dial.getBoundingClientRect();
+  const s  = Math.min(r.width, r.height) / 860;
+  const ox = r.left + (r.width  - 860 * s) / 2;
+  const oy = r.top  + (r.height - 860 * s) / 2;
+  const x = (clientX - ox) / s - CX;            // pointer maths inside SVG is always LTR
+  const y = (clientY - oy) / s - CY;
+  let a = Math.atan2(x, -y) * 180 / Math.PI;    // clockwise from 12 o'clock
+  if (a < 0) a += 360;
+  return Math.floor(a / 15) % 24;
+}
+
+function showReadout(gateId, h, clientX, clientY){
+  const rows = [];
+  let title;
+  if (gateId){
+    const g = GATE_BY_ID[gateId];
+    const v = MATRIX[gateId][h];
+    const isW = WANTED_SET.has(gateId + "|" + h);
+    title = g.name;
+    rows.push(["الساعة", hh(h) + " – " + hh((h + 1) % 24)]);
+    rows.push(["عمليات المسح", fmt(v)]);
+    rows.push(["مطلوب في هذه الخانة", isW ? "1" : "0"]);
+    rows.push(["إجمالي البوابة", fmt(g.total)]);
+    rows.push(["الحالة", STATUS_LABEL[g.status] + " · " + g.ms + " مللي/ث"]);
+  } else {
+    title = "الساعة " + hh(h) + " – " + hh((h + 1) % 24);
+    rows.push(["إجمالي المسح", fmt(HOURLY.total[h])]);
+    rows.push(["مطلوب", fmt(HOURLY.wanted[h])]);
+    rows.push(["غير مقروء", fmt(HOURLY.unread[h])]);
+    let top = ACTIVE[0];
+    ACTIVE.forEach(function(g){ if (MATRIX[g.id][h] > MATRIX[top.id][h]) top = g; });
+    rows.push(["الأعلى", top.name + " (" + fmt(MATRIX[top.id][h]) + ")"]);
+  }
+  readout.innerHTML = '<div class="ro-t">' + title + '</div>' +
+    rows.map(function(r){
+      return '<div class="ro-r"><span>' + r[0] + '</span><b style="unicode-bidi:isolate">' + r[1] + '</b></div>';
+    }).join("") +
+    '<div class="ro-h">انقر للتثبيت على هذا النطاق</div>';
+  readout.classList.add("show");
+  placeReadout(clientX, clientY);
+}
+function hideReadout(){
+  readout.classList.remove("show");
+  state.hoverHour = null;
+  state.hoverGate = null;
+  renderDial();
+  renderLegendHover(null);
+}
+
+dial.addEventListener("pointermove", function(e){
+  const t = e.target;
+  if (t.classList && t.classList.contains("bandhit")){
+    const gid = t.dataset.g;
+    const h = hourFromPoint(e.clientX, e.clientY);
+    state.hoverGate = gid; state.hoverHour = h;
+    renderDial(); renderLegendHover(gid);
+    showReadout(gid, h, e.clientX, e.clientY);
+  } else if (t.classList && t.classList.contains("hourhit")){
+    const h = Number(t.dataset.h);
+    state.hoverGate = null; state.hoverHour = h;
+    renderDial(); renderLegendHover(null);
+    showReadout(null, h, e.clientX, e.clientY);
+  } else {
+    hideReadout();
+  }
+});
+dial.addEventListener("pointerleave", hideReadout);
+
+dial.addEventListener("click", function(e){
+  const t = e.target;
+  if (t.classList && t.classList.contains("bandhit")) toggleGate(t.dataset.g);
+  else if (t.classList && t.classList.contains("hourhit")) toggleHour(Number(t.dataset.h));
+});
+
+// ---- roving tabindex over the two SVG control groups ----
+function roving(list, onActivate, describe){
+  list.forEach(function(node, i){
+    node.addEventListener("keydown", function(e){
+      let next = -1;
+      if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = (i + 1) % list.length;
+      else if (e.key === "ArrowRight" || e.key === "ArrowUp") next = (i - 1 + list.length) % list.length;
+      else if (e.key === "Home") next = 0;
+      else if (e.key === "End") next = list.length - 1;
+      else if (e.key === "Enter" || e.key === " " || e.key === "Spacebar"){
+        e.preventDefault(); onActivate(node); return;
+      } else if (e.key === "Escape"){
+        state.gate = null; state.hour = null; state.verdict = null; render(); return;
+      }
+      if (next >= 0){
+        e.preventDefault();
+        list.forEach(function(n){ n.setAttribute("tabindex", "-1"); });
+        list[next].setAttribute("tabindex", "0");
+        list[next].focus();
+      }
+    });
+    node.addEventListener("focus", function(){
+      list.forEach(function(n){ n.setAttribute("tabindex", "-1"); });
+      node.setAttribute("tabindex", "0");
+      describe(node);
+    });
+    node.addEventListener("blur", hideReadout);
+  });
+}
+roving(bandEls, function(n){ toggleGate(n.dataset.g); }, function(n){
+  const r = n.getBoundingClientRect();
+  const gid = n.dataset.g;
+  state.hoverGate = gid; state.hoverHour = PEAK[gid];   // keyboard lands on that gate's busiest hour
+  renderDial(); renderLegendHover(gid);
+  showReadout(gid, PEAK[gid], r.left + r.width / 2, r.top + 34);
+});
+roving(hourEls, function(n){ toggleHour(Number(n.dataset.h)); }, function(n){
+  const r = n.getBoundingClientRect();
+  const h = Number(n.dataset.h);
+  state.hoverGate = null; state.hoverHour = h;
+  renderDial(); renderLegendHover(null);
+  showReadout(null, h, r.left + r.width / 2, r.top + r.height / 2);
+});
+
+$("resetBtn").addEventListener("click", function(){
+  state.gate = null; state.hour = null; state.verdict = null;
+  render();
+});
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape" && (state.gate || state.hour !== null || state.verdict)){
+    state.gate = null; state.hour = null; state.verdict = null;
+    render();
+  }
+});
+
+/* ============================================================
+   12. First paint
+   ============================================================ */
+
+$("tbName").textContent    = ADMIN.name;
+$("tbRole").textContent    = ADMIN.role;
+$("tbInitial").textContent = ADMIN.initial;
+$("tbUpdated").textContent = UPDATED;
+
+render();
+
+// the accuracy arcs draw once, after the panels have settled
+window.setTimeout(function(){
+  if (REDUCED) return;
+  const arcs = document.querySelectorAll(".acc-arc");
+  Array.prototype.forEach.call(arcs, function(a){
+    const to = a.getAttribute("stroke-dashoffset");
+    const C = 2 * Math.PI * 8;
+    a.setAttribute("stroke-dashoffset", C);
+    window.requestAnimationFrame(function(){
+      window.requestAnimationFrame(function(){ a.setAttribute("stroke-dashoffset", to); });
+    });
+  });
+}, 380);
+
+})();
+</script>
+</body>
+</html>

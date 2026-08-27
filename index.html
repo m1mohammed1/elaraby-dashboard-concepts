@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>عشرة تصاميم للنظرة العامة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b; --wanted:#ff6b6b; --clean:#3ddc97;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#06100c; color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  font-weight:400; line-height:1.7; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── scene ───────────────────────────────────────────── */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(100px)}
+.l1{width:820px;height:820px;top:-260px;left:-180px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.20}
+.l2{width:720px;height:720px;top:-160px;right:-150px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.15}
+.l3{width:940px;height:940px;bottom:-420px;left:24%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.17}
+.l4{width:600px;height:600px;bottom:-200px;right:6%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.11}
+.l5{width:1100px;height:520px;top:38%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.13}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 120% 90% at 50% 45%,transparent 30%,rgba(0,0,0,.62) 100%)}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── shell ───────────────────────────────────────────── */
+.wrap{position:relative;z-index:2;max-width:1560px;margin-inline:auto;padding:34px 30px 70px}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;
+  padding-block-end:20px;border-block-end:1px solid var(--line);margin-block-end:30px}
+.title{font-size:30px;font-weight:600;letter-spacing:normal;line-height:1.35}
+.sub{color:var(--ink-3);font-size:14px;margin-block-start:6px;max-width:62ch}
+.sub b{color:var(--ink-2);font-weight:500}
+
+.seg{display:inline-flex;padding:3px;border-radius:11px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.085);
+  backdrop-filter:blur(20px) saturate(1.25);-webkit-backdrop-filter:blur(20px) saturate(1.25);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.09) inset}
+.seg button{appearance:none;border:0;background:transparent;cursor:pointer;
+  font:inherit;font-size:13px;font-weight:500;color:var(--ink-3);
+  padding:7px 16px;border-radius:8px;transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.085);color:var(--ink)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── grid of live previews ───────────────────────────── */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:1240px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+.card{
+  border-radius:16px;overflow:hidden;cursor:pointer;text-align:start;
+  background:rgba(255,255,255,.04);
+  backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.09) inset, 0 20px 50px -22px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;appearance:none;font:inherit;color:inherit;padding:0;
+  opacity:0;transform:translateY(18px);
+  animation:rise .62s var(--ease) forwards;
+  transition:transform .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+@keyframes rise{to{opacity:1;transform:none}}
+.card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.12) inset, 0 30px 62px -24px rgba(0,0,0,.72)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.shot{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;
+  background:#06100c;border-block-end:1px solid var(--line-2)}
+.shot iframe{position:absolute;top:0;left:0;width:1440px;height:900px;border:0;
+  transform-origin:0 0;pointer-events:none}
+.shot .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-3);font-size:12px;
+  text-align:center;padding:22px;line-height:1.75}
+.shot[data-failed] iframe{display:none}
+.shot::after{content:"";position:absolute;inset:0;pointer-events:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,.04) inset}
+
+.meta{padding:15px 17px 17px;display:flex;gap:13px;align-items:flex-start}
+.num{flex:none;font-size:12px;font-weight:600;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  width:26px;height:26px;display:grid;place-items:center;border-radius:8px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
+  direction:ltr;unicode-bidi:isolate}
+.mname{font-size:16px;font-weight:600;line-height:1.4}
+.mpitch{font-size:12.5px;color:var(--ink-3);line-height:1.65;margin-block-start:3px}
+
+/* ── single view ─────────────────────────────────────── */
+.single{display:none}
+.single.on{display:block}
+.grid.off{display:none}
+
+.rail{display:flex;gap:7px;flex-wrap:wrap;margin-block-end:18px}
+.rail button{appearance:none;font:inherit;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--ink-3);
+  padding:8px 14px;border-radius:10px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:color .16s var(--ease),background .16s var(--ease),border-color .16s var(--ease)}
+.rail button:hover{color:var(--ink-2);border-color:rgba(255,255,255,.13)}
+.rail button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink);
+  border-color:rgba(255,255,255,.18);
+  box-shadow:0 0 34px -12px rgba(110,196,155,.42)}
+.rail button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rail .k{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;
+  color:var(--ink-3);margin-inline-end:7px;font-size:11px}
+
+.stagebar{display:flex;align-items:baseline;justify-content:space-between;gap:20px;
+  flex-wrap:wrap;margin-block-end:12px}
+.stagename{font-size:19px;font-weight:600}
+.stagepitch{font-size:13px;color:var(--ink-3);flex:1;min-width:220px}
+.openlink{font-size:13px;color:var(--accent);text-decoration:none;
+  border-block-end:1px solid rgba(110,196,155,.32);padding-block-end:1px;white-space:nowrap}
+.openlink:hover{border-block-end-color:var(--accent)}
+.openlink:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+
+.stage{border-radius:16px;overflow:hidden;position:relative;
+  border:1px solid rgba(255,255,255,.09);background:#06100c;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset, 0 34px 80px -30px rgba(0,0,0,.75);
+  height:min(78vh,900px)}
+.stage iframe{width:100%;height:100%;border:0;display:block}
+
+footer.note{margin-block-start:34px;padding-block-start:18px;border-block-start:1px solid var(--line-2);
+  color:var(--ink-3);font-size:12px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+  .card{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 class="title">عشرة تصاميم للنظرة العامة</h1>
+      <p class="sub">
+        نفس البيانات، نفس المادة (زجاج محايد فوق مشهد أخضر غامق)، نفس قواعد الحركة —
+        <b>و عشر أفكار مختلفة تمامًا في ترتيب الشاشة نفسها.</b>
+        اضغط على أي تصميم لتفتحه بحجمه الكامل.
+      </p>
+    </div>
+    <div class="seg" role="group" aria-label="طريقة العرض">
+      <button id="vGrid" aria-pressed="true">الكل</button>
+      <button id="vOne" aria-pressed="false">مفرد</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid" id="grid"></div>
+
+    <section class="single" id="single" aria-label="عرض مفرد">
+      <div class="rail" id="rail" role="group" aria-label="اختيار التصميم"></div>
+      <div class="stagebar">
+        <div class="stagename" id="stageName">—</div>
+        <div class="stagepitch" id="stagePitch"></div>
+        <a class="openlink" id="openLink" href="#" target="_blank" rel="noopener">افتح في تبويب مستقل ↗</a>
+      </div>
+      <div class="stage"><iframe id="stageFrame" title="معاينة التصميم" loading="lazy"></iframe></div>
+    </section>
+  </main>
+
+  <footer class="note">
+    <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+    <span>الأسهم ← → للتنقل · الأرقام 1–9 و 0 للاختيار المباشر</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DESIGNS = [
+    { f:"01-radar.html", n:"الرادار",
+      p:"قرص دائري: الزاوية ساعة، الحلقة بوابة، والنقطة عملية مسح.",
+      d:"قرص رادار كبير يملأ الشاشة: الزاوية هي ساعة اليوم، وكل حلقة بوابة، وعتامة النقطة حجم المسح، والنقاط الحمراء مركبات مطلوبة — واضغط حلقة أو ساعة أو حكمًا فتُعاد تصفية الأرقام وسجل الأحداث معًا." },
+    { f:"02-lattice.html", n:"الشبكة الزمنية",
+      p:"‏264 خلية: 11 بوابة × 24 ساعة. الكثافة هي المعلومة.",
+      d:"شبكة من 264 خلية تعرض 11 بوابة في 24 ساعة، لون الخلية كثافة المسح فيها وعلامتها الحمراء بلاغ مطلوب، والضغط على خلية أو بوابة أو ساعة أو مراجع يعيد حساب الأرقام والهوامش والسجل الجانبي معًا." },
+    { f:"03-river.html", n:"النهر",
+      p:"تدفّق سانكي بمقياس حقيقي، ومعه مخطط منفصل لمسار الـ38.",
+      d:"مخطط سانكي كبير يعرض تدفق 12,847 عملية مسح من البوابات التسع إلى الحكم ثم الإجراء بمقياس حقيقي غير مضخّم، ومعه مخطط مصغّر منفصل لمسار المركبات المطلوبة الـ38، والضغط على أي عقدة يصفّي السجلات والمراجعين والساعات تحته." },
+    { f:"04-triage.html", n:"الفرز",
+      p:"بلاغ واحد بحجم كامل وطابور خلفه — مساحة عمل لا لوحة.",
+      d:"محطة فرز: بلاغ «مطلوب» واحد معروض بحجم كامل بلوحته ولقطة كاميرته وأزرار الحكم الثلاثة، وإلى جانبه طابور الـ34 بلاغًا المتبقية، وكل ما في الشاشة — المنحنى والبوابات والمراجعون — يعيد تحديد نطاقه حسب البلاغ المفتوح." },
+    { f:"05-mosaic.html", n:"الجدار",
+      p:"مستطيل لكل بوابة، مساحته حجمها. الضغط يكبّره ويقسّمه.",
+      d:"شاشة واحدة بلا قوائم جانبية ولا بطاقات: مستطيل لكل بوابة تحدّد مساحته حجم المسح، ومقسّم من الداخل إلى مربّعات الساعات، والضغط على بوابة يكبّرها ويعيد تقسيمها حسب المراجعين." },
+    { f:"06-spine.html", n:"العمود الفقري",
+      p:"خط زمني واحد تتفرّع منه الأحداث يمينًا ويسارًا.",
+      d:"سجل فحص على هيئة عمود فقري: خط زمني واحد يمتد بطول الصفحة، تتفرّع منه بطاقات الأحداث يمينًا ويسارًا وفقرة لكل ساعة، مع شريط جانبي يتتبّع الساعة التي تقرؤها أثناء التمرير." },
+    { f:"07-noc.html", n:"غرفة التحكم",
+      p:"الرقم 38 بحجم 200 بكسل يحتل ربع الشاشة.",
+      d:"جدار غرفة تحكم: رقم المركبات المطلوبة بحجم 200 بكسل يملأ ربع الشاشة، وإلى جانبه لوحة تعرض البوابات الإحدى عشرة كشريط من 24 شريحة لكل ساعة، والضغط على بوابة أو على ساعة يعيد حساب كل لوحة على الشاشة." },
+    { f:"08-orbit.html", n:"المدار",
+      p:"قرص حلقي: الحكم ثم البوابات ثم الساعات، والتنقّل بالغوص فيه.",
+      d:"لوحة يشغل نصفها قرص حلقي متحد المركز: النتيجة في الحلقة الداخلية، والبوابات التسع في الوسطى، وساعات اليوم في الخارجية، والضغط على أي قوس يقيّد الدفتر والمنحنى وقائمة الأحداث المجاورة به." },
+    { f:"09-depth.html", n:"الطبقات",
+      p:"ثلاث طبقات زجاجية، وزر «العمق» يقرّب أيها تشاء.",
+      d:"لوحة من ثلاث طبقات زجاجية متراكبة فوق مشهد أخضر، يتحكم زر «العمق» في أيها يقترب ويصفو وأيها يتراجع خلف ضباب: الخلفية تحمل أحجام البوابات ومنحنى الـ24 ساعة، والوسط الأرقام الرئيسية وحالة البوابات والمراجعين، والأمام تنبيهات المركبات المطلوبة وسجل الأحداث." },
+    { f:"10-editorial.html", n:"الصحيفة",
+      p:"تقرير بأعمدة يُعاد كتابته كلّه عند الضغط على اسم بوابة.",
+      d:"تقرير صحفي من صفحة واحدة: عنوان رئيسي ومقدّمة ومقال بثلاثة أعمدة مع اقتباس بارز، تُعاد كتابته كلّه — العنوان والنص والمنحنيان والجداول — عند الضغط على اسم أي بوابة داخل المتن." }
+  ];
+
+  var grid=document.getElementById("grid"), rail=document.getElementById("rail"),
+      single=document.getElementById("single"),
+      stageFrame=document.getElementById("stageFrame"),
+      stageName=document.getElementById("stageName"),
+      stagePitch=document.getElementById("stagePitch"),
+      openLink=document.getElementById("openLink"),
+      vGrid=document.getElementById("vGrid"), vOne=document.getElementById("vOne");
+
+  var state={ view:"grid", i:0 };
+
+  /* The page works two ways: served from a folder it loads each design by URL;
+     built as one standalone file it finds them base64-encoded on window.EMBEDDED. */
+  var EMB = window.EMBEDDED || null;
+  function decodeB64(b64){
+    var bin=atob(b64), n=bin.length, u=new Uint8Array(n);
+    for(var i=0;i<n;i++) u[i]=bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(u);
+  }
+  function mount(frame,file){
+    if(EMB && EMB[file]){
+      if(frame.getAttribute("data-mounted")===file) return;
+      frame.setAttribute("data-mounted",file);
+      frame.srcdoc=decodeB64(EMB[file]);
+    } else if(frame.getAttribute("src")!==file){
+      frame.setAttribute("src",file);
+    }
+    verify(frame);
+  }
+  /* If the host blocks embedded frames, say so rather than showing empty boxes.
+     A load event, or a cross-origin contentDocument (which is what file:// gives
+     us), both mean the frame really did render — neither is a failure. */
+  function verify(frame){
+    var loaded=false;
+    frame.addEventListener("load",function(){ loaded=true; },{once:true});
+    setTimeout(function(){
+      if(loaded) return;
+      var ok=false;
+      try{ var d=frame.contentDocument;
+           ok = !!(d && d.body && (d.body.innerText||"").length>200); }catch(e){ ok=true; }
+      if(ok) return;
+      var shot=frame.closest(".shot");
+      if(!shot) return;
+      shot.setAttribute("data-failed","1");
+      var ph=shot.querySelector(".ph");
+      if(!ph){ ph=document.createElement("div"); ph.className="ph"; shot.appendChild(ph); }
+      ph.textContent="تعذّر عرض المعاينة داخل هذه الصفحة — افتح ملف التصميم مباشرة من مجلد prototype/gallery";
+    },3000);
+  }
+
+  /* ── build grid ───────────────────────────────────── */
+  DESIGNS.forEach(function(d,i){
+    var card=document.createElement("button");
+    card.className="card"; card.type="button";
+    card.style.animationDelay=(i*55)+"ms";
+    card.setAttribute("aria-label", d.n+" — "+d.p);
+    card.innerHTML=
+      '<div class="shot"><div class="ph">…جارٍ التحميل</div></div>'+
+      '<div class="meta">'+
+        '<span class="num">'+String(i+1).padStart(2,"0")+'</span>'+
+        '<span><span class="mname">'+d.n+'</span>'+
+        '<span class="mpitch" style="display:block">'+d.p+'</span></span>'+
+      '</div>';
+    card.addEventListener("click",function(){ show(i); });
+    grid.appendChild(card);
+  });
+
+  /* live thumbnails, mounted only when scrolled into view */
+  function fit(shot){
+    var f=shot.querySelector("iframe"); if(!f) return;
+    f.style.transform="scale("+(shot.clientWidth/1440)+")";
+  }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var shot=e.target;
+      if(shot.dataset.mounted) return;
+      shot.dataset.mounted="1";
+      var idx=[].indexOf.call(grid.children, shot.parentNode);
+      var f=document.createElement("iframe");
+      f.setAttribute("tabindex","-1");
+      f.setAttribute("aria-hidden","true"); f.loading="lazy"; f.title="";
+      f.addEventListener("load",function(){ var ph=shot.querySelector(".ph"); if(ph) ph.remove(); });
+      shot.appendChild(f); fit(shot); mount(f, DESIGNS[idx].f);
+      io.unobserve(shot);
+    });
+  },{rootMargin:"400px"});
+  [].forEach.call(grid.querySelectorAll(".shot"),function(s){ io.observe(s); });
+  addEventListener("resize",function(){
+    [].forEach.call(grid.querySelectorAll(".shot"),fit);
+  });
+
+  /* ── build rail ───────────────────────────────────── */
+  DESIGNS.forEach(function(d,i){
+    var b=document.createElement("button"); b.type="button";
+    b.innerHTML='<span class="k">'+String(i+1).padStart(2,"0")+'</span>'+d.n;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",function(){ show(i); });
+    rail.appendChild(b);
+  });
+
+  /* ── view switching ───────────────────────────────── */
+  function setView(v){
+    state.view=v;
+    grid.classList.toggle("off", v!=="grid");
+    single.classList.toggle("on", v==="single");
+    vGrid.setAttribute("aria-pressed", String(v==="grid"));
+    vOne.setAttribute("aria-pressed", String(v==="single"));
+  }
+  function show(i){
+    state.i=i; var it=DESIGNS[i];
+    mount(stageFrame, it.f);
+    stageName.textContent=it.n;
+    stagePitch.textContent=it.d;
+    if(EMB){ openLink.hidden=true; } else { openLink.href=it.f; }
+    [].forEach.call(rail.children,function(b,j){ b.setAttribute("aria-pressed",String(j===i)); });
+    setView("single");
+    single.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  vGrid.addEventListener("click",function(){ setView("grid"); });
+  vOne.addEventListener("click",function(){ show(state.i); });
+
+  /* ── keyboard ─────────────────────────────────────── */
+  addEventListener("keydown",function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    if(/^[0-9]$/.test(e.key)){ var n=e.key==="0"?9:(+e.key-1); if(n<DESIGNS.length){ show(n); } return; }
+    if(state.view!=="single") return;
+    /* RTL: ArrowLeft moves forward through the list */
+    if(e.key==="ArrowLeft"){ show((state.i+1)%DESIGNS.length); }
+    else if(e.key==="ArrowRight"){ show((state.i-1+DESIGNS.length)%DESIGNS.length); }
+    else if(e.key==="Escape"){ setView("grid"); }
+  });
+})();
+</script>
+</body>
+</html>

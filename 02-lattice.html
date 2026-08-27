@@ -1,0 +1,1625 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>الشبكة الزمنية — النظرة العامة</title>
+<style>
+/* ============================================================
+   الشبكة الزمنية — بطاقة مثقّبة: 11 بوابة × 24 ساعة = 264 خلية
+   ============================================================ */
+
+:root{
+  --ink:      #f1f6f3;
+  --ink-2:    #bac6c0;
+  --ink-3:    #87938c;
+  --line:     rgba(255,255,255,.09);
+  --line-2:   rgba(255,255,255,.05);
+
+  --accent:   #6ec49b;
+
+  --wanted:   #ff6b6b;
+  --clean:    #3ddc97;
+  --unread:   #e8b055;
+
+  --s1: #199e70;  --s2: #3987e5;  --s3: #d55181;  --s4: #9085e9;
+
+  /* هندسة الشبكة */
+  --hdr:   200px;
+  --spark: 100px;
+  --tot:   84px;
+  --cmin:  0px;
+  --cellh: clamp(18px, 3.8vh, 36px);
+  --gap:   2px;
+  --railw: 374px;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+html{overflow-x:hidden}
+
+body{
+  margin:0;
+  background:#06100c;
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-size:13px;
+  line-height:1.75;
+  letter-spacing:normal;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+.num{
+  direction:ltr;
+  unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+}
+
+/* ---------- المشهد: الأخضر الداكن يحمل كل اللون ---------- */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.scene i{position:absolute;display:block;border-radius:50%;filter:blur(90px)}
+.l1{width:52vw;height:52vw;inset-block-start:-14vw;inset-inline-start:-8vw;background:radial-gradient(circle,#0f4d38 0%,transparent 68%);opacity:.20}
+.l2{width:46vw;height:46vw;inset-block-start:6vh;inset-inline-end:-10vw;background:radial-gradient(circle,#10613f 0%,transparent 66%);opacity:.15}
+.l3{width:62vw;height:40vw;inset-block-end:-16vw;inset-inline-start:14vw;background:radial-gradient(circle,#0b3a30 0%,transparent 70%);opacity:.22}
+.l4{width:34vw;height:34vw;inset-block-end:4vh;inset-inline-end:6vw;background:radial-gradient(circle,#145a45 0%,transparent 68%);opacity:.12}
+.l5{width:40vw;height:28vw;inset-block-start:36vh;inset-inline-start:26vw;background:radial-gradient(circle,#08302a 0%,transparent 72%);opacity:.18}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 92% at 50% 42%, transparent 38%, rgba(0,0,0,.42) 78%, rgba(0,0,0,.68) 100%)}
+.grain{position:fixed;inset:0;width:100%;height:100%;z-index:2;opacity:.035;pointer-events:none}
+
+/* ---------- الهيكل ---------- */
+.app{
+  position:relative;z-index:3;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  padding:14px clamp(10px,1.4vw,20px) 0;
+  transition:padding-inline-start .22s var(--ease);
+}
+.app.rail-open{padding-inline-start:calc(var(--railw) + 20px)}
+
+/* ---------- الشريط العلوي: ستة أرقام على سطر واحد بلا بطاقات ---------- */
+.band{
+  display:flex;align-items:stretch;flex-wrap:wrap;
+  gap:0;
+  padding:10px 14px;
+  background:rgba(255,255,255,.045);
+  backdrop-filter:blur(22px) saturate(1.25);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid rgba(255,255,255,.085);
+  border-radius:16px;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset, 0 20px 50px -20px rgba(0,0,0,.55);
+}
+.run{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:2px 18px;min-width:126px;flex:1 1 auto;
+}
+.run + .run{border-inline-start:1px solid var(--line)}
+.run .lab{font-size:11px;color:var(--ink-3);line-height:1.5;white-space:nowrap}
+.run .fig{font-size:23px;font-weight:600;line-height:1.28;color:var(--ink);letter-spacing:normal}
+.run .fig small{font-size:12px;font-weight:400;color:var(--ink-3);margin-inline-start:4px}
+.run .dl{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink-2);line-height:1.5}
+.run .dl svg{flex:none;opacity:.85}
+.run .dl.mute{color:var(--ink-3)}
+.run.who{flex:0 0 auto;min-width:0;padding-inline-end:6px;justify-content:center}
+.who-row{display:flex;align-items:center;gap:9px}
+.avatar{
+  inline-size:32px;block-size:32px;border-radius:10px;flex:none;
+  display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--ink);
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);
+}
+.who-row .n{font-size:12.5px;font-weight:500;line-height:1.4}
+.who-row .r{font-size:11px;color:var(--ink-3);line-height:1.4}
+.updated{font-size:11px;color:var(--ink-3);white-space:nowrap}
+
+/* ---------- شريط النطاق + القراءة اللحظية ---------- */
+.scopebar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:9px 6px 7px;min-height:38px;
+}
+.scope-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:4px 10px 4px 6px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.11);
+  font-size:11.5px;color:var(--ink);
+}
+.scope-chip b{font-weight:600}
+.xbtn{
+  appearance:none;border:0;background:rgba(255,255,255,.08);color:var(--ink-2);
+  inline-size:18px;block-size:18px;border-radius:50%;display:grid;place-items:center;
+  cursor:pointer;padding:0;transition:background .15s var(--ease), color .15s var(--ease);
+}
+.xbtn:hover{background:rgba(255,255,255,.16);color:var(--ink)}
+.readout{font-size:11.5px;color:var(--ink-3);min-height:18px}
+.readout b{color:var(--ink-2);font-weight:500}
+.spacer{flex:1 1 auto}
+.tgl{
+  appearance:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:4px 10px;border-radius:8px;
+  background:transparent;border:1px solid var(--line-2);
+  color:var(--ink-3);font-family:inherit;font-size:11.5px;
+  transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.tgl:hover{background:rgba(255,255,255,.05);color:var(--ink-2)}
+.tgl[aria-pressed="true"]{background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.14);color:var(--ink)}
+.tgl .sw{inline-size:9px;block-size:9px;border-radius:2px;flex:none;opacity:.35;transition:opacity .15s var(--ease)}
+.tgl[aria-pressed="true"] .sw{opacity:1}
+.sw.w{background:var(--wanted)}
+.sw.u{background:var(--unread)}
+
+/* ---------- المسرح والشبكة ---------- */
+.stage{
+  flex:1 1 auto;
+  min-width:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-block-end:4px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.16) transparent;
+}
+.stage::-webkit-scrollbar{height:8px}
+.stage::-webkit-scrollbar-track{background:transparent}
+.stage::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:8px}
+
+.matrix{
+  display:grid;
+  grid-template-columns:var(--hdr) repeat(24, minmax(var(--cmin), 1fr)) var(--spark) var(--tot);
+  gap:var(--gap);
+  align-content:start;
+  /* على الشاشات الضيقة تتجاوز المسارات عرض الحاوية؛ بدون هذا يخرج
+     الجدول من لوح الزجاج بدل أن يكبر معه */
+  min-inline-size:max-content;
+  padding:12px 12px 10px;
+  background:rgba(255,255,255,.032);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.08) inset, 0 24px 60px -26px rgba(0,0,0,.6);
+}
+
+/* رؤوس الأعمدة (الساعات) */
+.hh{
+  appearance:none;background:transparent;border:0;padding:0 0 5px;margin:0;
+  inline-size:100%;
+  font-family:inherit;font-size:10px;color:var(--ink-3);
+  cursor:pointer;border-radius:4px;
+  transition:color .15s var(--ease), background .15s var(--ease), opacity .16s var(--ease);
+}
+.hh:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+.hh.tick{color:var(--ink-2);font-weight:500}
+.hh.on{color:var(--ink);font-weight:600}
+.corner-tl{
+  grid-column:1 / span 1;
+  display:flex;align-items:flex-end;padding-block-end:5px;
+  font-size:10.5px;color:var(--ink-3);
+}
+/* لا بد أن يغطي عمودَي المنحنى والإجمالي معًا، وإلا انزاح الجدول كله عمودًا واحدًا */
+.corner-tr{
+  grid-column:26 / span 2;
+  display:flex;align-items:flex-end;justify-content:flex-start;gap:10px;
+  padding-inline-start:4px;padding-block-end:5px;font-size:10px;color:var(--ink-3);
+}
+.corner-tr span:last-child{margin-inline-start:auto}
+
+/* رأس الصف (البوابة) */
+.gh{
+  appearance:none;background:transparent;border:0;margin:0;
+  inline-size:100%;
+  padding-inline:4px 6px;
+  display:flex;align-items:center;gap:7px;
+  font-family:inherit;text-align:start;cursor:pointer;
+  border-radius:6px;overflow:hidden;
+  block-size:var(--cellh);
+  transition:background .15s var(--ease), opacity .16s var(--ease);
+}
+.gh:hover{background:rgba(255,255,255,.05)}
+.gh .dot{inline-size:6px;block-size:6px;border-radius:50%;flex:none;background:var(--clean)}
+.gh.st-degraded .dot{background:var(--unread)}
+.gh.st-offline .dot{background:var(--wanted)}
+.gh.st-maint  .dot{background:var(--ink-3)}
+.gh .nm{font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.gh.on .nm{color:var(--ink);font-weight:600}
+.gh .stt{font-size:9.5px;color:var(--ink-3);margin-inline-start:auto;white-space:nowrap;line-height:1.4}
+.gh.dead .nm{color:var(--ink-3)}
+
+/* الخلية */
+.cell{
+  appearance:none;border:0;margin:0;padding:0;
+  position:relative;
+  /* أزرار النماذج لا تتمدد تلقائيًا داخل الشبكة في Chromium،
+     فبدون هذا تتباعد الخلايا 13px بدل 2px */
+  inline-size:100%;
+  block-size:var(--cellh);
+  border-radius:3px;
+  background:rgba(255,255,255,var(--f,.02));
+  cursor:pointer;
+  transition:background .15s var(--ease), opacity .16s var(--ease), box-shadow .16s var(--ease);
+  animation:cellIn .42s var(--ease) both;
+  animation-delay:calc(var(--ci,0) * 13ms);
+}
+.cell:hover{background:rgba(255,255,255,calc(var(--f,.02) + .07))}
+.cell.dead{
+  background:transparent;
+  background-image:repeating-linear-gradient(45deg, rgba(255,255,255,.11) 0 1.5px, transparent 1.5px 6px);
+  cursor:not-allowed;
+}
+.cell.dead:hover{background-image:repeating-linear-gradient(45deg, rgba(255,255,255,.11) 0 1.5px, transparent 1.5px 6px)}
+/* التوهج الوحيد المسموح به في العقد (§1) — على العنصر المحدّد فقط */
+.cell.sel{box-shadow:0 0 40px -12px rgba(110,196,155,.35)}
+.mk{position:absolute;display:block;border-radius:1px;pointer-events:none}
+.mk.w{inset-block-start:2px;inset-inline-end:2px;inline-size:5px;block-size:5px;background:var(--wanted)}
+.mk.u{inset-block-end:2px;inset-inline-start:2px;inline-size:4px;block-size:4px;background:var(--unread);opacity:.9}
+.no-w .mk.w{display:none}
+.no-u .mk.u{display:none}
+
+/* التعتيم = التحديد */
+.dim{opacity:.25}
+/* النصوص المعتّمة تظل سياقًا مقروءًا: التعتيم للتراتب لا للإخفاء.
+   الخلايا وحدها تنزل إلى .25 لأنها ترميز بصري لا نص. */
+.gh.dim,.hh.dim,.hn.dim,.tt.dim,.sp.dim,.op.dim{opacity:.45}
+
+/* عمود المنحنى والإجمالي */
+.sp{display:flex;align-items:center;justify-content:center;block-size:var(--cellh);padding-inline:4px;transition:opacity .16s var(--ease)}
+.sp svg{inline-size:100%;block-size:calc(var(--cellh) - 6px);overflow:visible}
+/* flex-start = جهة البداية (اليمين في RTL): يثبّت خانة الآحاد في عمود واحد.
+   مع flex-end كانت الأرقام تتراصف من طرف الآلاف فتخرج خانات الآحاد مسنّنة. */
+.tt{
+  display:flex;align-items:center;justify-content:flex-start;gap:7px;
+  block-size:var(--cellh);padding-inline-start:6px;transition:opacity .16s var(--ease);
+}
+.tt .v{font-size:12px;font-weight:600;color:var(--ink)}
+.tt .w{font-size:10.5px;color:var(--wanted);min-inline-size:16px;text-align:end}
+.tt .w.z{color:var(--ink-3)}
+
+/* الفاصل */
+.rule{grid-column:1 / -1;block-size:1px;background:var(--line);margin-block:7px 5px}
+.rule.soft{background:var(--line-2);margin-block:5px}
+
+/* الهامش السفلي: مدرج تكراري */
+.mh{
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;
+  padding-inline-end:8px;padding-block-end:2px;
+  font-size:10.5px;color:var(--ink-3);line-height:1.5;
+}
+.mh b{color:var(--ink-2);font-weight:500;font-size:11px}
+.histwrap{grid-column:2 / span 24;position:relative;block-size:74px}
+.histwrap svg{position:absolute;inset:0;inline-size:100%;block-size:100%}
+.axmax{
+  position:absolute;inset-block-start:-3px;inset-inline-start:2px;
+  font-size:9.5px;color:var(--ink-3);pointer-events:none;
+}
+.bar{fill:rgba(255,255,255,.42);transform-box:fill-box;transform-origin:50% 100%;
+  animation:barGrow .5s var(--ease) both;transition:fill .15s var(--ease)}
+.bar.on{fill:rgba(255,255,255,.82)}
+.bar.dimb{fill:rgba(255,255,255,.13)}
+.gl{stroke:rgba(255,255,255,.07);stroke-width:1;shape-rendering:crispEdges}
+.gl.base{stroke:rgba(255,255,255,.16)}
+
+/* صف عدّاد المطلوب أسفل الأعمدة */
+.hn{
+  font-size:10px;text-align:center;color:var(--ink-3);line-height:1.6;
+  transition:opacity .16s var(--ease);
+}
+.hn.hit{color:var(--wanted);font-weight:600}
+
+/* التقاطع الهامشي */
+.cross{
+  grid-column:26 / span 2;grid-row:span 2;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:1px;
+  padding-inline-start:8px;padding-block-end:2px;
+  border-inline-start:1px solid var(--line);
+}
+.cross .cl{font-size:9.5px;color:var(--ink-3);line-height:1.45}
+.cross .cv{font-size:15px;font-weight:600;line-height:1.34;color:var(--ink)}
+.cross .sub{display:flex;gap:10px;font-size:10.5px;color:var(--ink-3);line-height:1.5}
+.cross .sub .w{color:var(--wanted)}
+.cross .sub .u{color:var(--unread)}
+
+/* ---------- الشريط السفلي: المراجعون + المفتاح ---------- */
+.footband{
+  display:flex;align-items:center;gap:0;flex-wrap:wrap;
+  margin-block-start:10px;padding:8px 12px;
+  background:rgba(255,255,255,.038);
+  backdrop-filter:blur(28px) saturate(1.2);
+  -webkit-backdrop-filter:blur(28px) saturate(1.2);
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.09) inset, 0 18px 44px -22px rgba(0,0,0,.5);
+}
+.sect-lab{font-size:10.5px;color:var(--ink-3);padding-inline-end:14px;white-space:nowrap}
+.oprow{display:flex;align-items:stretch;flex-wrap:wrap;flex:1 1 auto;min-width:0}
+.op{
+  appearance:none;background:transparent;border:0;font-family:inherit;
+  display:flex;flex-direction:column;gap:1px;
+  padding:3px 14px;cursor:pointer;text-align:start;flex:1 1 auto;min-width:112px;
+  border-radius:8px;
+  transition:background .15s var(--ease), opacity .16s var(--ease);
+}
+.op + .op{border-inline-start:1px solid var(--line-2)}
+.op:hover{background:rgba(255,255,255,.05)}
+.op .on{font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
+.op.act .on{color:var(--ink);font-weight:600}
+.op .om{display:flex;align-items:baseline;gap:6px}
+.op .ov{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
+.op .ow{font-size:10px;color:var(--wanted)}
+.op .acc{margin-block-start:3px;block-size:3px;border-radius:2px;background:rgba(255,255,255,.09);overflow:hidden;position:relative}
+.op .acc i{position:absolute;inset-block:0;inset-inline-start:0;background:rgba(255,255,255,.45);border-radius:2px;display:block}
+.op .oa{font-size:9.5px;color:var(--ink-3);line-height:1.5}
+
+.legend{display:flex;align-items:center;gap:10px;padding-inline-start:14px;border-inline-start:1px solid var(--line);flex:0 0 auto}
+.ramp{display:flex;gap:2px}
+.ramp i{inline-size:15px;block-size:11px;border-radius:2px;background:rgba(255,255,255,var(--a));display:block}
+.legend .lt{font-size:9.5px;color:var(--ink-3)}
+
+.pagefoot{
+  padding:10px 4px 12px;text-align:center;
+  font-size:11px;color:var(--ink-3);line-height:1.7;
+}
+
+/* ---------- سكة التفاصيل ---------- */
+.rail{
+  position:fixed;inset-block:0;inset-inline-start:0;z-index:20;
+  inline-size:var(--railw);max-inline-size:92vw;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.058);
+  backdrop-filter:blur(34px) saturate(1.3);
+  -webkit-backdrop-filter:blur(34px) saturate(1.3);
+  border-inline-end:1px solid rgba(255,255,255,.10);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset, 0 30px 80px -20px rgba(0,0,0,.7);
+  transform:translateX(100%);            /* الصفحة RTL: البداية = اليمين */
+  visibility:hidden;
+  transition:transform .22s var(--ease), visibility .22s var(--ease);
+}
+.rail.open{transform:translateX(0);visibility:visible}
+.rail-head{padding:16px 18px 10px;border-block-end:1px solid var(--line)}
+.rail-head .rh1{display:flex;align-items:flex-start;gap:10px}
+.rail-head h2{margin:0;font-size:15px;font-weight:600;line-height:1.5;flex:1 1 auto}
+.rail-head .rsub{font-size:11px;color:var(--ink-3);line-height:1.6}
+.rstats{display:flex;gap:0;margin-block-start:10px}
+.rstat{flex:1 1 0;min-width:0;padding-inline-end:10px}
+.rstat + .rstat{border-inline-start:1px solid var(--line-2);padding-inline-start:10px}
+.rstat .l{font-size:9.5px;color:var(--ink-3);line-height:1.5;white-space:nowrap}
+.rstat .v{font-size:15px;font-weight:600;line-height:1.4}
+.rstat .v.w{color:var(--wanted)}
+.rstat .v.u{color:var(--unread)}
+.rprofile{padding:12px 18px 8px}
+.rprofile .cap{font-size:10px;color:var(--ink-3);margin-block-end:5px}
+.rprofile svg{inline-size:100%;block-size:46px;display:block}
+.chips{display:flex;gap:6px;padding:8px 18px 10px;flex-wrap:wrap;border-block-end:1px solid var(--line)}
+.chip{
+  appearance:none;cursor:pointer;font-family:inherit;font-size:11px;
+  padding:3px 11px;border-radius:999px;
+  background:transparent;border:1px solid var(--line);color:var(--ink-3);
+  transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+}
+.chip:hover{background:rgba(255,255,255,.05);color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16);color:var(--ink)}
+.chip .cd{display:inline-block;inline-size:6px;block-size:6px;border-radius:50%;margin-inline-end:5px;vertical-align:middle}
+.evlist{flex:1 1 auto;overflow-y:auto;padding:4px 10px 14px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
+.evlist::-webkit-scrollbar{width:8px}
+.evlist::-webkit-scrollbar-track{background:transparent}
+.evlist::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:8px}
+.ev{display:flex;gap:10px;padding:8px;border-radius:10px;border-block-end:1px solid var(--line-2)}
+.ev:last-child{border-block-end:0}
+.ev .vb{inline-size:3px;border-radius:2px;flex:none;background:var(--clean);align-self:stretch}
+.ev.v-wanted .vb{background:var(--wanted)}
+.ev.v-unread .vb{background:var(--unread)}
+.ev .body{flex:1 1 auto;min-width:0}
+.ev .top{display:flex;align-items:baseline;gap:8px}
+.ev .plate{
+  direction:rtl;unicode-bidi:isolate;
+  font-size:12.5px;font-weight:600;letter-spacing:normal;
+  padding:1px 7px;border-radius:5px;
+  background:rgba(255,255,255,.07);border:1px solid var(--line);
+}
+.ev .tm{font-size:10.5px;color:var(--ink-3);margin-inline-start:auto}
+.ev .meta{font-size:10.5px;color:var(--ink-3);line-height:1.65;margin-block-start:3px}
+.ev .meta b{color:var(--ink-2);font-weight:500}
+.ev .vd{font-size:10px}
+.ev.v-wanted .vd{color:var(--wanted)}
+.ev.v-unread .vd{color:var(--unread)}
+.ev.v-clean .vd{color:var(--clean)}
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12px}
+.more{padding:8px 10px 0;font-size:10.5px;color:var(--ink-3);text-align:center}
+
+/* ---------- تركيز ---------- */
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:4px}
+.cell:focus-visible{outline-offset:0}
+
+/* ---------- الحركة: ثلاثة أنواع فقط ---------- */
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes cellIn{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
+@keyframes barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes drawLine{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.rise{animation:riseIn .56s var(--ease) both}
+.d1{animation-delay:.00s}.d2{animation-delay:.06s}.d3{animation-delay:.12s}.d4{animation-delay:.18s}
+.spline{stroke-dasharray:1;stroke-dashoffset:1;animation:drawLine .5s var(--ease) forwards}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
+
+/* ---------- الاستجابة ---------- */
+@media (max-width:1240px){
+  :root{--hdr:176px;--spark:78px;--tot:72px;--cmin:26px}
+  .app.rail-open{padding-inline-start:clamp(10px,1.4vw,20px)}
+  .rail{box-shadow:0 30px 90px -10px rgba(0,0,0,.8)}
+}
+@media (max-width:860px){
+  :root{--hdr:132px;--spark:0px;--tot:66px;--cmin:24px;--cellh:24px}
+  .sp{display:none}
+  .matrix{grid-template-columns:var(--hdr) repeat(24, minmax(var(--cmin),1fr)) var(--tot)}
+  .histwrap{grid-column:2 / span 24}
+  .cross{grid-column:26 / span 1}
+  .corner-tr{grid-column:26 / span 1}
+  .corner-tr span:first-child{display:none}
+  .run{min-width:104px;padding:2px 12px}
+  .run .fig{font-size:19px}
+  .legend{padding-inline-start:0;border-inline-start:0;padding-block-start:6px}
+}
+@media (max-width:560px){
+  :root{--railw:100vw}
+  .band{padding:8px 8px}
+  .run{flex:1 1 40%;min-width:40%}
+  .run + .run{border-inline-start:0}
+  .run.who{flex:1 1 100%;border-block-start:1px solid var(--line);padding-block-start:6px;margin-block-start:4px}
+  .footband{padding:8px}
+  .op{min-width:46%}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><i class="l5"></i>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true" focusable="false">
+  <filter id="grainf"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  <rect width="100%" height="100%" filter="url(#grainf)"></rect>
+</svg>
+
+<div class="app" id="app">
+
+  <!-- ===== الشريط العلوي: ستة أرقام على سطر واحد ===== -->
+  <header class="band rise d1">
+    <div class="run">
+      <span class="lab">إجمالي عمليات المسح</span>
+      <span class="fig num" id="f-total">12,847</span>
+      <span class="dl" id="d-total"></span>
+    </div>
+    <div class="run">
+      <span class="lab">مركبات مطلوبة</span>
+      <span class="fig num" id="f-wanted">38</span>
+      <span class="dl" id="d-wanted"></span>
+    </div>
+    <div class="run">
+      <span class="lab">مركبات سليمة</span>
+      <span class="fig num" id="f-clean">12,782</span>
+      <span class="dl" id="d-clean"></span>
+    </div>
+    <div class="run">
+      <span class="lab">لوحات غير مقروءة</span>
+      <span class="fig num" id="f-unread">27</span>
+      <span class="dl" id="d-unread"></span>
+    </div>
+    <div class="run">
+      <span class="lab">متوسط زمن المعالجة</span>
+      <span class="fig"><span class="num" id="f-latency">412</span><small>مللي/ث</small></span>
+      <span class="dl" id="d-latency"></span>
+    </div>
+    <div class="run">
+      <span class="lab">بوابات نشطة</span>
+      <!-- عزل واحد يلفّ النسبة كلها: لو عُزل كل رقم وحده لقلبها الاتجاه إلى "11 / 9" -->
+      <span class="fig"><span class="num"><span id="f-gates">9</span><small>/ 11</small></span></span>
+      <span class="dl mute" id="d-gates">بوابتان خارج التشغيل</span>
+    </div>
+    <div class="run who">
+      <div class="who-row">
+        <div class="avatar" aria-hidden="true">أ</div>
+        <div>
+          <div class="n">أحمد عماد</div>
+          <div class="r">مدير النظام</div>
+        </div>
+      </div>
+      <div class="updated">آخر تحديث: <span id="upd">اليوم 14:32</span></div>
+    </div>
+  </header>
+
+  <!-- ===== شريط النطاق ===== -->
+  <div class="scopebar rise d2">
+    <div id="scopeslot"></div>
+    <div class="readout" id="readout">مرّر فوق أي خلية لقراءة قيمتها · انقر خلية لفتح سجلّها</div>
+    <span class="spacer"></span>
+    <button class="tgl" id="tg-w" aria-pressed="true"><span class="sw w" aria-hidden="true"></span>علامات المطلوب</button>
+    <button class="tgl" id="tg-u" aria-pressed="true"><span class="sw u" aria-hidden="true"></span>علامات غير المقروء</button>
+    <button class="tgl" id="tg-rail" aria-pressed="false">سكة الأحداث</button>
+  </div>
+
+  <!-- ===== الشبكة ===== -->
+  <main class="stage rise d3">
+    <!-- ليس role="grid": الشبكة مسطّحة في الـDOM بلا row/gridcell، وإعلان الدور
+         دون بنيته يكسر قارئ الشاشة. كل خلية زر يحمل اسمه الكامل. -->
+    <div class="matrix" id="matrix" role="group" aria-label="شبكة البوابات مقابل ساعات اليوم — 11 بوابة في 24 ساعة"></div>
+  </main>
+
+  <!-- ===== الشريط السفلي ===== -->
+  <div class="footband rise d4">
+    <span class="sect-lab">المراجعون</span>
+    <div class="oprow" id="oprow"></div>
+    <!-- الترتيب يتبع RTL: العنصر الأول إلى اليمين. لذلك الطرف الفاتح (0) يمينًا
+         والطرف الكثيف (الأقصى) يسارًا، وكل طرف يحمل رقمه بجانبه بدل سهم يعاكس الاتجاه. -->
+    <div class="legend">
+      <span class="lt">كثافة المسح في الخلية</span>
+      <span class="lt num">0</span>
+      <span class="ramp" aria-hidden="true">
+        <i style="--a:.022"></i><i style="--a:.212"></i><i style="--a:.330"></i><i style="--a:.433"></i><i style="--a:.522"></i>
+      </span>
+      <span class="lt num" id="rampmax">0</span>
+    </div>
+  </div>
+
+  <div class="pagefoot">بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</div>
+</div>
+
+<!-- ===== سكة التفاصيل ===== -->
+<aside class="rail" id="rail" aria-label="سجل الأحداث" aria-hidden="true">
+  <div class="rail-head">
+    <div class="rh1">
+      <h2 id="rail-title">أحدث الأحداث</h2>
+      <button class="xbtn" id="rail-close" aria-label="إغلاق السكة">
+        <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+    <div class="rsub" id="rail-sub">آخر 16 عملية مسجّلة على مستوى الشبكة</div>
+    <div class="rstats" id="rail-stats"></div>
+  </div>
+  <div class="rprofile" id="rail-profile"></div>
+  <div class="chips" id="rail-chips"></div>
+  <div class="evlist" id="rail-list"></div>
+</aside>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   1) البيانات — منقولة حرفيًا من العقد
+   ============================================================ */
+const ADMIN = { name: "أحمد عماد", role: "مدير النظام", initial: "أ" };
+const UPDATED = "اليوم 14:32";
+
+const KPI = {
+  total:   { v: 12847, label: "إجمالي عمليات المسح", delta: +6.2 },
+  wanted:  { v: 38,    label: "مركبات مطلوبة",        delta: -11.6 },
+  clean:   { v: 12782, label: "مركبات سليمة",         delta: +6.3 },
+  unread:  { v: 27,    label: "لوحات غير مقروءة",     delta: +2.4 },
+  latency: { v: 412,   label: "متوسط زمن المعالجة", unit: "مللي/ث", delta: -8.0 },
+  gates:   { v: 9,     of: 11, label: "بوابات نشطة" }
+};
+
+const HOURLY = {
+  total:  [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+  wanted: [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0],
+  unread: [0,1,0,1,0,1,1,2,2,2,1,1,2,1,1,1,2,2,2,1,1,1,0,1]
+};
+
+const GATES = [
+  { id:"g1", name:"بوابة الشمال",     total:2413, wanted:8, unread:4, ms:388, status:"online"   },
+  { id:"g2", name:"الميناء 3",        total:2148, wanted:9, unread:6, ms:441, status:"online"   },
+  { id:"g3", name:"طريق الملك فهد",   total:1876, wanted:5, unread:3, ms:402, status:"online"   },
+  { id:"g4", name:"بوابة الجنوب",     total:1542, wanted:4, unread:2, ms:371, status:"online"   },
+  { id:"g5", name:"مدخل المستودع",    total:1288, wanted:3, unread:4, ms:456, status:"online"   },
+  { id:"g6", name:"بوابة الشرق",      total:1104, wanted:3, unread:2, ms:419, status:"online"   },
+  { id:"g7", name:"محطة الوزن",       total: 936, wanted:2, unread:3, ms:508, status:"degraded" },
+  { id:"g8", name:"ساحة الحجز",       total: 802, wanted:3, unread:2, ms:394, status:"online"   },
+  { id:"g9", name:"بوابة المطار",     total: 738, wanted:1, unread:1, ms:366, status:"online"   },
+  { id:"g10",name:"بوابة الغرب",      total:   0, wanted:0, unread:0, ms:  0, status:"offline"  },
+  { id:"g11",name:"مدخل الصيانة",     total:   0, wanted:0, unread:0, ms:  0, status:"maint"    }
+];
+
+const STATUS_LABEL = { online:"تعمل", degraded:"بطيئة", offline:"خارج الخدمة", maint:"صيانة" };
+
+const OPERATORS = [
+  { name:"خالد المطيري",  reviews:412, wanted:11, acc:96 },
+  { name:"نورة السبيعي",  reviews:388, wanted: 9, acc:98 },
+  { name:"فهد القحطاني",  reviews:351, wanted: 7, acc:94 },
+  { name:"ريم الدوسري",   reviews:306, wanted: 5, acc:97 },
+  { name:"سعود العتيبي",  reviews:274, wanted: 4, acc:92 },
+  { name:"لطيفة الحربي",  reviews:218, wanted: 2, acc:95 }
+];
+
+const EVENTS = [
+  { t:"14:31", plate:"ر ن ب 4582", gate:"g2", verdict:"wanted", reason:"بلاغ سرقة",            ref:"KSA-2291", by:"نورة السبيعي" },
+  { t:"14:29", plate:"أ ل م 7123", gate:"g1", verdict:"clean" },
+  { t:"14:27", plate:"ك ط د 9046", gate:"g3", verdict:"clean" },
+  { t:"14:26", plate:"ص ع ه 1187", gate:"g7", verdict:"unread", reason:"إضاءة منخفضة" },
+  { t:"14:24", plate:"ب ي و 6350", gate:"g4", verdict:"clean" },
+  { t:"14:22", plate:"د ر ق 2708", gate:"g8", verdict:"wanted", reason:"مخالفات متراكمة",      ref:"KSA-2287", by:"فهد القحطاني" },
+  { t:"14:20", plate:"ه م ن 5419", gate:"g5", verdict:"clean" },
+  { t:"14:18", plate:"ط س ل 8264", gate:"g6", verdict:"clean" },
+  { t:"14:17", plate:"و ح أ 3095", gate:"g2", verdict:"clean" },
+  { t:"14:15", plate:"ق ب ع 7731", gate:"g1", verdict:"wanted", reason:"قائمة مراقبة داخلية", ref:"KSA-2284", by:"ريم الدوسري" },
+  { t:"14:13", plate:"ل د ص 4426", gate:"g9", verdict:"clean" },
+  { t:"14:11", plate:"ن أ ط 6802", gate:"g3", verdict:"unread", reason:"لوحة متسخة" },
+  { t:"14:09", plate:"ع ك ر 1573", gate:"g4", verdict:"clean" },
+  { t:"14:07", plate:"م و ه 9218", gate:"g2", verdict:"clean" },
+  { t:"14:05", plate:"س ق ب 2947", gate:"g5", verdict:"wanted", reason:"بلاغ اختطاف",          ref:"KSA-2280", by:"سعود العتيبي" },
+  { t:"14:03", plate:"ح ل ي 5064", gate:"g6", verdict:"clean" }
+];
+
+const VERDICT_LABEL = { wanted:"مطلوب", clean:"سليم", unread:"غير مقروء" };
+const HOURS = 24, ROWS = GATES.length;
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ============================================================
+   2) اشتقاق الشبكة — ملاءمة تناسبية تكرارية (IPF)
+   المجاميع الأفقية = إجمالي كل بوابة، والرأسية = إجمالي كل ساعة.
+   المجموعان متطابقان (12,847) فالشبكة متسقة تمامًا مع العقد.
+   ============================================================ */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* لكل بوابة إيقاع يومي مختلف: سعة وطور وتوافقية ثانية — حتى لا تكون
+   الصفوف نسخًا باهتة من بعضها بعد الملاءمة */
+const PROFILE = [
+  { amp:0.46, ph: 9, h2:0.16 }, { amp:0.62, ph: 7, h2:0.22 }, { amp:0.38, ph:11, h2:0.12 },
+  { amp:0.52, ph:17, h2:0.18 }, { amp:0.34, ph:10, h2:0.26 }, { amp:0.58, ph:16, h2:0.14 },
+  { amp:0.26, ph:12, h2:0.30 }, { amp:0.44, ph:15, h2:0.20 }, { amp:0.66, ph:19, h2:0.24 },
+  { amp:0.00, ph: 0, h2:0.00 }, { amp:0.00, ph: 0, h2:0.00 }
+];
+
+function buildVolume(){
+  const rnd = mulberry32(20260827);
+  const rowT = GATES.map(g => g.total);
+  const colT = HOURLY.total.slice();
+  const m = [];
+  for(let g=0; g<ROWS; g++){
+    m[g] = [];
+    for(let h=0; h<HOURS; h++){
+      if(rowT[g] === 0){ m[g][h] = 0; continue; }
+      const p = PROFILE[g];
+      const shape = Math.max(0.12,
+        1 + p.amp * Math.cos(2*Math.PI*(h - p.ph)/24)
+          + p.h2  * Math.cos(4*Math.PI*(h - p.ph)/24));
+      const jitter = 0.86 + 0.28*rnd();
+      m[g][h] = Math.max(0.01, rowT[g] * colT[h] * shape * jitter);
+    }
+  }
+  /* IPF: بالتناوب اضبط الصفوف ثم الأعمدة */
+  for(let it=0; it<60; it++){
+    for(let g=0; g<ROWS; g++){
+      let s=0; for(let h=0;h<HOURS;h++) s+=m[g][h];
+      if(s>0){ const k=rowT[g]/s; for(let h=0;h<HOURS;h++) m[g][h]*=k; }
+    }
+    for(let h=0; h<HOURS; h++){
+      let s=0; for(let g=0;g<ROWS;g++) s+=m[g][h];
+      if(s>0){ const k=colT[h]/s; for(let g=0;g<ROWS;g++) m[g][h]*=k; }
+    }
+  }
+  /* تحويل إلى أعداد صحيحة مع الحفاظ على المجاميع بالضبط */
+  const out = [], frac = [];
+  for(let g=0; g<ROWS; g++){
+    out[g]=[];
+    for(let h=0; h<HOURS; h++){
+      out[g][h] = Math.floor(m[g][h]);
+      frac.push({ g:g, h:h, f: m[g][h] - out[g][h] });
+    }
+  }
+  const rNeed = [], cNeed = [];
+  for(let g=0;g<ROWS;g++){ let s=0; for(let h=0;h<HOURS;h++) s+=out[g][h]; rNeed[g]=rowT[g]-s; }
+  for(let h=0;h<HOURS;h++){ let s=0; for(let g=0;g<ROWS;g++) s+=out[g][h]; cNeed[h]=colT[h]-s; }
+  frac.sort((a,b)=> b.f - a.f);
+  for(let pass=0; pass<4; pass++){
+    for(let i=0;i<frac.length;i++){
+      const c = frac[i];
+      if(rNeed[c.g] > 0 && cNeed[c.h] > 0){ out[c.g][c.h]++; rNeed[c.g]--; cNeed[c.h]--; }
+    }
+    let left = 0; for(let g=0;g<ROWS;g++) left += rNeed[g];
+    if(left === 0) break;
+  }
+  return out;
+}
+
+/* توزيع العلامات: خلية واحدة تحمل علامة واحدة على الأكثر.
+   المجاميع الأفقية = مطلوب/غير مقروء لكل بوابة، والرأسية = لكل ساعة. */
+function buildMarks(rowKey, colArr, vol){
+  const rowT = GATES.map(g => g[rowKey]);
+  const grid = [];
+  for(let g=0; g<ROWS; g++){ grid[g] = new Array(HOURS).fill(0); }
+  const quota = rowT.slice();
+  const order = [];
+  for(let h=0; h<HOURS; h++) order.push({ h:h, k:colArr[h] });
+  order.sort((a,b)=> b.k - a.k || a.h - b.h);
+  for(let i=0; i<order.length; i++){
+    const h = order[i].h;
+    let need = order[i].k;
+    if(need <= 0) continue;
+    const cands = [];
+    for(let g=0; g<ROWS; g++){
+      if(quota[g] > 0 && vol[g][h] > 0) cands.push(g);
+    }
+    cands.sort(function(a,b){
+      if(quota[b] !== quota[a]) return quota[b] - quota[a];
+      if(vol[b][h] !== vol[a][h]) return vol[b][h] - vol[a][h];
+      return a - b;
+    });
+    for(let j=0; j<cands.length && need>0; j++){
+      const g = cands[j];
+      grid[g][h] = 1; quota[g]--; need--;
+    }
+  }
+  return grid;
+}
+
+const VOL = buildVolume();
+const HIT = buildMarks("wanted", HOURLY.wanted, VOL);
+const UNR = buildMarks("unread", HOURLY.unread, VOL);
+
+let MAXCELL = 0;
+for(let g=0; g<ROWS; g++) for(let h=0; h<HOURS; h++) if(VOL[g][h] > MAXCELL) MAXCELL = VOL[g][h];
+
+/* ============================================================
+   3) توليد السجلات لكل خلية (متسق مع أرقام الخلية)
+   ============================================================ */
+const LETTERS = ["أ","ب","ح","د","ر","س","ص","ط","ع","ق","ك","ل","م","ن","ه","و","ي"];
+const WANTED_REASONS = ["بلاغ سرقة","مخالفات متراكمة","قائمة مراقبة داخلية","بلاغ اختطاف","أمر ضبط ساري"];
+const UNREAD_REASONS = ["إضاءة منخفضة","لوحة متسخة","زاوية غير مناسبة","سرعة تجاوز عالية"];
+const pad2 = n => (n < 10 ? "0" + n : "" + n);
+const fmtN = n => Math.round(n).toLocaleString("en-US");
+
+/* إسناد المراجع لكل خلية "مطلوب" بحصص العقد (11+9+7+5+4+2 = 38 = إجمالي المطلوب)
+   بدل اختيار عشوائي. بهذا يصبح صف المراجعين بُعدًا حقيقيًا في نفس البيانات:
+   الضغط على مراجع يضيء خلاياه في الشبكة، ومجموعها يطابق رقمه المعلن. */
+const WANTED_BY = (function(){
+  const map = {}, quota = {};
+  for(let i=0; i<OPERATORS.length; i++) quota[OPERATORS[i].name] = OPERATORS[i].wanted;
+
+  /* السجلات الحقيقية تثبّت مراجعها أولًا، ثم تُخصم من حصته */
+  for(let i=0; i<EVENTS.length; i++){
+    const e = EVENTS[i];
+    if(e.verdict !== "wanted" || !e.by) continue;
+    let g = -1;
+    for(let k=0; k<GATES.length; k++) if(GATES[k].id === e.gate){ g = k; break; }
+    const h = parseInt(e.t.slice(0,2), 10);
+    if(g < 0 || !HIT[g][h]) continue;
+    map[g + ":" + h] = e.by;
+    if(quota[e.by] > 0) quota[e.by]--;
+  }
+
+  const rest = [];
+  for(let h=0; h<HOURS; h++) for(let g=0; g<ROWS; g++){
+    const k = g + ":" + h;
+    if(HIT[g][h] && !map[k]) rest.push(k);
+  }
+  for(let i=0; i<rest.length; i++){
+    let best = null;
+    for(let k=0; k<OPERATORS.length; k++){
+      const n = OPERATORS[k].name;
+      if(quota[n] > 0 && (best === null || quota[n] > quota[best])) best = n;
+    }
+    if(best === null) best = OPERATORS[i % OPERATORS.length].name;
+    else quota[best]--;
+    map[rest[i]] = best;
+  }
+  return map;
+})();
+
+const cellCache = {};
+function cellEvents(g, h){
+  const key = g + ":" + h;
+  if(cellCache[key]) return cellCache[key];
+  const v = VOL[g][h], gate = GATES[g];
+  const list = [];
+  if(v > 0){
+    const rnd = mulberry32(9137 + g*211 + h*37);
+    const nw = HIT[g][h], nu = UNR[g][h];
+    const shown = Math.min(v, 9);
+    const slots = [];
+    for(let i=0; i<shown; i++) slots.push(i);
+    /* رتّب: المطلوب ثم غير المقروء ثم السليم — ثم اخلط الأوقات */
+    for(let i=0; i<shown; i++){
+      const verdict = i < nw ? "wanted" : (i < nw + nu ? "unread" : "clean");
+      const mins = Math.floor(rnd()*60);
+      const plate = LETTERS[Math.floor(rnd()*LETTERS.length)] + " " +
+                    LETTERS[Math.floor(rnd()*LETTERS.length)] + " " +
+                    LETTERS[Math.floor(rnd()*LETTERS.length)] + " " +
+                    (1000 + Math.floor(rnd()*9000));
+      const ev = { t: pad2(h) + ":" + pad2(mins), plate: plate, gate: gate.id, verdict: verdict, synth:true };
+      if(verdict === "wanted"){
+        ev.reason = WANTED_REASONS[Math.floor(rnd()*WANTED_REASONS.length)];
+        ev.ref = "KSA-2" + (100 + Math.floor(rnd()*180));
+        ev.by = WANTED_BY[g + ":" + h] || OPERATORS[0].name;
+      } else if(verdict === "unread"){
+        ev.reason = UNREAD_REASONS[Math.floor(rnd()*UNREAD_REASONS.length)];
+      }
+      ev.ms = Math.max(120, Math.round(gate.ms * (0.72 + rnd()*0.62)));
+      list.push(ev);
+    }
+    /* السجلات الحقيقية للساعة 14 تحلّ محل المولّدة في بوابتها */
+    const real = EVENTS.filter(e => e.gate === gate.id && parseInt(e.t.slice(0,2),10) === h);
+    for(let i=0; i<real.length; i++){
+      const r = Object.assign({}, real[i]);
+      const idx = list.findIndex(x => x.verdict === r.verdict && x.synth);
+      if(idx >= 0) list[idx] = r; else list.unshift(r);
+    }
+    list.sort((a,b)=> a.t < b.t ? 1 : (a.t > b.t ? -1 : 0));
+  }
+  cellCache[key] = { list: list, count: v };
+  return cellCache[key];
+}
+
+/* فهرس المراجعين — يُبنى مرة واحدة عند أول ضغطة على مراجع.
+   نشتقّه من نفس قوائم الخلايا التي تعرضها السكة، فلا تفترق إضاءة الشبكة
+   عن محتوى السجل. */
+let OPIDX = null;
+function opRec(name){
+  if(!OPIDX){
+    OPIDX = {};
+    for(let i=0; i<OPERATORS.length; i++){
+      OPIDX[OPERATORS[i].name] = { list:[], cells:{}, cap:OPERATORS[i].wanted };
+    }
+    for(let g=0; g<ROWS; g++) for(let h=0; h<HOURS; h++){
+      const l = cellEvents(g, h).list;
+      for(let i=0; i<l.length; i++){
+        const e = l[i];
+        const r = e.by ? OPIDX[e.by] : null;
+        if(!r) continue;
+        r.list.push({ e:e, key:g + ":" + h });
+      }
+    }
+    for(const k in OPIDX){
+      const r = OPIDX[k];
+      /* العقد يعطي كل مراجع رقم "مطلوب" ثابتًا (المجموع 38). السجلات الحقيقية
+         الأربع تقع في ساعة لا تتّسع لها مجاميع HOURLY، فتزيد القائمة عن الرقم
+         المعلن. نرتّب الحقيقي أولًا ثم نقصّ الزائد المولّد حتى يطابق طول
+         القائمة رقم المراجع في الشريط السفلي بدل أن يناقضه. */
+      r.list.sort(function(a,b){
+        if(!!a.e.synth !== !!b.e.synth) return a.e.synth ? 1 : -1;
+        return a.e.t < b.e.t ? 1 : (a.e.t > b.e.t ? -1 : 0);
+      });
+      if(r.list.length > r.cap) r.list.length = r.cap;
+      r.list.sort(function(a,b){ return a.e.t < b.e.t ? 1 : (a.e.t > b.e.t ? -1 : 0); });
+      for(let i=0; i<r.list.length; i++) r.cells[r.list[i].key] = true;
+      r.list = r.list.map(function(x){ return x.e; });
+    }
+  }
+  return OPIDX[name] || { list:[], cells:{} };
+}
+
+/* ============================================================
+   4) الحالة
+   ============================================================ */
+const state = {
+  gate: null,        /* فهرس البوابة أو null */
+  hour: null,        /* 0..23 أو null */
+  cell: null,        /* {g,h} أو null */
+  operator: null,    /* فهرس المراجع أو null */
+  verdict: "all",
+  markers: { wanted:true, unread:true },
+  railOpen: false
+};
+
+const $ = id => document.getElementById(id);
+const matrix = $("matrix");
+const rail = $("rail");
+
+/* استبدال innerHTML يهدم الزر الذي عليه التركيز فيقفز إلى <body>.
+   نلتقط معرّفه قبل البناء ونعيد التركيز إليه بعده، وإلا فقد مستخدم
+   لوحة المفاتيح مكانه بعد كل ضغطة. */
+function setHTML(host, attr, html){
+  const a = host.contains(document.activeElement) ? document.activeElement.getAttribute(attr) : null;
+  host.innerHTML = html;
+  if(a !== null){
+    const el = host.querySelector("[" + attr + '="' + a + '"]');
+    if(el) el.focus();
+  }
+}
+
+/* ---- النطاق الفعّال: الخلية المحددة تعمل كنطاق (بوابة + ساعة) معًا،
+       فتتبعها الهوامش والأرقام بدل أن ترتد إلى الشبكة كاملة ---- */
+function effGate(){ return state.cell ? state.cell.g : state.gate; }
+function effHour(){ return state.cell ? state.cell.h : state.hour; }
+function isScoped(){ return effGate() !== null || effHour() !== null; }
+
+/* ---- محاور مشتقة من الحالة ---- */
+function colVolume(h){ const g = effGate(); return g === null ? HOURLY.total[h] : VOL[g][h]; }
+function colHits(h){   const g = effGate(); return g === null ? HOURLY.wanted[h] : HIT[g][h]; }
+function rowVolume(g){ const h = effHour(); return h === null ? GATES[g].total : VOL[g][h]; }
+function rowHits(g){   const h = effHour(); return h === null ? GATES[g].wanted : HIT[g][h]; }
+
+function scopeTotals(){
+  let t=0, w=0, u=0;
+  const gs = effGate(), hs = effHour();
+  for(let g=0; g<ROWS; g++){
+    if(gs !== null && g !== gs) continue;
+    for(let h=0; h<HOURS; h++){
+      if(hs !== null && h !== hs) continue;
+      t += VOL[g][h]; w += HIT[g][h]; u += UNR[g][h];
+    }
+  }
+  return { total:t, wanted:w, unread:u, clean: t - w - u };
+}
+
+function scopeLatency(){
+  const gs = effGate(), hs = effHour();
+  if(gs !== null && hs === null) return GATES[gs].ms || 0;
+  if(gs === null && hs === null) return KPI.latency.v;
+  let num=0, den=0;
+  for(let g=0; g<ROWS; g++){
+    if(gs !== null && g !== gs) continue;
+    if(!GATES[g].ms) continue;
+    for(let h=0; h<HOURS; h++){
+      if(hs !== null && h !== hs) continue;
+      num += GATES[g].ms * VOL[g][h]; den += VOL[g][h];
+    }
+  }
+  return den ? Math.round(num/den) : 0;
+}
+
+function niceMax(v){
+  if(v <= 0) return 10;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  const steps = [1, 2, 2.5, 5, 10];
+  for(let i=0;i<steps.length;i++){ if(v <= steps[i]*p) return steps[i]*p; }
+  return 10*p;
+}
+
+/* ============================================================
+   5) بناء الشبكة (مرة واحدة)
+   ============================================================ */
+function buildMatrix(){
+  const parts = [];
+
+  /* صف رؤوس الساعات */
+  parts.push('<div class="corner-tl">البوابة ╱ الساعة</div>');
+  for(let h=0; h<HOURS; h++){
+    const tick = (h % 6 === 0) ? " tick" : "";
+    parts.push('<button class="hh'+tick+' num" data-h="'+h+'" type="button" aria-label="الساعة '+pad2(h)+'">'+pad2(h)+'</button>');
+  }
+  parts.push('<div class="corner-tr"><span>منحنى اليوم</span><span id="totlab">الإجمالي</span></div>');
+
+  /* صفوف البوابات */
+  for(let g=0; g<ROWS; g++){
+    const gate = GATES[g];
+    const dead = gate.total === 0;
+    parts.push(
+      '<button class="gh st-'+gate.status+(dead?' dead':'')+'" data-g="'+g+'" type="button">'+
+        '<span class="dot" aria-hidden="true"></span>'+
+        '<span class="nm">'+gate.name+'</span>'+
+        (gate.status !== "online" ? '<span class="stt">'+STATUS_LABEL[gate.status]+'</span>' : '')+
+      '</button>'
+    );
+    for(let h=0; h<HOURS; h++){
+      const v = VOL[g][h];
+      const f = dead ? 0 : (0.022 + 0.50 * Math.pow(v / MAXCELL, 0.70));
+      const marks =
+        (HIT[g][h] ? '<i class="mk w"></i>' : '') +
+        (UNR[g][h] ? '<i class="mk u"></i>' : '');
+      const label = gate.name + " الساعة " + pad2(h) + " — " + fmtN(v) + " مسحة" +
+                    (HIT[g][h] ? " مع مطلوب" : "");
+      parts.push(
+        '<button class="cell'+(dead?' dead':'')+'" type="button" tabindex="-1"'+
+        ' data-g="'+g+'" data-h="'+h+'" style="--f:'+f.toFixed(3)+';--ci:'+((23-h)+g)+'"'+
+        ' aria-label="'+label+'"'+(dead?' aria-disabled="true"':'')+'>'+marks+'</button>'
+      );
+    }
+    parts.push('<div class="sp" data-sp="'+g+'"></div>');
+    parts.push('<div class="tt" data-tt="'+g+'"><span class="w num"></span><span class="v num"></span></div>');
+  }
+
+  /* فاصل */
+  parts.push('<div class="rule"></div>');
+
+  /* المدرج التكراري للأعمدة */
+  parts.push('<div class="mh"><b id="mhlab">حجم كل ساعة</b><span id="mhsub">كل البوابات</span></div>');
+  parts.push('<div class="histwrap"><span class="axmax num" id="axmax"></span><svg id="hist" preserveAspectRatio="none" viewBox="0 0 1000 74" aria-hidden="true"></svg></div>');
+  parts.push('<div class="cross" id="cross"></div>');
+
+  /* صف عدّاد المطلوب */
+  parts.push('<div class="mh"><b>مطلوب</b></div>');
+  for(let h=0; h<HOURS; h++){
+    parts.push('<div class="hn num" data-hn="'+h+'"></div>');
+  }
+
+  matrix.innerHTML = parts.join("");
+}
+
+/* ============================================================
+   6) الرسم من الحالة
+   ============================================================ */
+function paintMatrix(){
+  matrix.classList.toggle("no-w", !state.markers.wanted);
+  matrix.classList.toggle("no-u", !state.markers.unread);
+
+  /* اختيار مراجع يضيء خلاياه داخل الشبكة نفسها — لا يغيّر السكة وحدها */
+  const opCells = state.operator !== null ? opRec(OPERATORS[state.operator].name).cells : null;
+
+  const cells = matrix.querySelectorAll(".cell");
+  for(let i=0; i<cells.length; i++){
+    const el = cells[i];
+    const g = +el.dataset.g, h = +el.dataset.h;
+    let dim = false;
+    if(opCells) dim = !opCells[g + ":" + h];
+    else if(state.cell) dim = !(state.cell.g === g && state.cell.h === h);
+    else if(state.gate !== null && state.hour !== null) dim = !(g === state.gate && h === state.hour);
+    else if(state.gate !== null) dim = g !== state.gate;
+    else if(state.hour !== null) dim = h !== state.hour;
+    el.classList.toggle("dim", dim);
+    el.classList.toggle("sel", !!(state.cell && state.cell.g === g && state.cell.h === h));
+  }
+
+  const ghs = matrix.querySelectorAll(".gh");
+  for(let i=0; i<ghs.length; i++){
+    const g = +ghs[i].dataset.g;
+    const active = (state.gate === null) || (state.gate === g) || (state.cell && state.cell.g === g);
+    ghs[i].classList.toggle("dim", !active && state.gate !== null);
+    ghs[i].classList.toggle("on", state.gate === g);
+  }
+  const hhs = matrix.querySelectorAll(".hh");
+  for(let i=0; i<hhs.length; i++){
+    const h = +hhs[i].dataset.h;
+    const active = (state.hour === null) || (state.hour === h);
+    hhs[i].classList.toggle("dim", !active);
+    hhs[i].classList.toggle("on", state.hour === h);
+  }
+  const sps = matrix.querySelectorAll(".sp, .tt");
+  for(let i=0; i<sps.length; i++){
+    const g = +(sps[i].dataset.sp !== undefined ? sps[i].dataset.sp : sps[i].dataset.tt);
+    const off = state.gate !== null && g !== state.gate;
+    sps[i].classList.toggle("dim", off);
+  }
+  const hns = matrix.querySelectorAll(".hn");
+  for(let i=0; i<hns.length; i++){
+    const h = +hns[i].dataset.hn;
+    hns[i].classList.toggle("dim", state.hour !== null && h !== state.hour);
+  }
+}
+
+/* -- خطوط المنحنى الجانبية + أعمدة الإجمالي -- */
+function renderRowMargins(){
+  const W = 100, H = 22;
+  let maxRow = 0;
+  for(let g=0; g<ROWS; g++) for(let h=0; h<HOURS; h++) if(VOL[g][h] > maxRow) maxRow = VOL[g][h];
+  const top = niceMax(maxRow);
+
+  for(let g=0; g<ROWS; g++){
+    const host = matrix.querySelector('.sp[data-sp="'+g+'"]');
+    if(!host) continue;
+    if(GATES[g].total === 0){
+      host.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><line x1="0" y1="'+(H-1)+'" x2="'+W+'" y2="'+(H-1)+'" stroke="rgba(255,255,255,.10)" stroke-width="1" stroke-dasharray="2 3"/></svg>';
+      continue;
+    }
+    const pts = [];
+    for(let h=0; h<HOURS; h++){
+      /* عكس المحور: الساعة 00 على اليمين لتتبع اتجاه الشبكة */
+      const x = ((23 - h) / 23) * W;
+      const y = (H - 1.5) - (VOL[g][h] / top) * (H - 3);
+      pts.push(x.toFixed(2) + "," + y.toFixed(2));
+    }
+    let mark = "";
+    if(effHour() !== null){
+      const eh = effHour();
+      const x = ((23 - eh) / 23) * W;
+      const y = (H - 1.5) - (VOL[g][eh] / top) * (H - 3);
+      mark = '<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="2" style="fill:var(--ink)"/>' +
+             '<line x1="'+x.toFixed(2)+'" y1="0" x2="'+x.toFixed(2)+'" y2="'+H+'" stroke="rgba(255,255,255,.16)" stroke-width="1"/>';
+    }
+    host.innerHTML =
+      '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">' +
+      '<line x1="0" y1="'+(H-1)+'" x2="'+W+'" y2="'+(H-1)+'" stroke="rgba(255,255,255,.07)" stroke-width="1"/>' +
+      '<polyline class="'+(reduced?"":"spline")+'" pathLength="1" points="'+pts.join(" ")+'" fill="none" ' +
+      'stroke="rgba(255,255,255,.62)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" ' +
+      'vector-effect="non-scaling-stroke" style="animation-delay:'+(g*32)+'ms"/>' + mark +
+      '</svg>';
+
+    const tt = matrix.querySelector('.tt[data-tt="'+g+'"]');
+    if(tt){
+      const v = rowVolume(g), w = rowHits(g);
+      tt.querySelector(".v").textContent = fmtN(v);
+      const wEl = tt.querySelector(".w");
+      wEl.textContent = w > 0 ? String(w) : "·";
+      wEl.classList.toggle("z", w === 0);
+    }
+  }
+  /* البوابات الميتة: صفر صريح */
+  for(let g=0; g<ROWS; g++){
+    if(GATES[g].total !== 0) continue;
+    const tt = matrix.querySelector('.tt[data-tt="'+g+'"]');
+    if(tt){ tt.querySelector(".v").textContent = "0"; const w = tt.querySelector(".w"); w.textContent = "·"; w.classList.add("z"); }
+  }
+  const lab = $("totlab");
+  if(lab) lab.textContent = effHour() === null ? "الإجمالي" : "الساعة " + pad2(effHour());
+}
+
+/* -- المدرج السفلي + صف المطلوب + التقاطع -- */
+function renderColMargins(){
+  const svg = $("hist");
+  if(!svg) return;
+  const W = 1000, H = 74, slot = W / HOURS;
+  let mx = 0;
+  for(let h=0; h<HOURS; h++) mx = Math.max(mx, colVolume(h));
+  const top = niceMax(mx);
+  const bw = slot * 0.55;
+  const parts = [];
+
+  /* شبكة أفقية: 0 · النصف · الأقصى */
+  for(let i=0; i<=2; i++){
+    const y = H - (i/2) * (H - 6) - 1;
+    parts.push('<line class="gl'+(i===0?" base":"")+'" x1="0" y1="'+y.toFixed(1)+'" x2="'+W+'" y2="'+y.toFixed(1)+'"/>');
+  }
+  for(let h=0; h<HOURS; h++){
+    const v = colVolume(h);
+    const bh = Math.max(v > 0 ? 1.5 : 0, (v / top) * (H - 7));
+    const x = (23 - h) * slot + (slot - bw)/2;
+    const y = H - 1 - bh;
+    let cls = "bar";
+    if(effHour() === h) cls += " on";
+    else if(effHour() !== null) cls += " dimb";
+    parts.push('<rect class="'+cls+'" x="'+x.toFixed(2)+'" y="'+y.toFixed(2)+'" width="'+bw.toFixed(2)+'" height="'+bh.toFixed(2)+'" rx="1" style="animation-delay:'+((23-h)*11)+'ms"/>');
+  }
+  svg.innerHTML = parts.join("");
+  $("axmax").textContent = fmtN(top);
+  $("mhsub").textContent = effGate() === null ? "كل البوابات" : GATES[effGate()].name;
+
+  for(let h=0; h<HOURS; h++){
+    const el = matrix.querySelector('.hn[data-hn="'+h+'"]');
+    if(!el) continue;
+    const w = colHits(h);
+    el.textContent = w > 0 ? String(w) : "·";
+    el.classList.toggle("hit", w > 0);
+  }
+
+  const t = scopeTotals();
+  const cross = $("cross");
+  const eg = effGate(), eh = effHour();
+  const scopeName = (eg === null && eh === null) ? "الشبكة كاملة"
+    : (eg !== null ? GATES[eg].name : "") +
+      (eg !== null && eh !== null ? " · " : "") +
+      (eh !== null ? "الساعة " + pad2(eh) : "");
+  cross.innerHTML =
+    '<span class="cl">مجموع النطاق — ' + scopeName + '</span>' +
+    '<span class="cv num">' + fmtN(t.total) + '</span>' +
+    /* العزل على الرقم وحده. وضع class="num" على الوسم كله يفرض direction:ltr
+       على نص عربي فينقلب إلى "مطلوب 3". */
+    '<span class="sub"><span class="w"><span class="num">' + t.wanted + '</span> مطلوب</span>' +
+    '<span class="u"><span class="num">' + t.unread + '</span> غير مقروء</span></span>';
+}
+
+/* -- الأرقام الستة -- */
+const ARROW = {
+  up:   '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 12.5V3.8M8 3.8 4.6 7.2M8 3.8l3.4 3.4"/></svg>',
+  down: '<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 3.5v8.7M8 12.2 4.6 8.8M8 12.2l3.4-3.4"/></svg>'
+};
+
+function countUp(el, to, dec){
+  if(!el) return;
+  const final = dec ? to.toFixed(dec) : fmtN(to);
+  el.textContent = final;
+  if(reduced) return;
+  const dur = 620, t0 = performance.now();
+  function step(now){
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = dec ? (to*e).toFixed(dec) : fmtN(to*e);
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+  setTimeout(function(){ el.textContent = final; }, dur + 140);
+}
+
+function deltaInner(d){
+  const up = d >= 0;
+  return ARROW[up ? "up" : "down"] +
+         '<span class="num">' + (up ? "+" : "") + d.toFixed(1) + '%</span>' +
+         '<span>عن الأمس</span>';
+}
+
+function renderHeadline(){
+  const scoped = isScoped();
+  const t = scopeTotals();
+  countUp($("f-total"), t.total);
+  countUp($("f-wanted"), t.wanted);
+  countUp($("f-clean"), t.clean);
+  countUp($("f-unread"), t.unread);
+  countUp($("f-latency"), scopeLatency());
+  $("f-gates").textContent = String(KPI.gates.v);
+
+  const map = [["d-total", KPI.total.delta], ["d-wanted", KPI.wanted.delta],
+               ["d-clean", KPI.clean.delta], ["d-unread", KPI.unread.delta],
+               ["d-latency", KPI.latency.delta]];
+  for(let i=0; i<map.length; i++){
+    const el = $(map[i][0]);
+    if(scoped){ el.className = "dl mute"; el.textContent = "ضمن النطاق المحدّد"; }
+    else { el.className = "dl"; el.innerHTML = deltaInner(map[i][1]); }
+  }
+  const dg = $("d-gates");
+  dg.className = "dl mute";
+  dg.textContent = effGate() === null
+    ? "بوابتان خارج التشغيل"
+    : "الحالة: " + STATUS_LABEL[GATES[effGate()].status];
+}
+
+/* -- شريط النطاق -- */
+function renderScope(){
+  const slot = $("scopeslot");
+  const bits = [];
+  const eg = effGate(), eh = effHour();
+  if(state.cell) bits.push("خلية: <b>" + GATES[eg].name + '</b> · <b class="num">' + pad2(eh) + ":00</b>");
+  else {
+    if(eg !== null) bits.push("بوابة: <b>" + GATES[eg].name + "</b>");
+    if(eh !== null) bits.push('الساعة: <b class="num">' + pad2(eh) + ":00</b>");
+  }
+  if(state.operator !== null) bits.push("مراجع: <b>" + OPERATORS[state.operator].name + "</b>");
+  if(!bits.length){
+    slot.innerHTML = '<span class="scope-chip" style="opacity:.7">النطاق: <b>الشبكة كاملة</b></span>';
+    return;
+  }
+  slot.innerHTML = '<span class="scope-chip">' + bits.join(" · ") +
+    '<button class="xbtn" id="clearscope" type="button" aria-label="إزالة النطاق">' +
+    '<svg viewBox="0 0 16 16" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>' +
+    '</button></span>';
+  $("clearscope").addEventListener("click", function(){
+    state.gate = null; state.hour = null; state.cell = null; state.operator = null;
+    renderAll();
+  });
+}
+
+/* -- المراجعون -- */
+function renderOperators(){
+  const host = $("oprow");
+  const parts = [];
+  for(let i=0; i<OPERATORS.length; i++){
+    const o = OPERATORS[i];
+    const act = state.operator === i;
+    const dim = state.operator !== null && !act;
+    parts.push(
+      '<button class="op'+(act?" act":"")+(dim?" dim":"")+'" type="button" data-op="'+i+'" aria-pressed="'+act+'">'+
+        '<span class="on">'+o.name+'</span>'+
+        '<span class="om"><span class="ov num">'+o.reviews+'</span><span class="ow"><span class="num">'+o.wanted+'</span> مطلوب</span></span>'+
+        '<span class="acc"><i style="inline-size:'+o.acc+'%"></i></span>'+
+        '<span class="oa">دقة <span class="num">'+o.acc+'%</span></span>'+
+      '</button>'
+    );
+  }
+  setHTML(host, "data-op", parts.join(""));
+}
+
+/* ============================================================
+   7) السكة
+   ============================================================ */
+const RAIL_CAP = 40;
+function railEvents(){
+  if(state.operator !== null){
+    /* كامل سجل اليوم لهذا المراجع — لا الستة عشر سطرًا المعروضة فقط */
+    return opRec(OPERATORS[state.operator].name).list.slice(0, RAIL_CAP);
+  }
+  const g = effGate(), h = effHour();
+  if(g !== null && h !== null) return cellEvents(g, h).list;
+
+  let out = [];
+  if(g !== null){                       /* بوابة واحدة عبر اليوم كله */
+    for(let hh=0; hh<HOURS; hh++) out = out.concat(cellEvents(g, hh).list);
+  } else if(h !== null){                /* ساعة واحدة عبر كل البوابات */
+    for(let gg=0; gg<ROWS; gg++) out = out.concat(cellEvents(gg, h).list);
+  } else {
+    return EVENTS.slice();
+  }
+  out.sort(function(a,b){
+    if(a.t !== b.t) return a.t < b.t ? 1 : -1;
+    return a.plate < b.plate ? -1 : 1;
+  });
+  return out.slice(0, RAIL_CAP);
+}
+
+function renderRail(){
+  const cellRef = state.cell || (state.gate !== null && state.hour !== null ? { g:state.gate, h:state.hour } : null);
+  let title, sub;
+  if(state.operator !== null){
+    title = OPERATORS[state.operator].name;
+    sub = "بلاغات المطلوب التي راجعها اليوم · خلاياه مضاءة في الشبكة";
+  } else if(cellRef){
+    title = GATES[cellRef.g].name + " · " + pad2(cellRef.h) + ":00";
+    sub = "نافذة زمنية مدّتها ساعة واحدة";
+  } else if(state.gate !== null){
+    title = GATES[state.gate].name;
+    sub = "الحالة: " + STATUS_LABEL[GATES[state.gate].status] + " · اليوم كاملًا";
+  } else if(state.hour !== null){
+    title = "الساعة " + pad2(state.hour) + ":00";
+    sub = "كل البوابات ضمن هذه الساعة";
+  } else {
+    title = "أحدث الأحداث";
+    sub = "آخر 16 عملية مسجّلة على مستوى الشبكة";
+  }
+  $("rail-title").textContent = title;
+  $("rail-sub").textContent = sub;
+
+  /* الإحصاءات */
+  let sv, sw, su, sms;
+  if(cellRef){
+    sv = VOL[cellRef.g][cellRef.h]; sw = HIT[cellRef.g][cellRef.h]; su = UNR[cellRef.g][cellRef.h];
+    sms = GATES[cellRef.g].ms;
+  } else if(state.operator !== null){
+    const o = OPERATORS[state.operator];
+    sv = o.reviews; sw = o.wanted; su = null; sms = null;
+  } else {
+    const t = scopeTotals(); sv = t.total; sw = t.wanted; su = t.unread; sms = scopeLatency();
+  }
+  const st = [];
+  st.push('<div class="rstat"><span class="l">'+(state.operator!==null?"مراجعات":"عمليات مسح")+'</span><span class="v num">'+fmtN(sv)+'</span></div>');
+  st.push('<div class="rstat"><span class="l">مطلوب</span><span class="v w num">'+sw+'</span></div>');
+  if(su !== null) st.push('<div class="rstat"><span class="l">غير مقروء</span><span class="v u num">'+su+'</span></div>');
+  if(sms !== null) st.push('<div class="rstat"><span class="l">زمن المعالجة</span><span class="v"><span class="num">'+sms+'</span></span></div>');
+  else st.push('<div class="rstat"><span class="l">دقة</span><span class="v"><span class="num">'+OPERATORS[state.operator].acc+'%</span></span></div>');
+  $("rail-stats").innerHTML = st.join("");
+
+  /* الملف اليومي للبوابة داخل السكة */
+  const prof = $("rail-profile");
+  if(cellRef || state.gate !== null){
+    const g = cellRef ? cellRef.g : state.gate;
+    const W = 240, H = 40, slot = W/24, bw = slot*0.6;
+    let mx = 0; for(let h=0; h<HOURS; h++) mx = Math.max(mx, VOL[g][h]);
+    const top = niceMax(mx) || 1;
+    const bars = [];
+    for(let h=0; h<HOURS; h++){
+      const bh = Math.max(VOL[g][h] > 0 ? 1 : 0, (VOL[g][h]/top)*(H-4));
+      const x = (23-h)*slot + (slot-bw)/2;
+      const hot = cellRef && cellRef.h === h;
+      bars.push('<rect x="'+x.toFixed(2)+'" y="'+(H-bh).toFixed(2)+'" width="'+bw.toFixed(2)+'" height="'+bh.toFixed(2)+'" rx="1" fill="rgba(255,255,255,'+(hot?".88":".26")+')"/>');
+      if(HIT[g][h]) bars.push('<rect x="'+(x+bw/2-1.2).toFixed(2)+'" y="0" width="2.4" height="2.4" rx="1" style="fill:var(--wanted)"/>');
+    }
+    prof.innerHTML = '<div class="cap">توزيع اليوم — <span class="num">00</span> يمينًا إلى <span class="num">23</span> يسارًا · الأقصى <span class="num">'+fmtN(top)+'</span></div>' +
+      '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'+bars.join("")+'</svg>';
+    prof.style.display = "";
+  } else {
+    prof.innerHTML = "";
+    prof.style.display = "none";
+  }
+
+  /* شرائح الحكم */
+  const counts = { all:0, wanted:0, clean:0, unread:0 };
+  const all = railEvents();
+  for(let i=0;i<all.length;i++){ counts[all[i].verdict]++; counts.all++; }
+  const chipDefs = [
+    ["all", "الكل", null],
+    ["wanted", "مطلوب", "var(--wanted)"],
+    ["clean", "سليم", "var(--clean)"],
+    ["unread", "غير مقروء", "var(--unread)"]
+  ];
+  setHTML($("rail-chips"), "data-v", chipDefs.map(function(c){
+    const on = state.verdict === c[0];
+    return '<button class="chip" type="button" data-v="'+c[0]+'" aria-pressed="'+on+'">' +
+      (c[2] ? '<span class="cd" style="background:'+c[2]+'"></span>' : '') +
+      c[1] + ' <span class="num">' + counts[c[0]] + '</span></button>';
+  }).join(""));
+
+  /* القائمة */
+  const list = state.verdict === "all" ? all : all.filter(e => e.verdict === state.verdict);
+  const host = $("rail-list");
+  if(!list.length){
+    host.innerHTML = '<div class="empty">لا توجد سجلات مطابقة</div>';
+    return;
+  }
+  const rows = list.map(function(e){
+    const gname = (GATES.find(g => g.id === e.gate) || {}).name || "";
+    const meta = [];
+    meta.push("<b>" + gname + "</b>");
+    if(e.reason) meta.push(e.reason);
+    if(e.ref) meta.push('<span class="num">' + e.ref + '</span>');
+    if(e.by) meta.push("راجعها " + e.by);
+    if(e.ms) meta.push('<span class="num">' + e.ms + '</span> مللي/ث');
+    return '<div class="ev v-'+e.verdict+'">' +
+      '<span class="vb" aria-hidden="true"></span>' +
+      '<div class="body">' +
+        '<div class="top"><span class="plate">'+e.plate+'</span>' +
+        '<span class="vd">'+VERDICT_LABEL[e.verdict]+'</span>' +
+        '<span class="tm num">'+e.t+'</span></div>' +
+        '<div class="meta">'+meta.join(" · ")+'</div>' +
+      '</div></div>';
+  });
+  let more = "";
+  if(cellRef){
+    const c = cellEvents(cellRef.g, cellRef.h);
+    if(c.count > c.list.length) more = '<div class="more">عرض <span class="num">'+c.list.length+'</span> من <span class="num">'+fmtN(c.count)+'</span> عملية في هذه الساعة</div>';
+  } else if(state.operator !== null){
+    const o = OPERATORS[state.operator];
+    more = '<div class="more">السجل يعرض بلاغات المطلوب فقط · إجمالي مراجعاته اليوم <span class="num">'+fmtN(o.reviews)+'</span></div>';
+  } else if(isScoped()){
+    const t = scopeTotals();
+    if(t.total > list.length) more = '<div class="more">عرض <span class="num">'+list.length+'</span> من <span class="num">'+fmtN(t.total)+'</span> عملية ضمن النطاق</div>';
+  }
+  host.innerHTML = rows.join("") + more;
+}
+
+function openRail(){
+  state.railOpen = true;
+  rail.classList.add("open");
+  rail.setAttribute("aria-hidden", "false");
+  $("app").classList.add("rail-open");
+  $("tg-rail").setAttribute("aria-pressed", "true");
+}
+function closeRail(){
+  state.railOpen = false;
+  rail.classList.remove("open");
+  rail.setAttribute("aria-hidden", "true");
+  $("app").classList.remove("rail-open");
+  $("tg-rail").setAttribute("aria-pressed", "false");
+}
+
+/* ============================================================
+   8) إعادة الرسم الكاملة
+   ============================================================ */
+function renderAll(){
+  paintMatrix();
+  renderRowMargins();
+  renderColMargins();
+  renderHeadline();
+  renderScope();
+  renderOperators();
+  renderRail();
+}
+
+/* ============================================================
+   9) الأحداث
+   ============================================================ */
+matrix.addEventListener("click", function(e){
+  const cell = e.target.closest(".cell");
+  if(cell){
+    if(cell.classList.contains("dead")) return;
+    const g = +cell.dataset.g, h = +cell.dataset.h;
+    if(state.cell && state.cell.g === g && state.cell.h === h){
+      state.cell = null;
+    } else {
+      state.cell = { g:g, h:h };
+      state.gate = null; state.hour = null; state.operator = null;
+      openRail();
+    }
+    state.verdict = "all";
+    focusCell(g, h);
+    renderAll();
+    return;
+  }
+  const gh = e.target.closest(".gh");
+  if(gh){
+    const g = +gh.dataset.g;
+    state.gate = (state.gate === g) ? null : g;
+    state.cell = null; state.operator = null; state.verdict = "all";
+    if(state.gate !== null) openRail();
+    renderAll();
+    return;
+  }
+  const hh = e.target.closest(".hh");
+  if(hh){
+    const h = +hh.dataset.h;
+    state.hour = (state.hour === h) ? null : h;
+    state.cell = null; state.operator = null; state.verdict = "all";
+    if(state.hour !== null) openRail();
+    renderAll();
+  }
+});
+
+/* قراءة لحظية عند المرور أو التركيز */
+const readout = $("readout");
+function readCell(el){
+  const g = +el.dataset.g, h = +el.dataset.h;
+  const gate = GATES[g];
+  if(gate.total === 0){
+    readout.innerHTML = '<b>'+gate.name+'</b> · ' + STATUS_LABEL[gate.status] + ' — لا توجد قراءات لهذه البوابة اليوم';
+    return;
+  }
+  readout.innerHTML = '<b>'+gate.name+'</b> · <span class="num">'+pad2(h)+':00</span> — ' +
+    '<span class="num">'+fmtN(VOL[g][h])+'</span> مسحة · ' +
+    '<span class="num">'+HIT[g][h]+'</span> مطلوب · ' +
+    '<span class="num">'+UNR[g][h]+'</span> غير مقروء';
+}
+matrix.addEventListener("mouseover", function(e){
+  const c = e.target.closest(".cell");
+  if(c) readCell(c);
+});
+matrix.addEventListener("mouseleave", function(){
+  readout.textContent = "مرّر فوق أي خلية لقراءة قيمتها · انقر خلية لفتح سجلّها";
+});
+matrix.addEventListener("focusin", function(e){
+  const c = e.target.closest(".cell");
+  if(c) readCell(c);
+});
+
+/* تنقّل بلوحة المفاتيح داخل الشبكة (tabindex متنقّل) */
+function focusCell(g, h){
+  const cells = matrix.querySelectorAll(".cell");
+  for(let i=0;i<cells.length;i++) cells[i].tabIndex = -1;
+  const el = matrix.querySelector('.cell[data-g="'+g+'"][data-h="'+h+'"]');
+  if(el){ el.tabIndex = 0; }
+  return el;
+}
+matrix.addEventListener("keydown", function(e){
+  const c = e.target.closest(".cell");
+  if(!c) return;
+  let g = +c.dataset.g, h = +c.dataset.h;
+  /* الشبكة RTL: الساعة 00 على اليمين، لذا السهم الأيسر يزيد الساعة */
+  if(e.key === "ArrowLeft")       h = Math.min(23, h + 1);
+  else if(e.key === "ArrowRight") h = Math.max(0,  h - 1);
+  else if(e.key === "ArrowDown")  g = Math.min(ROWS - 1, g + 1);
+  else if(e.key === "ArrowUp")    g = Math.max(0, g - 1);
+  else if(e.key === "Home")       h = 0;
+  else if(e.key === "End")        h = 23;
+  else if(e.key === "Escape"){ closeRail(); return; }
+  else return;
+  e.preventDefault();
+  const el = focusCell(g, h);
+  if(el) el.focus();
+});
+
+/* المراجعون */
+$("oprow").addEventListener("click", function(e){
+  const b = e.target.closest(".op");
+  if(!b) return;
+  const i = +b.dataset.op;
+  state.operator = (state.operator === i) ? null : i;
+  if(state.operator !== null){
+    state.cell = null; state.gate = null; state.hour = null; state.verdict = "all";
+    openRail();
+  }
+  renderAll();
+});
+
+/* شرائح الحكم داخل السكة */
+$("rail-chips").addEventListener("click", function(e){
+  const b = e.target.closest(".chip");
+  if(!b) return;
+  state.verdict = b.dataset.v;
+  renderRail();
+});
+
+/* مفاتيح الطبقات */
+$("tg-w").addEventListener("click", function(){
+  state.markers.wanted = !state.markers.wanted;
+  this.setAttribute("aria-pressed", String(state.markers.wanted));
+  paintMatrix();
+});
+$("tg-u").addEventListener("click", function(){
+  state.markers.unread = !state.markers.unread;
+  this.setAttribute("aria-pressed", String(state.markers.unread));
+  paintMatrix();
+});
+$("tg-rail").addEventListener("click", function(){
+  if(state.railOpen) closeRail(); else { openRail(); renderRail(); }
+});
+$("rail-close").addEventListener("click", closeRail);
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && state.railOpen) closeRail();
+});
+
+/* ============================================================
+   10) الإقلاع
+   ============================================================ */
+$("upd").textContent = UPDATED;
+document.querySelector(".avatar").textContent = ADMIN.initial;
+buildMatrix();
+focusCell(0, 8);
+$("rampmax").textContent = fmtN(MAXCELL);
+renderAll();
+
+})();
+</script>
+</body>
+</html>
