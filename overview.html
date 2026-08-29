@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-depth="all">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,10 +21,11 @@
   --clean:#3ddc97;
   --ease:cubic-bezier(.22,.61,.36,1);
 
-  /* أعماق الطبقات — تتغيّر بزر العمق */
-  --far-a:.026;  --far-blur:34px; --far-ink:.42; --far-z:0;
-  --mid-a:.050;  --mid-blur:22px; --mid-ink:.86; --mid-z:0;
-  --near-a:.075; --near-blur:12px;--near-ink:1;  --near-z:0;
+  /* الوضع الافتراضي: كل الطبقات مقروءة بالكامل.
+     العمق أداة تركيز اختيارية، لا إخفاء دائم. */
+  --far-a:.042;  --far-blur:24px; --far-ink:1;
+  --mid-a:.050;  --mid-blur:22px; --mid-ink:1;
+  --near-a:.070; --near-blur:14px;--near-ink:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -113,7 +114,9 @@ button{font:inherit;color:inherit}
   box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
 .near{opacity:var(--near-ink)}
 
-/* ترتيب العمق */
+/* ترتيب العمق — «الكل» هو الافتراضي ولا يبهت شيئًا */
+:root[data-depth="all"]{ --far-a:.042;--far-blur:24px;--far-ink:1;
+  --mid-a:.05;--mid-blur:22px;--mid-ink:1; --near-a:.07;--near-blur:14px;--near-ink:1 }
 :root[data-depth="far"]{ --far-a:.05;--far-blur:18px;--far-ink:1;
   --mid-a:.04;--mid-blur:26px;--mid-ink:.6; --near-a:.045;--near-blur:30px;--near-ink:.42 }
 :root[data-depth="mid"]{ --far-a:.024;--far-blur:38px;--far-ink:.3;
@@ -195,7 +198,11 @@ button{font:inherit;color:inherit}
 .paneTitle{font-size:14.5px;font-weight:600}
 .paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
 .chartBody{padding:10px 14px 16px}
-svg.hrs{display:block;width:100%;height:auto}
+/* الارتفاع مثبّت في CSS ولا يعتمد على أي كود:
+   مع preserveAspectRatio="none" يصبح مقياس المحور الرأسي 1:1 دائمًا،
+   فلا يكبر الرسم أبدًا مع اتساع النافذة أو تصغير تكبير المتصفّح.
+   إعادة الرسم من JS تضبط المحور الأفقي ليصبح 1:1 كذلك. */
+svg.hrs{display:block;inline-size:100%;block-size:176px}
 svg.hrs text{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:9px;fill:var(--ink-3)}
 svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 .hrBar{cursor:pointer;transition:opacity .15s var(--ease)}
@@ -209,10 +216,9 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 .lgi{display:flex;align-items:center;gap:6px}
 .lgs{width:10px;height:10px;border-radius:3px;flex:none}
 
-/* البطاقة الطافية — الطبقة الأمامية */
-.floatCard{margin-block-start:-52px;margin-inline-start:20px;
-  inline-size:min(560px,calc(100% - 40px));position:relative;z-index:20}
-@media(max-width:1080px){.floatCard{margin-block-start:16px;margin-inline-start:0;inline-size:100%}}
+/* الطبقة الأمامية — تحت الرسم لا فوقه.
+   العمق يُقرأ من الخامة والظل والحدّة، لا من حجب المحتوى. */
+.floatCard{margin-block-start:18px;inline-size:100%;position:relative;z-index:20}
 
 .liveHead{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;
   border-block-end:1px solid var(--line-2);flex-wrap:wrap}
@@ -360,9 +366,10 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   <div style="display:flex;align-items:center">
     <span class="segLbl">العمق</span>
     <div class="seg" role="group" aria-label="طبقة العمق" id="depthSeg">
+      <button type="button" data-d="all"  aria-pressed="true">الكل</button>
       <button type="button" data-d="far"  aria-pressed="false">خلفية</button>
       <button type="button" data-d="mid"  aria-pressed="false">متوسط</button>
-      <button type="button" data-d="near" aria-pressed="true">أمامي</button>
+      <button type="button" data-d="near" aria-pressed="false">أمامي</button>
     </div>
   </div>
 
@@ -450,7 +457,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
             <span class="paneNote" id="chartNote">رسمان بمحور ساعات مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير</span>
           </div>
           <div class="chartBody">
-            <svg class="hrs" id="chart" viewBox="0 0 1000 176" role="img"
+            <svg class="hrs" id="chart" viewBox="0 0 1000 176" preserveAspectRatio="none" role="img"
                  aria-label="فحوصات كل ساعة، وتحتها المركبات المطلوبة بنفس محور الساعات"></svg>
           </div>
           <div class="legend">
@@ -671,14 +678,25 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;
   }
 
-  /* هندسة الرسم: نسبة عرض/ارتفاع عريضة ومسطّحة حتى لا يتضخّم عند التمدّد،
-     وعرض العمود نصف الخانة فقط ليبقى الفراغ بين الأعمدة مساويًا لها. */
-  var W=1000,H=176,PAD={t:16,r:16,b:26,l:16},GAP=16,HA=86,HB=32;
-  var SLOT=(W-PAD.l-PAD.r)/24, BW=SLOT*0.5;
+  /* الرسم يُرسم بمقياس 1:1 مع البكسل: عرض الـ viewBox يساوي العرض الفعلي
+     للعنصر بالبكسل، فلا يتمدّد ولا ينكمش مع تكبير المتصفّح أو عرض النافذة.
+     الارتفاع ثابت دائمًا، وعرض العمود نصف الخانة ليبقى الفراغ مساويًا له. */
+  var H=176,PAD={t:16,r:16,b:26,l:16},GAP=16,HA=86,HB=32;
+  var W=1000, SLOT=40, BW=20, lastW=0;
+
+  function measure(){
+    var svg=document.getElementById("chart");
+    var px=Math.round(svg.getBoundingClientRect().width) || svg.clientWidth || 1000;
+    W    = Math.max(320, px);
+    SLOT = (W-PAD.l-PAD.r)/24;
+    BW   = Math.max(4, Math.min(24, SLOT*0.5));   /* سقف 24 بكسل حسب حدّ الإتقان */
+    return W;
+  }
   function xOf(i){ return W-PAD.r-(i+0.5)*SLOT; }
 
   function drawChart(){
     var svg=document.getElementById("chart"), HOURS=cur().hours;
+    measure(); lastW=W;
     svg.innerHTML="";
     svg.setAttribute("viewBox","0 0 "+W+" "+H);   /* مصدر واحد للهندسة */
     document.getElementById("chartNote").textContent=cur().chartNote;
@@ -961,6 +979,20 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
       });
       raf = (Math.abs(tx-cx)>.001||Math.abs(ty-cy)>.001) ? requestAnimationFrame(tick) : null;
     }
+  })();
+
+  /* إعادة الرسم عند تغيّر العرض فقط — الارتفاع لا يؤثّر، وبهذا لا تنشأ حلقة
+     لأن الرسم نفسه لا يغيّر عرض العنصر. */
+  (function(){
+    var svg=document.getElementById("chart");
+    /* متزامن ومحروس بتغيّر العرض — لا حلقة لأن الرسم لا يغيّر العرض،
+       ولا اعتماد على requestAnimationFrame الذي يُخنق في التبويبات المخفية. */
+    function onResize(){
+      var px=Math.round(svg.getBoundingClientRect().width);
+      if(px && Math.abs(px-lastW)>=2) drawChart();
+    }
+    if(window.ResizeObserver) new ResizeObserver(onResize).observe(svg);
+    addEventListener("resize", onResize, {passive:true});
   })();
 
   drawChart(); drawOps(); rerender();
