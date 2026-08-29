@@ -73,7 +73,7 @@ body{ position:relative; background:#06100c }
 
 ```css
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
   --accent:#6ec49b;
   --wanted:#ff6b6b;      /* مطلوب — قانون منتج، لا يُعاد تعيينه */
