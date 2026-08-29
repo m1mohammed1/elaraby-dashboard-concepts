@@ -19,6 +19,7 @@
   --accent:#6ec49b;
   --wanted:#ff6b6b;
   --clean:#3ddc97;
+  --unread:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
   /* الوضع الافتراضي: كل الطبقات مقروءة بالكامل.
@@ -74,6 +75,82 @@ button{font:inherit;color:inherit}
 .seg button:hover{color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
 .segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
+
+/* ── منتقي المدى الزمني ───────────────────────────────
+   منقول حرفيًا من prototype/admin/operator-detail.html — المرجع الحيّ للعنصر.
+   يستبدل المقسّم المجزّأ ذا الزرّين: زرّ واحد يعرض المدى الحالي ويفتح لوحة
+   فيها المدى الجاهز على جهة والتقويم على الأخرى. لا <input type="date">
+   إطلاقًا: الحقل الأصلي يعرض أرقامًا هندية وترتيبًا تفرضه لغة المتصفّح. */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink-2);
+  transition:background .16s var(--ease),color .16s var(--ease)}
+.btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.btn.primary{border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.14);color:var(--ink)}
+.btn.primary:hover{background:rgba(110,196,155,.22)}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn svg{display:block;flex:none}
+
+.rangeAnchor{position:relative}
+.rangeBtn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  color:var(--ink-2);border-radius:10px;padding:8px 13px;font-size:13px;
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease)}
+.rangeBtn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:var(--ink)}
+.rangeBtn[aria-expanded="true"]{background:rgba(255,255,255,.11);color:var(--ink);
+  border-color:rgba(255,255,255,.22)}
+.rangeBtn b{color:var(--ink);font-weight:600}
+.rangeDates{color:var(--ink-3);font-size:12px;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rangeBtn .chev{color:var(--ink-3);flex:none}
+
+.rangePop{position:absolute;z-index:200;inset-block-start:calc(100% + 7px);inset-inline-start:0;
+  border-radius:14px;overflow:hidden;background:#101b16;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
+.rangePop[hidden]{display:none}
+.rpGrid{display:grid;grid-template-columns:auto 1fr}
+@media(max-width:620px){.rpGrid{grid-template-columns:1fr}}
+.rpPresets{display:flex;flex-direction:column;gap:2px;padding:10px;
+  border-inline-end:1px solid var(--line-2);min-inline-size:132px}
+@media(max-width:620px){.rpPresets{flex-direction:row;flex-wrap:wrap;
+  border-inline-end:0;border-block-end:1px solid var(--line-2)}}
+.rpP{border:0;background:transparent;cursor:pointer;text-align:start;
+  padding:7px 11px;border-radius:8px;font-size:12.5px;color:var(--ink-2);white-space:nowrap;
+  transition:background .14s var(--ease),color .14s var(--ease)}
+.rpP:hover:not([disabled]){background:rgba(255,255,255,.07);color:var(--ink)}
+.rpP[aria-selected="true"]{background:rgba(110,196,155,.16);color:var(--ink);font-weight:600}
+.rpP[disabled]{color:var(--ink-4);cursor:default}
+.rpP[disabled][aria-selected="true"]{background:rgba(255,255,255,.07);color:var(--ink-2)}
+
+.rpCal{padding:10px 12px 12px;min-inline-size:252px}
+.rpCalHead{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-block-end:8px}
+.rpMonth{font-size:12.5px;font-weight:600;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rpNav{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  color:var(--ink-2);cursor:pointer;inline-size:26px;block-size:26px;border-radius:8px;
+  display:grid;place-items:center;transition:background .14s var(--ease),color .14s var(--ease)}
+.rpNav:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.rpDow,.rpDays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.rpDow{margin-block-end:4px}
+.rpDow span{font-size:10px;color:var(--ink-4);text-align:center;padding-block:2px}
+.rpD{border:0;background:transparent;cursor:pointer;color:var(--ink-2);
+  block-size:30px;border-radius:7px;font-size:12px;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;
+  transition:background .13s var(--ease),color .13s var(--ease)}
+.rpD:hover:not([disabled]){background:rgba(255,255,255,.09);color:var(--ink)}
+.rpD.out{cursor:default}
+.rpD[disabled]{color:var(--ink-4);cursor:default}
+.rpD.in{background:rgba(110,196,155,.13);color:var(--ink)}
+.rpD.edge{background:var(--accent);color:#06100c;font-weight:700}
+.rpFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 12px;border-block-start:1px solid var(--line-2)}
+.rpSel{font-size:12px;color:var(--ink-2);direction:rtl;unicode-bidi:isolate}
+.rpActs{margin-inline-start:auto;display:flex;gap:7px}
+/* تحذير المسوّدة: يظهر قبل «تطبيق» لا بعده، فلا يكتشف المستخدم العجز متأخّرًا */
+.rpWarn{flex-basis:100%;font-size:11px;line-height:1.65;color:var(--unread)}
+.rpWarn[hidden]{display:none}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
@@ -375,6 +452,18 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   transition:background .15s var(--ease)}
 .clearBtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
 
+/* شريط المدى المخصّص — يُعلن بصراحة أن الأرقام لا تتبع هذا المدى.
+   بلا مسار API ولا query string في الواجهة (§11.5): مكانهما «مصادر البيانات». */
+.rangeNote{display:none;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 16px;margin-block-end:14px;border-radius:12px;
+  background:rgba(232,176,85,.07);border:1px solid rgba(232,176,85,.26);
+  font-size:12.5px;color:var(--ink-2);line-height:1.75}
+.rangeNote.on{display:flex}
+.rangeNote .w{flex:1;min-inline-size:180px}
+.rangeNote b{color:var(--ink);font-weight:600;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rangeNote .warnMk{color:var(--unread);font-weight:600}
+
 /* ── قائمة المطلوبين (متوسطة، أسفل العمود) ───────── */
 .wl{margin-block-start:18px}
 .wlBody{padding:15px 18px 16px}
@@ -422,11 +511,59 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · النظرة العامة</span></div>
   <div class="barSep" aria-hidden="true"></div>
 
+  <!-- منتقي المدى الزمني — يستبدل المقسّم المجزّأ «اليوم / 7 أيام».
+       عنصر تحكّم واحد: زرّ يعرض المدى الحالي، ويفتح لوحة فيها المدى الجاهز
+       على جهة والتقويم على الأخرى. لا شيء يُطبَّق قبل «تطبيق». -->
   <div style="display:flex;align-items:center">
     <span class="segLbl">المدى</span>
-    <div class="seg" role="group" aria-label="المدى الزمني" id="rangeSeg">
-      <button type="button" data-r="today" aria-pressed="true">اليوم</button>
-      <button type="button" data-r="w7"    aria-pressed="false">7 أيام</button>
+    <div class="rangeAnchor">
+      <button class="rangeBtn" type="button" id="rangeBtn"
+              aria-expanded="false" aria-haspopup="dialog" aria-controls="rangePop">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2.5"/>
+          <path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <b id="rangeLabel">اليوم</b>
+        <span class="rangeDates" id="rangeDates">29 أغسطس 2026</span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <div class="rangePop" id="rangePop" role="dialog"
+           aria-label="اختيار المدى الزمني" hidden>
+        <div class="rpGrid">
+          <div class="rpPresets" id="rpPresets" role="listbox" aria-label="مدى جاهز"></div>
+          <div class="rpCal">
+            <div class="rpCalHead">
+              <button class="rpNav" type="button" id="calPrev" aria-label="الشهر السابق">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <span class="rpMonth" id="calMonth" aria-live="polite">أغسطس 2026</span>
+              <button class="rpNav" type="button" id="calNext" aria-label="الشهر التالي">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+              </button>
+            </div>
+            <div class="rpDow" aria-hidden="true"></div>
+            <div class="rpDays" id="calDays" role="grid" aria-label="أيام الشهر"></div>
+          </div>
+        </div>
+        <div class="rpFoot">
+          <span class="rpSel" id="rpSel"></span>
+          <span class="rpActs">
+            <button class="btn" type="button" id="rpCancel">إلغاء</button>
+            <button class="btn primary" type="button" id="rpApply">تطبيق</button>
+          </span>
+          <span class="rpWarn" id="rpWarn" hidden>
+            مدى مخصّص: النظام لا يحسب أرقام هذه الشاشة على مدى حرّ بعد — يحتاج بناءً
+            في الباك إند. التفاصيل في «مصادر البيانات».
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -454,6 +591,17 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 
 <main class="stage">
 
+  <!-- شريط المدى المخصّص — يظهر فقط حين يُطبَّق مدى حرّ.
+       لا يدّعي أن الأرقام تتبعه: يقول صراحةً على أي مدى هي، ولماذا. -->
+  <div class="rangeNote" id="rangeNote" role="status">
+    <span class="w">
+      <span class="warnMk">مدى مخصّص:</span>
+      <b id="rnRange">—</b> — هذه الشاشة لا تُحسب على مدى حرّ بعد، فالأرقام والرسوم
+      أدناه ما زالت على <b id="rnData">—</b>. ما ينقص مذكور في «مصادر البيانات».
+    </span>
+    <button class="clearBtn" type="button" id="rnClear">الرجوع إلى المدى المعروض</button>
+  </div>
+
   <!-- شريط النطاق النشط -->
   <div class="scopeBar" id="scopeBar" role="status">
     <span class="w">مقصور على: <b id="scopeText">—</b></span>
@@ -467,7 +615,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
         <div class="fig hero">
           <div class="figL">إجمالي عمليات الفحص</div>
           <div class="figV" data-count="12847">12,847</div>
-          <div class="figM"><span id="mDeltaV" class="up">▲ 6.2%</span><span id="mDelta">عن الفترة السابقة</span></div>
+          <div class="figM"><span id="mDeltaV" class="up">▲ 6.2%</span><span id="mDelta">عن أمس</span></div>
         </div>
         <div class="fig hot">
           <div class="figL">مركبات مطلوبة</div>
@@ -484,7 +632,10 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
           <div class="figV" data-count="18">18</div>
           <div class="figM"><span id="mOps">من 26 مشغّلاً</span></div>
         </div>
+        <!-- لحظي: يُقيَّم بلحظة الطلب لا بالتاريخ المختار، ولا يتغيّر مع المدى —
+             والشارة تقول ذلك بدل أن يظنّه القارئ رقمًا مقصورًا على المدى. -->
         <div class="fig">
+          <span class="snap">لحظي</span>
           <div class="figL">اشتراكات سارية</div>
           <div class="figV" data-count="26">26</div>
         </div>
@@ -514,8 +665,37 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
         <code>screenings</code> و <code>wantedHits</code> و <code>activeUsers</code>.
         «مركبات غير مطلوبة» = الفرق بينهما، لأن <code>result</code> محصور في
         <code>safe | wanted</code>.
-        «اشتراكات سارية» من <code>operators.countDocuments</code> بشرط اشتراك ساري —
-        يُقيَّم بلحظة الطلب لا بالتاريخ المختار، ولذلك يحمل شارة «لحظي» ولا يتغيّر مع المدى.
+        <br>
+        <span class="nw">حدود المدى الزمني — اقرأها قبل تنفيذ المنتقي:</span>
+        المسار يقبل <code>date=</code> ليوم واحد فقط، وهو مطلوب لا اختياري. «اليوم»
+        و«أمس» يعملان به كما هو. أما «آخر 7 أيام» و«آخر 30 يومًا» و«هذا الشهر»
+        و«الشهر الماضي» و<b>المدى الحرّ من التقويم فلا يعيدها المسار الحالي</b>.
+        <br>
+        الحاجز في طبقة الـ HTTP وحدها، لا في قاعدة البيانات: المستودع
+        <code>WorkReportMongoRepository.dashboard</code> يستقبل أصلًا
+        <code>{from,to,now}</code> ويصفّي بـ <code>createdAt:{$gte:from,$lt:to}</code>،
+        لكن حالة الاستخدام <code>WorkReporting.dashboard(date)</code> تشتقّ الطرفين من
+        يوم واحد، والمسار لا يقرأ سوى <code>date</code>.
+        <span class="nw">فالمطلوب بناؤه</span> شيئان فقط: قبول
+        <code>from</code> و <code>to</code> في المسار وفي حالة الاستخدام — تمامًا كما
+        يفعل <code>GET /v1/admin/operators/:id/work</code> اليوم، وهو المسار الوحيد
+        الذي يقبل طرفَي مدى لكنه لمشغّل واحد لا للوحة كلها.
+        <span class="nw">تحذير أداء:</span> الفهرس الوحيد على <code>createdAt</code> وحده
+        هو <code>wanted_matches_by_date</code> وهو <b>جزئي</b>
+        (<code>partialFilterExpression:{result:'wanted'}</code>)، فيخدم عدّ المطلوبين
+        على مدى ولا يخدم عدّ الفحوصات الكلي ولا <code>distinct('operatorId')</code> —
+        هذان يبقيان مسحًا كاملاً لمجموعة <code>plate_check_records</code> وهي لا تُنظَّف
+        أبدًا. يلزم فهرس <code>{createdAt:1}</code> غير جزئي مع المدى.
+        لذلك يظهر شريط تنبيه فوق الشاشة عند اختيار مدى حرّ، والأرقام تبقى على آخر مدى
+        جاهز بدل ادّعاء حساب لا يجريه الباك إند.
+        <br>
+        «اشتراكات سارية» هو الحقل <code>activeSubscriptions</code>:
+        <code>operators.countDocuments</code> بشرط اشتراك ساري — يُقيَّم بلحظة الطلب
+        (<code>now</code>) لا بالتاريخ المختار، ولذلك يحمل شارة «لحظي» ولا يتغيّر مع المدى.
+        وهو نفسه المقام في «من 26 مشغّلاً» تحت عدد من فحصوا: البسط هو
+        <code>activeUsers</code>، وهو أصلًا مقصور على أصحاب الاشتراك الساري نفسه ثم
+        على من ظهر <code>operatorId</code>ه في المدى — فهو مجموعة جزئية من المقام
+        بحكم الاستعلام، ولا يتجاوزه في أي مدى.
         «متصلون الآن» و«الجلسات الصوتية» من
         <code>GET /v1/admin/dashboard/online-users</code> — لحظي أيضًا:
         <code>operator_presence</code> و <code>active_voice_sessions</code> عليهما
@@ -547,9 +727,10 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
             <span class="nw">يحتاج بناءً:</span> تجميعة <code>$group</code> مع
             <code>$dateTrunc</code> على <code>createdAt</code>، مع <code>$sum</code> شرطي
             لـ <code>result:'wanted'</code>.
-            <span class="nw">تحذير أداء:</span> لا يوجد فهرس على <code>createdAt</code> وحده —
-            يجب إضافة <code>{createdAt:1}</code> قبل الإطلاق وإلا كان مسحًا كاملاً لمجموعة
-            لا تُنظَّف أبدًا.
+            <span class="nw">تحذير أداء:</span> الفهرس الوحيد على <code>createdAt</code>
+            وحده جزئي على <code>result:'wanted'</code>، فلا يخدم عمود الإجمالي —
+            يجب إضافة <code>{createdAt:1}</code> غير جزئي قبل الإطلاق وإلا كان مسحًا
+            كاملاً لمجموعة لا تُنظَّف أبدًا.
           </div>
         </div>
       </section>
@@ -564,10 +745,14 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
           </div>
           <div class="feed" id="feed"></div>
           <div class="src">
-            <code>GET /v1/admin/dashboard</code> — آخر 20 سجلاً، بلا ترقيم صفحات.
-            <span class="nw">ملاحظة:</span> هذه القائمة <b>لا تتبع المدى الزمني</b> —
-            المسار يعيد الأحدث دائمًا مهما كان التاريخ المختار، فتُركت كما هي بدل ادّعاء
-            تصفية لا يقوم بها الباك إند.
+            <code>GET /v1/admin/dashboard</code> — الحقل <code>recentActivity</code>:
+            آخر 20 سجلاً، بلا ترقيم صفحات.
+            <span class="nw">ملاحظة:</span> الباك إند <b>يقصر هذه القائمة على المدى</b> —
+            التجميعة تبدأ بـ <code>$match</code> على نفس مرشّح <code>createdAt</code>
+            ثم <code>$sort</code> و <code>$limit:20</code>، فما يظهر هو آخر عشرين ضمن
+            اليوم المختار لا آخر عشرين مطلقًا.
+            <b>أما هذه الشاشة التوضيحية فتعرض قائمة واحدة ثابتة لكل المدى</b> — سجلّ
+            بديل لكل مدى غير موجود في الموك، وهذا نقص في الموك لا في الباك إند.
             الحقول المعروضة: <code>createdAt</code> · <code>plate</code> ·
             <code>source</code> · <code>operatorId</code> · <code>result</code> ·
             <code>match.organization</code>.
@@ -640,8 +825,9 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   /* لكل مدى مجموعته الخاصة — لا تحجيم ولا ضرب في معامل،
      لأن التقريب المتكرّر يُفسد الأرقام الصغيرة (المطلوب) بصمت. */
   var DATA = {
-    today: {
-      periodLbl:"اليوم", opsLbl:"مشغّلون فحصوا اليوم", delta:"▲ 6.2%", deltaUp:true,
+    d1: {
+      periodLbl:"اليوم", opsLbl:"مشغّلون فحصوا اليوم",
+      delta:"▲ 6.2%", deltaUp:true, deltaLbl:"عن أمس",
       chartNote:"رسمان بمحور ساعات مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير",
       figs:[12847,38,12809,18],
       hours:{
@@ -660,13 +846,40 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
       ],
       rest:{ count:10, scans:4787, hits:9 }
     },
-    w7: {
-      periodLbl:"آخر 7 أيام", opsLbl:"مشغّلون فحصوا خلال 7 أيام", delta:"▲ 4.1%", deltaUp:true,
+    /* أمس = الجمعة 28 أغسطس: نهاية أسبوع، فالحجم أقل والذروة تتأخّر إلى المساء.
+       مجموعة مستقلّة بالكامل — ليست «اليوم» مضروبًا في معامل. */
+    dy: {
+      periodLbl:"أمس", opsLbl:"مشغّلون فحصوا أمس",
+      delta:"▼ 3.4%", deltaUp:false, deltaLbl:"عن اليوم السابق له",
+      chartNote:"رسمان بمحور ساعات مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير",
+      figs:[9742,27,9715,15],
+      hours:{
+        total :[166,131,102,88,94,142,271,398,512,566,498,432,389,402,548,614,702,768,731,642,534,451,332,229],
+        wanted:[1,0,0,0,0,0,1,1,2,2,1,1,1,1,2,2,2,3,2,2,1,1,1,0]
+      },
+      operators:[
+        { id:"o1",name:"خالد المطيري",scans:1182,hits:5 },
+        { id:"o2",name:"نورة السبيعي",scans:1094,hits:4 },
+        { id:"o3",name:"فهد القحطاني",scans: 926,hits:3 },
+        { id:"o5",name:"سعود العتيبي",scans: 871,hits:3 },
+        { id:"o4",name:"ريم الدوسري", scans: 803,hits:2 },
+        { id:"o6",name:"لطيفة الحربي",scans: 742,hits:2 },
+        { id:"o7",name:"ماجد الشمري", scans: 688,hits:2 },
+        { id:"o8",name:"هند الزهراني",scans: 615,hits:1 }
+      ],
+      rest:{ count:7, scans:2821, hits:5 }
+    },
+    d7: {
+      periodLbl:"آخر 7 أيام", opsLbl:"مشغّلون فحصوا خلال 7 أيام",
+      delta:"▲ 4.1%", deltaUp:true, deltaLbl:"عن الأسبوع السابق",
       chartNote:"متوسط الفحص لكل ساعة عبر 7 أيام — المحور مشترك وكل رسم بمقياسه الصحيح",
       figs:[84620,271,84349,24],
+      /* المتوسط اليومي فعلاً: مجموع الساعات = 84,620 ÷ 7 = 12,089، والمطلوب
+         271 ÷ 7 = 39. السلسلة السابقة كانت تجمع 12,440 و46 — أي أنها كانت
+         تناقض عنوانها «متوسط الفحص لكل ساعة عبر 7 أيام». */
       hours:{
-        total :[211,160,128,115,143,259,497,731,848,822,731,704,682,638,671,689,779,833,781,632,472,381,304,229],
-        wanted:[1,1,1,0,1,1,2,4,4,3,2,2,2,2,2,2,4,4,3,2,1,1,1,0]
+        total :[205,156,125,113,140,253,486,715,805,804,715,688,667,624,656,674,749,790,750,618,462,372,297,225],
+        wanted:[1,1,1,0,1,1,2,3,4,2,2,2,2,1,2,2,3,4,2,1,1,1,0,0]
       },
       operators:[
         { id:"o1",name:"خالد المطيري",scans:9418,hits:41 },
@@ -679,6 +892,71 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
         { id:"o8",name:"هند الزهراني",scans:4966,hits:15 }
       ],
       rest:{ count:16, scans:29852, hits:50 }
+    },
+    d30: {
+      periodLbl:"آخر 30 يومًا", opsLbl:"مشغّلون فحصوا خلال 30 يومًا",
+      delta:"▲ 5.8%", deltaUp:true, deltaLbl:"عن الثلاثين يومًا السابقة",
+      chartNote:"متوسط الفحص لكل ساعة عبر 30 يومًا — المحور مشترك وكل رسم بمقياسه الصحيح",
+      /* عدد المشغّلين الذين فحصوا لا يتجاوز 26 — وهو عدد أصحاب الاشتراك الساري
+         المكتوب تحت الرقم. كان 27، أي أكثر من المقام، وهو مستحيل. */
+      figs:[361480,1148,360332,26],
+      hours:{
+        total :[206,157,124,112,139,251,482,709,822,797,709,682,661,619,650,668,755,807,757,613,458,369,295,207],
+        wanted:[1,1,1,0,1,1,2,3,3,2,2,2,2,1,2,2,3,3,2,1,1,1,1,0]
+      },
+      operators:[
+        { id:"o1",name:"خالد المطيري",scans:40166,hits:172 },
+        { id:"o2",name:"نورة السبيعي",scans:38204,hits:161 },
+        { id:"o5",name:"سعود العتيبي",scans:30412,hits:143 },
+        { id:"o3",name:"فهد القحطاني",scans:29378,hits:124 },
+        { id:"o4",name:"ريم الدوسري", scans:26540,hits:102 },
+        { id:"o7",name:"ماجد الشمري", scans:24733,hits: 94 },
+        { id:"o6",name:"لطيفة الحربي",scans:22918,hits: 77 },
+        { id:"o8",name:"هند الزهراني",scans:21164,hits: 64 }
+      ],
+      rest:{ count:18, scans:127965, hits:211 }
+    },
+    m0: {
+      periodLbl:"هذا الشهر", opsLbl:"مشغّلون فحصوا هذا الشهر",
+      delta:"▲ 4.7%", deltaUp:true, deltaLbl:"عن الشهر الماضي",
+      chartNote:"متوسط الفحص لكل ساعة عبر أيام هذا الشهر — المحور مشترك وكل رسم بمقياسه الصحيح",
+      figs:[349116,1109,348007,26],
+      hours:{
+        total :[204,156,123,111,138,249,479,704,865,793,706,679,658,617,648,665,752,804,754,611,456,367,293,206],
+        wanted:[1,1,1,0,1,2,2,3,3,2,2,2,2,1,2,2,3,3,2,1,1,1,0,0]
+      },
+      operators:[
+        { id:"o1",name:"خالد المطيري",scans:38842,hits:166 },
+        { id:"o2",name:"نورة السبيعي",scans:36915,hits:155 },
+        { id:"o5",name:"سعود العتيبي",scans:29408,hits:138 },
+        { id:"o3",name:"فهد القحطاني",scans:28371,hits:120 },
+        { id:"o4",name:"ريم الدوسري", scans:25634,hits: 99 },
+        { id:"o7",name:"ماجد الشمري", scans:23896,hits: 91 },
+        { id:"o6",name:"لطيفة الحربي",scans:22140,hits: 74 },
+        { id:"o8",name:"هند الزهراني",scans:20428,hits: 62 }
+      ],
+      rest:{ count:18, scans:123482, hits:204 }
+    },
+    m1: {
+      periodLbl:"الشهر الماضي", opsLbl:"مشغّلون فحصوا الشهر الماضي",
+      delta:"▲ 3.2%", deltaUp:true, deltaLbl:"عن الشهر السابق له",
+      chartNote:"متوسط الفحص لكل ساعة عبر أيام يوليو — المحور مشترك وكل رسم بمقياسه الصحيح",
+      figs:[358204,1196,357008,25],
+      hours:{
+        total :[198,151,119,107,133,239,459,676,786,761,678,652,632,592,622,639,759,772,724,587,438,352,281,198],
+        wanted:[1,1,1,1,1,2,2,3,4,2,2,2,2,1,2,2,3,3,2,1,1,0,0,0]
+      },
+      operators:[
+        { id:"o1",name:"خالد المطيري",scans:39518,hits:178 },
+        { id:"o2",name:"نورة السبيعي",scans:37246,hits:164 },
+        { id:"o5",name:"سعود العتيبي",scans:30105,hits:149 },
+        { id:"o3",name:"فهد القحطاني",scans:28972,hits:131 },
+        { id:"o4",name:"ريم الدوسري", scans:26118,hits:108 },
+        { id:"o7",name:"ماجد الشمري", scans:24307,hits: 97 },
+        { id:"o6",name:"لطيفة الحربي",scans:22563,hits: 81 },
+        { id:"o8",name:"هند الزهراني",scans:20894,hits: 68 }
+      ],
+      rest:{ count:17, scans:128481, hits:220 }
     }
   };
 
@@ -722,8 +1000,75 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     DATA[k].operators.forEach(function(o){ opName[o.id]=o.name; });
   });
 
-  var state = { range:"today", opSort:"scans", op:null, hour:null };
-  function cur(){ return DATA[state.range]; }
+  /* ══ التواريخ — صيغة واحدة في الشاشة كلها، بأرقام غربية ══
+     منقولة من prototype/admin/operator-detail.html. */
+  var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+                "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  /* رؤوس أعمدة التقويم مختصرة بحرفين كما في §11: أح إث ثل أر خم جم سب.
+     الاقتطاع الآلي من الاسم الكامل (‏"الأحد".slice(0,3)‏) كان يعطي «الأ» للأحد
+     و«الأ» للأربعاء — عمودان بالعنوان نفسه. الاختصار مكتوب صراحةً لهذا السبب. */
+  var DOW = ["أح","إث","ثل","أر","خم","جم","سب"];
+  var TODAY = "2026-08-29";              /* «اليوم» في هذه البيانات التوضيحية */
+  function pad(n){ return (n<10?"0":"")+n; }
+  function toUTC(k){ var p=k.split("-"); return Date.UTC(+p[0],+p[1]-1,+p[2]); }
+  function keyOf(ms){ var d=new Date(ms);
+    return d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate()); }
+  function offset(k,days){ return keyOf(toUTC(k)+days*86400000); }
+  function daysBetween(a,b){ return Math.round((toUTC(b)-toUTC(a))/86400000); }
+  function monthStart(k){ return k.slice(0,7)+"-01"; }
+  function monthEnd(k){ var p=k.split("-"),
+    last=new Date(Date.UTC(+p[0],+p[1],0)).getUTCDate();
+    return p[0]+"-"+p[1]+"-"+pad(last); }
+  function parts(k){ var a=k.split("-"); return {y:+a[0],m:+a[1]-1,d:+a[2]}; }
+  function longDate(k){ var p=parts(k); return p.d+" "+MONTHS[p.m]+" "+p.y; }
+  /* مدى داخل شهر واحد يُكتب مرة واحدة: «23 – 29 أغسطس 2026» */
+  function rangeText(f,t){
+    if(f===t) return longDate(f);
+    var a=parts(f), b=parts(t);
+    if(a.y===b.y && a.m===b.m) return a.d+" – "+b.d+" "+MONTHS[b.m]+" "+b.y;
+    if(a.y===b.y) return a.d+" "+MONTHS[a.m]+" – "+b.d+" "+MONTHS[b.m]+" "+b.y;
+    return longDate(f)+" – "+longDate(t);
+  }
+
+  /* المدى الجاهز — لكل واحد مجموعة أرقام مستقلّة في DATA أعلاه */
+  var PRESETS = [
+    { p:"d1",  label:"اليوم" },
+    { p:"dy",  label:"أمس" },
+    { p:"d7",  label:"آخر 7 أيام" },
+    { p:"d30", label:"آخر 30 يومًا" },
+    { p:"m0",  label:"هذا الشهر" },
+    { p:"m1",  label:"الشهر الماضي" }
+  ];
+  function boundsOf(p){
+    if(p==="d1")  return { from:TODAY, to:TODAY };
+    if(p==="dy"){ var y=offset(TODAY,-1); return { from:y, to:y }; }
+    if(p==="d7")  return { from:offset(TODAY,-6),  to:TODAY };
+    if(p==="d30") return { from:offset(TODAY,-29), to:TODAY };
+    if(p==="m0")  return { from:monthStart(TODAY), to:TODAY };
+    if(p==="m1"){ var pm=offset(monthStart(TODAY),-1);
+                  return { from:monthStart(pm), to:monthEnd(pm) }; }
+    return null;
+  }
+  function presetOf(f,t){
+    for(var i=0;i<PRESETS.length;i++){
+      var b=boundsOf(PRESETS[i].p);
+      if(b.from===f && b.to===t) return PRESETS[i].p;
+    }
+    return "";
+  }
+  function labelOf(p){
+    for(var i=0;i<PRESETS.length;i++) if(PRESETS[i].p===p) return PRESETS[i].label;
+    return "مدى مخصّص";
+  }
+
+  /* range   — المدى المطبَّق فعلاً على الشاشة (قد يكون مخصّصًا)
+     dataKey — مفتاح المجموعة المعروضة؛ يبقى على آخر مدى جاهز، لأن الباك إند
+               لا يحسب مدى حرًّا لهذه الشاشة. لا تُشتقّ أرقام لمدى غير مدعوم. */
+  var b0 = boundsOf("d1");
+  var state = { dataKey:"d1", from:b0.from, to:b0.to,
+                opSort:"scans", op:null, hour:null };
+  function cur(){ return DATA[state.dataKey]; }
+  function isCustom(){ return presetOf(state.from,state.to)===""; }
   var fmt = function(n){ return n.toLocaleString("en-US"); };
 
   /* ══ أيقونات المصدر ══ */
@@ -885,7 +1230,11 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
       return '<div class="row">'+
         '<span class="rT">'+e.t+'</span>'+
         '<span class="rP">'+e.plate+'</span>'+
-        '<span class="rSrc" title="">'+(e.src==="voice"?IC_VOICE:IC_MANUAL)+'</span>'+
+        /* أيقونة المصدر وحدها بلا نصّ — فتحمل اسمها، وإلا كانت صامتة على
+           قارئ الشاشة وبلا تلميح على المؤشّر. */
+        '<span class="rSrc" role="img" title="'+(e.src==="voice"?"إدخال صوتي":"إدخال يدوي")+
+        '" aria-label="'+(e.src==="voice"?"إدخال صوتي":"إدخال يدوي")+'">'+
+        (e.src==="voice"?IC_VOICE:IC_MANUAL)+'</span>'+
         '<span class="rOp">'+(opName[e.op]||"حساب محذوف")+'</span>'+
         /* العمود محجوز دائمًا — فارغ في الصفوف غير المطلوبة — لتبقى
            الأعمدة التالية مصطفّة بين كل الصفوف */
@@ -996,10 +1345,169 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
       if(e.key==="Escape" && !panel.hidden){ setOpen(false); btn.focus(); }
     });
   })();
-  segment("rangeSeg", function(b){
-    state.range = b.dataset.r;
-    state.op = null; state.hour = null;   /* النطاق السابق قد لا يوجد في المدى الجديد */
-    drawFigures(); drawChart(); drawOps(); rerender();
+  /* ══ منتقي المدى الزمني ═══════════════════════════════
+     زرّ واحد يفتح لوحة: المدى الجاهز على جهة والتقويم على الأخرى.
+     لا زرّ «تبديل الطرفين» — اختيار طرف قبل الآخر يُرتَّب تلقائيًا، فالمدى
+     المعكوس لا يمكن إنشاؤه أصلًا بدل التحذير منه بعد وقوعه. */
+  function drawRange(){
+    var p = presetOf(state.from, state.to), custom = (p==="");
+    document.getElementById("rangeLabel").textContent = custom ? "مدى مخصّص" : labelOf(p);
+    document.getElementById("rangeDates").textContent = rangeText(state.from, state.to);
+
+    var note = document.getElementById("rangeNote");
+    note.classList.toggle("on", custom);
+    if(custom){
+      document.getElementById("rnRange").textContent = rangeText(state.from, state.to);
+      document.getElementById("rnData").textContent  = labelOf(state.dataKey);
+    }
+  }
+
+  (function(){
+    var btn   = document.getElementById("rangeBtn"),
+        pop   = document.getElementById("rangePop"),
+        prSel = document.getElementById("rpPresets"),
+        calM  = document.getElementById("calMonth"),
+        calD  = document.getElementById("calDays"),
+        selTx = document.getElementById("rpSel"),
+        warn  = document.getElementById("rpWarn");
+
+    /* مسوّدة داخل اللوحة: لا شيء يُطبَّق قبل «تطبيق»، و«إلغاء» يترك المدى كما كان */
+    var draft = { from:state.from, to:state.to, anchor:null }, cursor;
+
+    document.querySelector(".rpDow").innerHTML =
+      DOW.map(function(d){ return "<span>"+d+"</span>"; }).join("");
+
+    function key(y,m,d){
+      return y+"-"+pad(m+1)+"-"+pad(d);
+    }
+    function drawPresets(){
+      var match = presetOf(draft.from, draft.to);
+      prSel.innerHTML = PRESETS.map(function(x){
+        return '<button class="rpP" type="button" role="option" data-p="'+x.p+'" '+
+               'aria-selected="'+(x.p===match)+'">'+x.label+'</button>';
+      }).join("") +
+      '<button class="rpP" type="button" role="option" data-p="" '+
+      'aria-selected="'+(!match)+'" disabled>مدى مخصّص</button>';
+    }
+    function drawCal(){
+      var y=cursor.y, m=cursor.m;
+      calM.textContent = MONTHS[m]+" "+y;
+      var first = new Date(Date.UTC(y,m,1)).getUTCDay();      /* 0 = الأحد */
+      var len   = new Date(Date.UTC(y,m+1,0)).getUTCDate();
+      var cells = [], i, d;
+      for(i=0;i<first;i++) cells.push('<span class="rpD out"></span>');
+      for(d=1;d<=len;d++){
+        var k = key(y,m,d);
+        var inR = k>=draft.from && k<=draft.to;
+        var edge = (k===draft.from||k===draft.to);
+        var future = k > TODAY;                               /* الأيام المستقبلية معطّلة */
+        cells.push('<button class="rpD'+(inR?" in":"")+(edge?" edge":"")+'" type="button" '+
+          'data-k="'+k+'" role="gridcell" '+(future?'disabled ':'')+
+          'aria-label="'+d+" "+MONTHS[m]+" "+y+'"'+
+          (edge?' aria-current="date"':'')+'>'+d+'</button>');
+      }
+      /* التقويم يعيد بناء أزراره بالكامل عند كل رسم — لذلك التفويض على الحاوية
+         لا على الأزرار، وكل قراءة تعيد الاستعلام بدل الإمساك بمرجع قديم. */
+      calD.innerHTML = cells.join("");
+      selTx.textContent = draft.anchor
+        ? "اختر نهاية المدى" : rangeText(draft.from,draft.to);
+      /* التحذير يظهر على المسوّدة نفسها — قبل «تطبيق» لا بعده */
+      warn.hidden = (draft.anchor !== null) || (presetOf(draft.from,draft.to) !== "");
+    }
+    function redraw(){ drawPresets(); drawCal(); }
+
+    /* اللوحة مثبّتة على بداية الزرّ (يمينه في RTL)، وعرض الزرّ يتغيّر بطول نصّ
+       المدى — فعند العروض الضيّقة قد تتجاوز حافة الشاشة. تُقاس بعد الإظهار
+       وتُزاح بخاصية منطقية فقط: بلا position:fixed وبلا transform. */
+    function place(){
+      pop.style.insetInlineStart = "0px";
+      var M = 8, vw = document.documentElement.clientWidth,
+          r = pop.getBoundingClientRect(), shift = 0;
+      if(r.left < M)            shift = M - r.left;          /* ادفعها ناحية اليمين */
+      else if(r.right > vw - M) shift = (vw - M) - r.right;  /* ادفعها ناحية اليسار */
+      if(shift){
+        /* inset-inline-start يساوي right في RTL و left في LTR — فالإشارة تنقلب */
+        var rtl = getComputedStyle(pop).direction === "rtl";
+        pop.style.insetInlineStart = (rtl ? -shift : shift)+"px";
+      }
+    }
+    function open(){
+      draft = { from:state.from, to:state.to, anchor:null };
+      var p = parts(state.to); cursor = { y:p.y, m:p.m };
+      redraw();
+      pop.hidden = false;
+      btn.setAttribute("aria-expanded","true");
+      place();
+    }
+    function close(){
+      pop.hidden = true;
+      pop.style.insetInlineStart = "";
+      btn.setAttribute("aria-expanded","false");
+    }
+    addEventListener("resize", function(){ if(!pop.hidden) place(); }, {passive:true});
+
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();                    /* وإلا وصلت الضغطة إلى مستمع الإغلاق العام */
+      if(pop.hidden) open(); else close();
+    });
+    pop.addEventListener("click", function(e){ e.stopPropagation(); });
+    addEventListener("click", function(){ if(!pop.hidden) close(); });
+    addEventListener("keydown", function(e){
+      if(e.key==="Escape" && !pop.hidden){ close(); btn.focus(); }
+    });
+
+    prSel.addEventListener("click", function(e){
+      var b=e.target.closest(".rpP"); if(!b||!b.dataset.p) return;
+      var bounds=boundsOf(b.dataset.p);
+      draft={ from:bounds.from, to:bounds.to, anchor:null };   /* مسوّدة فقط */
+      var p=parts(draft.to); cursor={y:p.y,m:p.m};
+      redraw();
+    });
+
+    calD.addEventListener("click", function(e){
+      var b=e.target.closest(".rpD"); if(!b||!b.dataset.k||b.disabled) return;
+      var k=b.dataset.k;
+      if(!draft.anchor){ draft.anchor=k; draft.from=k; draft.to=k; }
+      else {
+        /* الترتيب تلقائي — الطرف الأصغر أولًا مهما كان ترتيب النقر */
+        draft.from = k < draft.anchor ? k : draft.anchor;
+        draft.to   = k < draft.anchor ? draft.anchor : k;
+        draft.anchor = null;
+      }
+      redraw();
+    });
+
+    document.getElementById("calPrev").addEventListener("click", function(){
+      cursor.m--; if(cursor.m<0){ cursor.m=11; cursor.y--; } drawCal();
+    });
+    document.getElementById("calNext").addEventListener("click", function(){
+      cursor.m++; if(cursor.m>11){ cursor.m=0; cursor.y++; } drawCal();
+    });
+    document.getElementById("rpCancel").addEventListener("click", function(){
+      close(); btn.focus();                   /* المدى السابق يبقى كما هو */
+    });
+    document.getElementById("rpApply").addEventListener("click", function(){
+      applyRange(draft.from, draft.to);
+      close(); btn.focus();
+    });
+  })();
+
+  /* تطبيق المدى: المجموعة تتغيّر فقط حين يطابق المدى واحدًا من الجاهزة.
+     المدى الحرّ يُعرض في الزرّ ويُعلَن في الشريط، ولا يولّد أرقامًا. */
+  function applyRange(from,to){
+    state.from=from; state.to=to;
+    var p=presetOf(from,to), changed=false;
+    if(p && p!==state.dataKey){ state.dataKey=p; changed=true; }
+    if(changed){
+      state.op=null; state.hour=null;   /* النطاق السابق قد لا يوجد في المدى الجديد */
+      drawFigures(); drawChart(); drawOps();
+    }
+    drawRange(); rerender();
+  }
+  document.getElementById("rnClear").addEventListener("click", function(){
+    var b=boundsOf(state.dataKey);
+    applyRange(b.from,b.to);
+    document.getElementById("rangeBtn").focus();
   });
 
   /* الأرقام الأربعة تتبع المدى. «متصلون الآن» لحظي ولا يتبعه إطلاقًا —
@@ -1013,8 +1521,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     var dv=document.getElementById("mDeltaV");
     dv.textContent = d.delta;
     dv.className = d.deltaUp ? "up" : "dn";
-    document.getElementById("mDelta").textContent =
-      state.range==="w7" ? "عن الأسبوع السابق" : "عن أمس";
+    document.getElementById("mDelta").textContent = d.deltaLbl;
     document.getElementById("lblOps").textContent = d.opsLbl;
   }
 
@@ -1058,7 +1565,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     addEventListener("resize", onResize, {passive:true});
   })();
 
-  drawChart(); drawOps(); rerender();
+  drawRange(); drawChart(); drawOps(); rerender();
 })();
 </script>
 </body>

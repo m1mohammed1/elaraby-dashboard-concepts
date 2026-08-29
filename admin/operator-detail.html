@@ -599,7 +599,9 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
                       </button>
                     </div>
                     <div class="rpDow" aria-hidden="true"></div>
-                    <div class="rpDays" id="calDays" role="grid" aria-label="أيام الشهر"></div>
+                    <!-- شبكة أزرار لا جدول: role="grid" يستلزم صفوفًا بـ role="row"،
+                         وبدونها تكون الشجرة غير صالحة. الأزرار تحمل أسماءها كاملة. -->
+                    <div class="rpDays" id="calDays" role="group" aria-label="أيام الشهر"></div>
                   </div>
                 </div>
                 <div class="rpFoot">
@@ -1549,6 +1551,9 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
   var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
                 "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
   var DOW = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  /* اختصارات مكتوبة صراحةً لا مقتطعة: slice(0,3) يعطي «الأ» لكلٍّ من
+     «الأحد» و«الأربعاء»، فيظهر عمودان متطابقان في ترويسة التقويم. */
+  var DOW_SHORT = ["أح","إث","ثل","أر","خم","جم","سب"];
   function parts(k){ var a=k.split("-"); return {y:+a[0],m:+a[1]-1,d:+a[2]}; }
   function longDate(k){ var p=parts(k); return p.d+" "+MONTHS[p.m]+" "+p.y; }
   /* مدى داخل شهر واحد يُكتب مرة واحدة: «23 – 29 أغسطس 2026» */
@@ -1640,7 +1645,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
     var draft = { from:state.from, to:state.to, anchor:null }, cursor;
 
     document.querySelector(".rpDow").innerHTML =
-      DOW.map(function(d){ return "<span>"+d.slice(0,3)+"</span>"; }).join("");
+      DOW_SHORT.map(function(d){ return "<span>"+d+"</span>"; }).join("");
 
     function key(y,m,d){
       return y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
@@ -1668,7 +1673,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
         var future = k > TODAY;
         cells.push('<button class="rpD'+(inR?" in":"")+(edge?" edge":"")+'" type="button" '+
           'data-k="'+k+'" role="gridcell" '+(future?'disabled ':'')+
-          'aria-label="'+d+" "+MONTHS[m]+" "+y+'"'+
+          'aria-label="'+DOW[new Date(Date.UTC(y,m,d)).getUTCDay()]+" "+d+" "+MONTHS[m]+" "+y+'"'+
           (edge?' aria-current="date"':'')+'>'+d+'</button>');
       }
       calD.innerHTML = cells.join("");
@@ -1677,17 +1682,31 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
     }
     function redraw(){ drawPresets(); drawCal(); }
 
+    /* اللوحة تتقلّص إلى محتواها وتتموضع من حافة الزرّ، وعرض الزرّ يتغيّر بطول
+       نصّ المدى — فقد تتجاوز حافة الشاشة على العروض الضيّقة. تُزاح بعد الإظهار
+       بالخاصية المنطقية فقط، وتُمسح الإزاحة عند الإغلاق. */
+    function place(){
+      pop.style.insetInlineStart = "0px";
+      var r = pop.getBoundingClientRect(), M = 8, w = document.documentElement.clientWidth;
+      var over = r.right > w - M ? r.right - (w - M) : (r.left < M ? r.left - M : 0);
+      if(!over) return;
+      var rtl = getComputedStyle(document.documentElement).direction === "rtl";
+      pop.style.insetInlineStart = (rtl ? over : -over) + "px";
+    }
     function open(){
       draft = { from:state.from, to:state.to, anchor:null };
       var p = parts(state.to); cursor = { y:p.y, m:p.m };
       redraw();
       pop.hidden = false;
       btn.setAttribute("aria-expanded","true");
+      place();
     }
     function close(){
       pop.hidden = true;
+      pop.style.insetInlineStart = "";
       btn.setAttribute("aria-expanded","false");
     }
+    addEventListener("resize", function(){ if(!pop.hidden) place(); });
 
     btn.addEventListener("click", function(e){
       e.stopPropagation();

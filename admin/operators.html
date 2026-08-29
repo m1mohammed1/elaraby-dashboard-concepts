@@ -123,8 +123,13 @@ button,input,select{font:inherit;color:inherit}
 .src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
   padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
   direction:rtl;unicode-bidi:isolate}
+/* overflow-wrap:anywhere إلزامي هنا: المسار الكامل بمعاملاته
+   (‎?q=&status=&subscription=…‎) كلمة واحدة بلا فراغ عرضها ~486px، وعلى شاشة
+   390px كانت تخرج 139px خارج الحافة فيقصّها overflow-x على الجسم. الكسر
+   عند أي محرف يبقيها كاملة داخل السطر بدل أن تُقطع. */
 .src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;
+  overflow-wrap:anywhere}
 .src .nw{color:var(--accent)}
 .src b{color:var(--ink-2);font-weight:500}
 :root[data-src="1"] .src{display:block}
@@ -269,9 +274,11 @@ button,input,select{font:inherit;color:inherit}
   color:var(--ink-2);transition:background .14s var(--ease)}
 .popI:hover{background:rgba(255,255,255,.07);color:var(--ink)}
 .popForm{padding:4px 13px 12px;display:grid;gap:11px;min-inline-size:262px}
-.popDates{display:flex;gap:9px}
 .popAct{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.popErr{font-size:10.5px;color:var(--unread);direction:rtl;unicode-bidi:isolate}
+/* القائمة تقصّ محتواها بـ overflow:hidden لتُدوّر زوايا صفوف .popI؛ لكن قائمة
+   «إدارة الاشتراك» تستضيف لوحة منتقي المدى وهي أعرض منها وتنزل تحتها، فلو
+   بقي القصّ لاختفى التقويم. لا صفوف .popI هنا فلا شيء يحتاج القصّ أصلًا. */
+.pop.popSub{overflow:visible}
 
 .field{display:flex;flex-direction:column;gap:5px;min-inline-size:0}
 .fieldL{font-size:11px;color:var(--ink-3)}
@@ -281,13 +288,74 @@ button,input,select{font:inherit;color:inherit}
 .inp::placeholder{color:var(--ink-3)}
 .inp:hover{border-color:rgba(255,255,255,.18)}
 .inp[aria-invalid="true"]{border-color:rgba(232,176,85,.55)}
-/* حقل تاريخ نصّي لا <input type="date">: الأصلي يعرض أرقامًا هندية وترتيب
-   شهر/يوم بحسب لغة المتصفّح (§4 و§11 قاعدة 8). هنا الترتيب يوم/شهر/سنة
-   ثابت والأرقام غربية دائمًا، والقيمة تُحوَّل إلى ISO قبل أي استعمال. */
-.dateI{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
-  direction:ltr;unicode-bidi:isolate;text-align:start;letter-spacing:normal}
-.dateF{inline-size:132px;flex:none}
 .toolsGrow{flex:1}
+
+/* ── منتقي المدى الزمني — §11 «منتقي المدى الزمني» ────────────────
+   منقول حرفيًا من operator-detail.html: نفس الأصناف ونفس القياسات.
+   بداية الاشتراك ونهايته مدًى زمني، فهما نفس العنصر لا حقلين منفصلين.
+   ما سبقه كان حقلين نصّيين يُكتب فيهما 31/12/2026 ويتحقّق منهما محلّل،
+   أي صيغة ثانية للتاريخ على شاشة تعرضه في مكان آخر «29 أغسطس 2026». */
+.rangeAnchor{position:relative}
+/* سطر واحد: الزرّ هنا يعيش داخل قائمة ضيّقة، ولو انكسر نصّ المدى إلى
+   سطرين ارتفع الزرّ فوق ارتفاع الحقلين اللذين حلّ محلّهما — وهو نقيض
+   الغرض. القائمة تتّسع للزرّ لا العكس. */
+.rangeBtn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;white-space:nowrap;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  color:var(--ink-2);border-radius:10px;padding:8px 13px;font-size:13px;
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease)}
+.rangeBtn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:var(--ink)}
+.rangeBtn[aria-expanded="true"]{background:rgba(255,255,255,.11);color:var(--ink);
+  border-color:rgba(255,255,255,.22)}
+.rangeBtn b{color:var(--ink);font-weight:600}
+.rangeDates{color:var(--ink-3);font-size:12px;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rangeBtn .chevR{color:var(--ink-3);flex:none;inline-size:12px;block-size:12px;
+  fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.rangePop{position:absolute;z-index:210;inset-block-start:calc(100% + 7px);inset-inline-start:0;
+  border-radius:14px;overflow:hidden;background:#101b16;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
+.rangePop[hidden]{display:none}
+.rpGrid{display:grid;grid-template-columns:auto 1fr}
+.rpPresets{display:flex;flex-direction:column;gap:2px;padding:10px;
+  border-inline-end:1px solid var(--line-2);min-inline-size:132px}
+.rpP{border:0;background:transparent;cursor:pointer;text-align:start;
+  padding:7px 11px;border-radius:8px;font-size:12.5px;color:var(--ink-2);white-space:nowrap;
+  transition:background .14s var(--ease),color .14s var(--ease)}
+.rpP:hover:not([disabled]){background:rgba(255,255,255,.07);color:var(--ink)}
+.rpP[aria-selected="true"]{background:rgba(110,196,155,.16);color:var(--ink);font-weight:600}
+.rpP[disabled]{color:var(--ink-4);cursor:default}
+.rpP[disabled][aria-selected="true"]{background:rgba(255,255,255,.07);color:var(--ink-2)}
+
+.rpCal{padding:10px 12px 12px;min-inline-size:252px}
+.rpCalHead{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-block-end:8px}
+.rpMonth{font-size:12.5px;font-weight:600;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rpNav{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  color:var(--ink-2);cursor:pointer;inline-size:26px;block-size:26px;border-radius:8px;
+  display:grid;place-items:center;transition:background .14s var(--ease),color .14s var(--ease)}
+.rpNav:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.rpNav svg{inline-size:14px;block-size:14px;fill:none;stroke:currentColor;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rpDow,.rpDays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.rpDow{margin-block-end:4px}
+.rpDow span{font-size:10px;color:var(--ink-4);text-align:center;padding-block:2px}
+.rpD{border:0;background:transparent;cursor:pointer;color:var(--ink-2);
+  block-size:30px;border-radius:7px;font-size:12px;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;
+  transition:background .13s var(--ease),color .13s var(--ease)}
+/* المرجع يستثني [disabled] هنا لأن أيامه المستقبلية معطَّلة. لا يوم معطَّل
+   في هذا المنتقي، والاستثناء الوحيد الباقي هو خانات الحشو الفارغة. */
+.rpD:hover:not(.out){background:rgba(255,255,255,.09);color:var(--ink)}
+.rpD.out{cursor:default}
+.rpD.in{background:rgba(110,196,155,.13);color:var(--ink)}
+.rpD.edge{background:var(--accent);color:#06100c;font-weight:700}
+.rpFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 12px;border-block-start:1px solid var(--line-2)}
+.rpSel{font-size:12px;color:var(--ink-2);direction:rtl;unicode-bidi:isolate}
+.rpActs{margin-inline-start:auto;display:flex;gap:7px}
 
 /* ── دفتر الأرقام الصغير ─────────────────────────── */
 .figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:2px 0}
@@ -302,8 +370,10 @@ button,input,select{font:inherit;color:inherit}
   align-items:baseline;direction:rtl;unicode-bidi:isolate}
 .snap{font-size:9.5px;color:var(--ink-3);border:1px solid var(--line);
   padding:1px 6px;border-radius:999px;margin-inline-start:6px}
-/* النبضة الوحيدة في الشاشة كلها */
+/* النبضة الوحيدة في الشاشة كلها — وتختفي عند الصفر: نبضة خضراء بجانب
+   «لا جلسات صوتية» تقول عكس النص. */
 .voiceNow{display:inline-flex;align-items:center;gap:6px;color:var(--clean)}
+.voiceNow.off{color:var(--ink-3)}
 .pulse{inline-size:7px;block-size:7px;border-radius:50%;background:var(--clean);
   flex:none;position:relative;box-shadow:0 0 8px -1px rgba(61,220,151,.6)}
 .pulse::after{content:"";position:absolute;inset:0;border-radius:50%;
@@ -487,6 +557,10 @@ button,input,select{font:inherit;color:inherit}
   .srch{max-inline-size:none;flex:1 1 100%}
   /* القائمة المنسدلة تُثبَّت عند بداية السطر حتى لا تُقطع خارج الشاشة */
   .pop{inset-inline-start:auto;inset-inline-end:0}
+  /* قائمة الاشتراك مستثناة: القلب هنا يجعلها تنمو نحو الحافة المقابلة
+     فتضيق إلى 221px على شاشة 390px، وهي تحمل زرّ المدى وتقويمه. غير
+     مقلوبة تنمو من حافة زرّها فتتّسع إلى 255px وتبقى داخل الشاشة. */
+  .pop.popSub{inset-inline-start:0;inset-inline-end:auto}
 }
 @media(max-width:620px){
   .stage{padding:16px 14px 24px}
@@ -494,8 +568,22 @@ button,input,select{font:inherit;color:inherit}
   .figV{font-size:22px}
   .head,.tools,.views,.panel,.ctxbar,.formPanel{padding-inline:14px}
   .popForm{min-inline-size:0}
-  .popDates{flex-wrap:wrap}
-  .dateF{inline-size:118px}
+  /* على الشاشة الضيّقة يفوز عرض القائمة على سطر الزرّ الواحد: زرّ بعرض
+     280px يدفع القائمة خارج حافة شاشة 390px. هنا ينزل نصّ المدى إلى سطر
+     تحت اسم المدّة، فيرتفع الزرّ سطرًا وتبقى القائمة داخل الشاشة. نصّ المدى
+     نفسه يبقى nowrap: «29 أغسطس – 29 سبتمبر 2026» قيمة واحدة لا تُكسر. */
+  .popSub{min-inline-size:min(236px,calc(100vw - 32px))}
+  /* order: بلا ترتيب صريح ينزل السهم خلف نصّ المدى إلى سطر ثالث. */
+  .rangeBtn{flex-wrap:wrap}
+  .rangeDates{order:1;flex:1 0 100%}
+  /* المدى الجاهز يصير صفًّا فوق التقويم بدل عمود بجانبه */
+  .rpGrid{grid-template-columns:1fr}
+  .rpPresets{flex-direction:row;flex-wrap:wrap;
+    border-inline-end:0;border-block-end:1px solid var(--line-2)}
+  .rpCal{min-inline-size:0}
+  /* 100vw يشمل عرض شريط التمرير بينما التخطيط يقيس clientWidth، والفارق
+     بينهما دفع اللوحة 0.3px خارج الحافة. الطرح هنا يستوعب الفارق. */
+  .rangePop{inline-size:min(224px,calc(100vw - 72px))}
   .row{padding-inline:14px}
 }
 
@@ -552,7 +640,7 @@ button,input,select{font:inherit;color:inherit}
     <div class="pane">
       <div class="figs">
         <div class="fig">
-          <div class="figL">إجمالي المستخدمين</div>
+          <div class="figL" id="figTotalL">إجمالي المستخدمين</div>
           <div class="figV" id="figTotal" data-count="31">31</div>
           <div class="figM"><span id="figFiltered">النتائج المطابقة: 27</span></div>
         </div>
@@ -570,18 +658,24 @@ button,input,select{font:inherit;color:inherit}
           <div class="figL">متصلون الآن<span class="snap">لحظي</span></div>
           <div class="figV" id="figOnline" data-count="7">7</div>
           <div class="figM">
-            <span class="voiceNow"><span class="pulse" aria-hidden="true"></span><span id="figVoice">3 جلسات صوتية</span></span>
+            <span class="voiceNow" id="voiceWrap"><span class="pulse" id="voicePulse" aria-hidden="true"></span><span id="figVoice">3 جلسات صوتية</span></span>
           </div>
         </div>
       </div>
       <div class="src">
         «إجمالي المستخدمين» و«النتائج المطابقة» من حقل <code>total</code> في
         <code>GET /v1/admin/operators</code> — الأول بلا تصفية والثاني بالتصفية الجارية.
+        وفي منظور «الأرشيف» يصير أساس الأول
+        <code>status=deleted&amp;includeDeleted=true</code> وعنوانه «إجمالي المحذوفين»:
+        المحذوفون ليسوا جزءًا من الأحياء، فلا يصحّ عرض «4» تحت «31».
         «اشتراكات سارية» و«نشطون اليوم» و«متصلون الآن» و«الجلسات الصوتية» من
         <code>GET /v1/admin/dashboard</code> — الحقول <code>activeSubscriptions</code> و
         <code>activeUsers</code> و <code>onlineUsers</code> و <code>activeVoiceUsers</code>.
-        الرقمان الأخيران لحظيان: <code>operator_presence</code> و
-        <code>active_voice_sessions</code> عليهما <code>TTL</code> بدقيقتين.
+        المسار يلزمه <code>date=</code> واحد (اليوم هنا)، فـ«نشطون اليوم» مقيَّد بذلك
+        اليوم وحده. الرقمان الأخيران لحظيان لا علاقة لهما بأي تاريخ:
+        <code>operator_presence</code> و
+        <code>active_voice_sessions</code> عليهما <code>TTL</code> بدقيقتين — ولذلك
+        يحملان شارتَي «اليوم» و«لحظي» ولا يتغيّران بأي تصفية أو منظور.
         <span class="nw">يحتاج بناءً في الواجهة فقط:</span> صفحة المستخدمين الحالية
         (<code>OperatorsPage.tsx</code>) <b>لا تعرض هذا الشريط إطلاقًا</b> — كل أرقامه
         موجودة في مسارات قائمة، لكن جمعها هنا تركيب جديد يحتاج نداءً ثانيًا للوحة المعلومات.
@@ -701,6 +795,27 @@ button,input,select{font:inherit;color:inherit}
         <code>{matched, modified, failures[]}</code>. «الحذف» هو
         <code>status:'deleted'</code> على نفس المسار، لا حذفًا فعليًا.
         «إعادة ربط الجهاز» تظهر لدور <code>admin</code> فقط.<br>
+        <b>مدّة الاشتراك:</b> منتقي المدى يغذّي
+        <code>bulk/subscription/start</code> وحده، وهو <b>مدعوم كما هو ولا يحتاج
+        أي بناء جديد</b>: <code>startDate</code> إلزامي و<code>endDate</code>
+        اختياري في <code>admin.ts</code>، فمُدد «شهر واحد · ثلاثة أشهر · ستة أشهر
+        · سنة» ليست إلا قيمة <code>endDate</code> مختلفة على المسار نفسه.
+        وحين يُحذف <code>endDate</code> يحسبه الخادم
+        <code>calendar.addCalendarMonth(startDate)</code> — نفس حساب الشهر
+        الواحد مع القصّ إلى آخر يوم في الشهر الهدف (31 يناير ← 28 أو 29 فبراير)،
+        وهو ما يكرّره <code>monthsAfter</code> هنا حرفيًا.
+        وشرط «النهاية بعد البداية» شرط <b>خادمي</b> لا تجميلي:
+        <code>operator-administration.ts</code> يرمي
+        <code>INVALID_INPUT: endDate must be after startDate</code> عند
+        <code>endsAt &lt;= startsAt</code>؛ المنتقي يمنع بناء هذه الحالة أصلًا
+        بتعطيل «تطبيق» بدل انتظار ردّ الخادم.
+        <span class="nw">يحتاج بناءً في الواجهة فقط:</span> حوار التأكيد في
+        <code>OperatorsPage.tsx</code> يطبع طرفَي المدى تاريخين كاملين («سيبدأ
+        الاشتراك في … وينتهي في …») بينما زرّ المنتقي فوقه يطبع المدى مرة واحدة —
+        صيغتان لقيمة واحدة. هنا صيغة واحدة: «سيسري الاشتراك خلال 5 – 20 أغسطس 2026».
+        وفي التطبيق يمرّ عدد المتأثّرين عبر <code>toLocaleString('ar-EG')</code>
+        فيُطبع بأرقام هندية تخالف §4؛ الأرقام هنا غربية. كلاهما تعديل نصّ في
+        الواجهة لا يمسّ الخادم.<br>
         <b>الإنشاء:</b> <code>POST /v1/admin/operators</code> بجسم
         <code>{username, password}</code> ويعيد 201.<br>
         <b>الأرشيف:</b> نفس مسار القائمة بـ <code>status=deleted</code> و
@@ -896,7 +1011,10 @@ button,input,select{font:inherit;color:inherit}
     showCreate:false,
     showPanel:false,
     pop:null,                    /* "status" أو "sub" أو null */
-    subStart:TODAY, subEnd:"",   /* ISO داخليًا، وتُعرض يوم/شهر/سنة */
+    subStart:TODAY, subEnd:"",   /* ISO داخليًا، ويُعرضان بالصيغة الطويلة */
+    /* مسوّدة منتقي المدى: from/to هنا لا تمسّ subStart/subEnd قبل «تطبيق»،
+       و anchor هو الطرف الأول المنقور بانتظار الثاني. */
+    rp:{ open:false, from:"", to:"", anchor:null, y:0, m:0 },
     pending:null
   };
 
@@ -1188,29 +1306,82 @@ button,input,select{font:inherit;color:inherit}
     $("pg").style.display = total ? "flex" : "none";
   }
 
-  /* ══ التواريخ — نصّ لا <input type="date"> ════════════════════
-     الحقل الأصلي يعرض أرقامًا هندية وترتيب شهر/يوم بحسب لغة المتصفّح،
-     وهو ما تمنعه §4 و§11. هنا الإدخال نصّي بترتيب يوم/شهر/سنة ثابت،
-     والأرقام الهندية المكتوبة تُحوَّل إلى غربية فورًا، والقيمة تُخزَّن
-     في الحالة بصيغة ISO لأن كل ما يليها (الحوار والتنفيذ) يتوقّعها. */
-  function normDigits(s){
-    return String(s)
-      .replace(/[٠-٩]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0x0660+48); })
-      .replace(/[۰-۹]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0x06F0+48); });
+  /* ══ التواريخ — صيغة واحدة في الشاشة كلها ═══════════════════════
+     التواريخ تُخزَّن ISO لأن كل ما يليها (الحوار والتنفيذ والمسار) يتوقّعها،
+     وتُعرض بصيغة واحدة لا غير: «29 أغسطس 2026» بأرقام غربية (§4).
+     لا <input type="date"> ولا حقل نصّي يُكتب فيه 31/12/2026: الأول يعرض
+     أرقامًا هندية وترتيبًا تفرضه لغة المتصفّح، والثاني كان يضع صيغة ثانية
+     (يوم/شهر/سنة) على شاشة تكتب التاريخ نفسه بالشكل الطويل في مكان آخر. */
+  var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+                "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  /* اختصارات أيام الأسبوع كما في مخطّط §11 حرفيًا. المرجع الحيّ يشتقّها
+     بـ slice(0,3) من الأسماء الكاملة، وهذا يعطي «الأ» للأحد و«الأ» للأربعاء
+     معًا — عمودان بترويسة واحدة. المكتوب في المواصفة هو المعتمد. */
+  var DOW = ["أح","إث","ثل","أر","خم","جم","سب"];
+
+  function parts(iso){ var a=String(iso||"").split("-"); return {y:+a[0],m:+a[1]-1,d:+a[2]}; }
+  function isoKey(y,m,d){
+    return String(y).padStart(4,"0")+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
   }
-  function toISO(dmy){
-    var m = /^\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4})\s*$/.exec(normDigits(dmy||""));
-    if(!m) return "";
-    var d=+m[1], mo=+m[2], y=+m[3];
-    var dt = new Date(Date.UTC(y,mo-1,d));
-    if(dt.getUTCFullYear()!==y || dt.getUTCMonth()!==mo-1 || dt.getUTCDate()!==d) return "";
-    return String(y).padStart(4,"0")+"-"+String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0");
-  }
-  function toDMY(iso){
+  function formatDateOnly(iso){
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");
-    return m ? m[3]+"/"+m[2]+"/"+m[1] : "";
+    if(!m) return iso||"";
+    return String(+m[3])+" "+MONTHS[+m[2]-1]+" "+m[1];
   }
-  function datesOk(){ return !!state.subStart && !!state.subEnd && state.subEnd > state.subStart; }
+  /* مدى داخل شهر واحد يُكتب مرة واحدة: «23 – 29 أغسطس 2026» */
+  function rangeText(f,t){
+    if(!f || !t) return "";
+    if(f===t) return formatDateOnly(f);
+    var a=parts(f), b=parts(t);
+    if(a.y===b.y && a.m===b.m) return a.d+" – "+b.d+" "+MONTHS[b.m]+" "+b.y;
+    if(a.y===b.y) return a.d+" "+MONTHS[a.m]+" – "+b.d+" "+MONTHS[b.m]+" "+b.y;
+    return formatDateOnly(f)+" – "+formatDateOnly(t);
+  }
+
+  /* نفس اليوم بعد n شهرًا. وحين لا نظير لليوم في الشهر الهدف
+     (31 يناير ← فبراير) يُقصّ إلى آخر يوم فيه. كان اسمها calendarMonthEnd
+     وهو يصف «آخر يوم في الشهر» — شيء آخر لا تفعله الدالة. */
+  /* n مدّة موجبة دائمًا (1 أو إحدى قيم SUB_PRESETS)، فـ idx ≥ 1 ولا حاجة
+     لضبط باقي القسمة السالب. مدّة سالبة تحتاج تعديل السطرين معًا. */
+  function monthsAfter(startDate, n){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate||"");
+    if(!m) return "";
+    var y = +m[1], idx = (+m[2] - 1) + n, d = +m[3];
+    var ty = y + Math.floor(idx/12), tm = idx % 12;
+    var lastDay = new Date(Date.UTC(ty, tm+1, 0)).getUTCDate();
+    return isoKey(ty, tm, Math.min(d, lastDay));
+  }
+  /* النهاية الافتراضية: بعد البداية بشهر واحد — وهو ما يعلنه عنوان
+     القائمة «شهر واحد افتراضيًا». */
+  function oneMonthAfter(startDate){ return monthsAfter(startDate, 1); }
+
+  /* المدى الجاهز هنا مُدد لا نوافذ تاريخية: الاشتراك يُشترى بالشهر
+     لا «آخر 7 أيام»، وكل مدّة تُحسب من البداية المختارة. */
+  var SUB_PRESETS = [
+    { p:1,  label:"شهر واحد" },
+    { p:3,  label:"ثلاثة أشهر" },
+    { p:6,  label:"ستة أشهر" },
+    { p:12, label:"سنة" }
+  ];
+  /* اسم واحد لحالة «لا مدّة جاهزة تطابق»: يظهر على الزرّ وفي آخر القائمة،
+     ولو كُتب مرّتين لاختلف الموضعان عند أوّل تعديل. */
+  var CUSTOM_DURATION = "مدّة مخصّصة";
+  function presetOf(f,t){
+    if(!f || !t) return 0;
+    for(var i=0;i<SUB_PRESETS.length;i++)
+      if(t === monthsAfter(f, SUB_PRESETS[i].p)) return SUB_PRESETS[i].p;
+    return 0;
+  }
+  function presetLabel(f,t){
+    var p = presetOf(f,t);
+    for(var i=0;i<SUB_PRESETS.length;i++) if(SUB_PRESETS[i].p===p) return SUB_PRESETS[i].label;
+    return CUSTOM_DURATION;
+  }
+
+  /* النهاية بعد البداية تمامًا — لا مساواة. القاعدة واحدة تُستدعى مرّتين:
+     على القيمة المطبَّقة، وعلى مسوّدة المنتقي قبل السماح بـ«تطبيق». */
+  function datesOkPair(f,t){ return !!f && !!t && t > f; }
+  function datesOk(){ return datesOkPair(state.subStart, state.subEnd); }
 
   /* ══ المناظير — عدّاد كل منظور محسوب من مصفوفة الصفحة ═════════
      العدّاد يحترم البحث الجاري وحده: البحث بُعد مستمرّ لا يُصفَّر عند
@@ -1257,15 +1428,93 @@ button,input,select{font:inherit;color:inherit}
   /* ══ شريط الإجراءات السياقي — hidden بلا تحديد ════════════════ */
   var CHEVD = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+
               '<path d="M6 9l6 6 6-6"/></svg>';
-  function dateField(id, label, iso){
-    return '<label class="field dateF"><span class="fieldL">'+esc(label)+'</span>'+
-      '<input class="inp dateI" id="'+id+'" dir="ltr" inputmode="numeric" autocomplete="off" '+
-      'placeholder="31/12/2026" aria-label="'+esc(label+" بالشكل يوم/شهر/سنة")+'" '+
-      'aria-invalid="'+(iso?"false":"true")+'" value="'+esc(toDMY(iso))+'"></label>';
+  /* ══ منتقي مدّة الاشتراك — §11 «منتقي المدى الزمني» ═══════════════
+     البداية والنهاية مدًى زمني، فهما عنصر واحد لا حقلان. البناء كلّه
+     من الحالة، فأي render() كامل يعيد اللوحة كما كانت بلا حالة مخبّأة
+     في DOM. والتقويم يعيد بناء أزراره عند كل رسم، فكل التفاعل بالتفويض
+     على #ctx ولا يُحتفظ بمرجع لزرّ يوم عبر إعادة رسم (§11 قاعدة 8). */
+  var CAL_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+    'stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false">'+
+    '<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+  var CHEV_R = '<svg class="chevR" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+
+    '<path d="M6 9l6 6 6-6"/></svg>';
+  var ARR_PREV = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+
+    '<path d="M9 6l6 6-6 6"/></svg>';
+  var ARR_NEXT = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+
+    '<path d="M15 6l-6 6 6 6"/></svg>';
+
+  function rangeDays(){
+    var rp = state.rp, y = rp.y, m = rp.m;
+    var first = new Date(Date.UTC(y,m,1)).getUTCDay();          /* 0 = الأحد */
+    var len   = new Date(Date.UTC(y,m+1,0)).getUTCDate();
+    var cells = [];
+    for(var i=0;i<first;i++) cells.push('<span class="rpD out"></span>');
+    for(var d=1;d<=len;d++){
+      var k = isoKey(y,m,d);
+      var inR  = k>=rp.from && k<=rp.to;
+      var edge = (k===rp.from || k===rp.to);
+      /* لا يوم معطَّل هنا. في مدى تقرير تُعطَّل الأيام المستقبلية لأن
+         الماضي وحده له سجلّ؛ أمّا الاشتراك فيبدأ اليوم أو بعد شهر، ويُصحَّح
+         بأثر رجعي أحيانًا، فالطرفان مفتوحان في الاتجاهين. */
+      cells.push('<button class="rpD'+(inR?" in":"")+(edge?" edge":"")+'" type="button" '+
+        'data-rpd="'+k+'" role="gridcell" aria-label="'+d+" "+MONTHS[m]+" "+y+'"'+
+        (edge?' aria-current="date"':'')+'>'+d+'</button>');
+    }
+    return cells.join("");
+  }
+  function rangePopBody(){
+    var rp = state.rp, match = presetOf(rp.from, rp.to), ok = datesOkPair(rp.from, rp.to);
+    return '<div class="rpGrid">'+
+        '<div class="rpPresets" role="listbox" aria-label="مدّة جاهزة">'+
+          SUB_PRESETS.map(function(x){
+            return '<button class="rpP" type="button" role="option" data-rp="'+x.p+'" '+
+                   'aria-selected="'+(x.p===match)+'">'+esc(x.label)+'</button>';
+          }).join("")+
+          '<button class="rpP" type="button" role="option" data-rp="" '+
+          'aria-selected="'+(!match)+'" disabled>'+esc(CUSTOM_DURATION)+'</button>'+
+        '</div>'+
+        '<div class="rpCal">'+
+          '<div class="rpCalHead">'+
+            '<button class="rpNav" type="button" data-rpmo="-1" aria-label="الشهر السابق">'+ARR_PREV+'</button>'+
+            '<span class="rpMonth" aria-live="polite">'+MONTHS[rp.m]+' '+rp.y+'</span>'+
+            '<button class="rpNav" type="button" data-rpmo="1" aria-label="الشهر التالي">'+ARR_NEXT+'</button>'+
+          '</div>'+
+          '<div class="rpDow" aria-hidden="true">'+
+            DOW.map(function(d){ return '<span>'+d+'</span>'; }).join("")+
+          '</div>'+
+          '<div class="rpDays" role="grid" aria-label="أيام الشهر">'+rangeDays()+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="rpFoot">'+
+        /* النهاية يجب أن تكون بعد البداية تمامًا: بدل التحذير بعد وقوع
+           الخطأ، «تطبيق» لا يُتاح أصلًا واللوحة تقول ما ينقص. */
+        '<span class="rpSel">'+esc(ok ? rangeText(rp.from,rp.to) : "اختر نهاية بعد البداية")+'</span>'+
+        '<span class="rpActs">'+
+          '<button class="abtn" type="button" id="rpCancel">إلغاء</button>'+
+          '<button class="abtn go" type="button" id="rpApply"'+(ok?"":" disabled")+'>تطبيق</button>'+
+        '</span>'+
+      '</div>';
+  }
+  function rangeControl(){
+    var open = state.rp.open;
+    return '<div class="rangeAnchor">'+
+      '<button class="rangeBtn" type="button" id="subRangeBtn" aria-haspopup="dialog" '+
+        'aria-controls="subRangePop" aria-expanded="'+open+'">'+
+        CAL_ICON+
+        '<b>'+esc(presetLabel(state.subStart, state.subEnd))+'</b>'+
+        '<span class="rangeDates">'+esc(rangeText(state.subStart, state.subEnd))+'</span>'+
+        CHEV_R+
+      '</button>'+
+      '<div class="rangePop" id="subRangePop" role="dialog" aria-label="مدّة الاشتراك"'+
+        (open?"":" hidden")+'>'+(open ? rangePopBody() : "")+'</div>'+
+    '</div>';
   }
   function renderCtx(total){
     var ctx = $("ctx");
     var n = state.archive ? 0 : selectionCount(total);
+    /* لوحة المنتقي تعيش داخل قائمة «إدارة الاشتراك»: إن أُغلقت القائمة —
+       أو اختفى الشريط كلّه — فلا لوحة، ولا مسوّدة معلّقة تعود عند الفتح. */
+    if(!n || state.pop!=="sub"){ state.rp.open = false; state.rp.anchor = null; }
     if(!n){ ctx.hidden = true; ctx.innerHTML = ""; state.pop = null; return; }
     ctx.hidden = false;
     var allPicked = n===total && total>0;
@@ -1288,16 +1537,10 @@ button,input,select{font:inherit;color:inherit}
         '<span class="anchor">'+
           '<button class="abtn" type="button" data-pop="sub" aria-haspopup="dialog" '+
             'aria-expanded="'+(state.pop==="sub")+'">إدارة الاشتراك'+CHEVD+'</button>'+
-          '<div class="pop" aria-label="إدارة الاشتراك"'+(state.pop==="sub"?"":" hidden")+'>'+
+          '<div class="pop popSub" aria-label="إدارة الاشتراك"'+(state.pop==="sub"?"":" hidden")+'>'+
             '<div class="popT">إدارة الاشتراك — شهر واحد افتراضيًا</div>'+
             '<div class="popForm">'+
-              '<div class="popDates">'+
-                dateField("subStart","بداية الاشتراك",state.subStart)+
-                dateField("subEnd","نهاية الاشتراك",state.subEnd)+
-              '</div>'+
-              '<div class="popErr" id="subErr"'+(datesOk()?" hidden":"")+'>'+
-                'اكتب التاريخين بالشكل يوم/شهر/سنة، وليكن تاريخ النهاية بعد البداية.'+
-              '</div>'+
+              rangeControl()+
               '<div class="popAct">'+
                 '<button class="abtn" type="button" id="subSuspendBtn">تعليق الاشتراك</button>'+
                 '<button class="abtn go" type="button" id="subStartBtn"'+
@@ -1363,18 +1606,37 @@ button,input,select{font:inherit;color:inherit}
        تركها ثابتة في الـ markup كان يجعلها تكذب بعد أول حذف أو تعليق اشتراك:
        «اشتراكات سارية 26» تبقى 26 بينما القائمة تحتها تغيّرت. */
     var live = OPERATORS.filter(function(o){ return o.status!=="deleted"; });
+    var archived = OPERATORS.filter(function(o){ return o.status==="deleted"; });
     var subs   = live.filter(function(o){ return o.sub && o.sub.status==="active"; }).length;
     var actives= live.filter(function(o){ return o.active; }).length;
     var onlines= live.filter(function(o){ return o.online; }).length;
     var voices = live.filter(function(o){ return o.online && o.voice; }).length;
 
-    $("figTotal").textContent   = fmt(live.length);
+    /* الأساس يتبع الوضع: «النتائج المطابقة» تحت هذا الرقم مباشرة، وفي
+       الأرشيف هي عددُ محذوفين. لو بقي العنوان «إجمالي المستخدمين 31» لقرأ
+       المستخدم الأربعةَ المحذوفين جزءًا من الواحد والثلاثين، وهم خارجهم
+       تمامًا — الأحياء والمحذوفون مجموعتان منفصلتان لا جزء من كلّ. */
+    var base = state.archive ? archived : live;
+    $("figTotalL").textContent  = state.archive ? "إجمالي المحذوفين" : "إجمالي المستخدمين";
+    $("figTotal").textContent   = fmt(base.length);
     $("figFiltered").textContent= "النتائج المطابقة: "+fmt(out.total);
     $("figSubs").textContent    = fmt(subs);
     $("figSubsOf").textContent  = "من "+fmt(live.length)+" مستخدمًا";
     $("figActive").textContent  = fmt(actives);
     $("figOnline").textContent  = fmt(onlines);
-    $("figVoice").textContent   = fmt(voices)+" جلسات صوتية";
+    $("figVoice").textContent   = voiceText(voices);
+    $("voicePulse").hidden      = voices===0;
+    $("voiceWrap").classList.toggle("off", voices===0);
+  }
+
+  /* تطابق العدد في العربية: «جلسة» للمفرد و«جلستان» للمثنّى و«جلسات» من 3
+     إلى 10 ثم التمييز المفرد من 11 فصاعدًا. «1 جلسات صوتية» يظهر فعليًا بعد
+     أوّل «إعادة ربط جهاز» على مستخدمَين من الثلاثة في جلسة صوتية. */
+  function voiceText(n){
+    if(n===0) return "لا جلسات صوتية";
+    if(n===1) return "جلسة صوتية واحدة";
+    if(n===2) return "جلستان صوتيتان";
+    return fmt(n)+(n<=10 ? " جلسات صوتية" : " جلسة صوتية");
   }
 
   /* ══ الإشعار ══════════════════════════════════════════════════ */
@@ -1400,25 +1662,26 @@ button,input,select{font:inherit;color:inherit}
     return [label+" المستخدمين","ستتغير حالة الحساب فقط، بينما تبقى حالة الاشتراك مستقلة."];
   }
 
-  /* التطبيق الحقيقي يمرّر التاريخ عبر formatDateOnly قبل عرضه.
-     عرض «2026-09-29» خامًا داخل جملة عربية كان تسريبًا لشكل الـ API. */
-  var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
-                "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-  function formatDateOnly(iso){
-    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");
-    if(!m) return iso||"";
-    return String(+m[3])+" "+MONTHS[+m[2]-1]+" "+m[1];
-  }
-
+  /* التطبيق الحقيقي يمرّر التاريخ عبر formatDateOnly قبل عرضه — وهي
+     معرَّفة مع بقية نموذج التاريخ أعلاه. عرض «2026-09-29» خامًا داخل جملة
+     عربية كان تسريبًا لشكل الـ API. */
   function openDialog(pending){
     state.pending = pending;
     var total = results().length, count = selectionCount(total);
     var title, body, danger=false, ok="تأكيد الإجراء";
 
     if(pending==="start-subscription"){
-      title = "بدء اشتراك شهري"; ok = "بدء الاشتراك";
-      body = "سيبدأ الاشتراك في "+formatDateOnly(state.subStart)+
-             " وينتهي في "+formatDateOnly(state.subEnd)+
+      /* «شهري» كان صحيحًا حين كانت النهاية تتبع البداية بشهر دائمًا. المنتقي
+         يتيح ثلاثة أشهر وستة وسنة، فالعنوان يذكر الإجراء والجسم يذكر المدّة
+         الفعلية بطرفيها.
+         المدى يُكتب بـ rangeText لا بتاريخين كاملين (§11 قاعدة 2): نصّ
+         OperatorsPage.tsx الحالي يطبع «سيبدأ الاشتراك في 5 أغسطس 2026 وينتهي
+         في 20 أغسطس 2026» بينما زرّ المنتقي فوقه يقول «5 – 20 أغسطس 2026» —
+         صيغتان لقيمة واحدة على شاشة واحدة، وهو العيب نفسه الذي أُزيلت من أجله
+         الحقول الأصلية. الصيغة الواحدة هي المعتمدة، والفارق عن نصّ التطبيق
+         مذكور في سطر «مصادر البيانات». */
+      title = "بدء الاشتراك"; ok = "بدء الاشتراك";
+      body = "سيسري الاشتراك خلال "+rangeText(state.subStart, state.subEnd)+
              ". سيتأثر "+fmt(count)+" مستخدم.";
     } else if(pending==="suspend-subscription"){
       title = "تعليق الاشتراك"; ok = "تعليق الاشتراك"; danger = true;
@@ -1649,6 +1912,33 @@ button,input,select{font:inherit;color:inherit}
        فتُغلق القائمة في اللحظة نفسها التي فُتحت فيها (§11 قاعدة 6). */
     if(e.target.closest(".pop") || e.target.closest("[data-pop]")) e.stopPropagation();
 
+    /* ── منتقي مدّة الاشتراك — قبل بقيّة الأزرار: كلّها داخل القائمة ── */
+    if(e.target.closest("#subRangeBtn")){ togglePicker(); return; }
+    var nav = e.target.closest("[data-rpmo]");
+    if(nav){
+      state.rp.m += +nav.dataset.rpmo;
+      if(state.rp.m < 0 ){ state.rp.m = 11; state.rp.y--; }
+      if(state.rp.m > 11){ state.rp.m = 0;  state.rp.y++; }
+      paintPicker(); return;
+    }
+    var pr = e.target.closest("[data-rp]");
+    if(pr && pr.dataset.rp){
+      /* المدّة تُقاس من البداية المختارة، والمؤشّر يبقى على شهرها: القفز
+         إلى شهر النهاية (سنة كاملة أحيانًا) يخفي الطرف الذي يُحرَّر. */
+      state.rp.to = monthsAfter(state.rp.from, +pr.dataset.rp);
+      state.rp.anchor = null;
+      paintPicker(); return;
+    }
+    var dy = e.target.closest("[data-rpd]");
+    if(dy){ pickRangeDay(dy.dataset.rpd); paintPicker(); return; }
+    if(e.target.closest("#rpCancel")){ closePicker(); return; }
+    if(e.target.closest("#rpApply")){
+      /* «تطبيق» وحده يمسّ الحالة، و«إلغاء» يترك المدى السابق كما هو. */
+      if(!datesOkPair(state.rp.from, state.rp.to)) return;
+      state.subStart = state.rp.from; state.subEnd = state.rp.to;
+      closePicker(); return;
+    }
+
     var pb = e.target.closest("[data-pop]");
     if(pb){
       var k = pb.dataset.pop;
@@ -1671,59 +1961,71 @@ button,input,select{font:inherit;color:inherit}
     if(e.target.closest("#ctxNone")){ clearSelection(); render(); return; }
   });
 
-  /* حقلا التاريخ داخل «إدارة الاشتراك»: التحقّق موضعي بلا إعادة رسم
-     حتى لا تُهدم القائمة المفتوحة تحت أصابع المستخدم. */
-  $("ctx").addEventListener("input", function(e){
-    var t = e.target;
-    if(t.id!=="subStart" && t.id!=="subEnd") return;
-    var norm = normDigits(t.value);
-    if(norm!==t.value){
-      var p = t.selectionStart;
-      t.value = norm;
-      try{ t.setSelectionRange(p,p); }catch(_){}
+  /* ══ منتقي مدّة الاشتراك — المنطق ═══════════════════════════════
+     إعادة الرسم موضعية: render() الكامل يهدم الجدول تحت المؤشّر ويفقد
+     التركيز. وكل استعلام هنا يبدأ من المستند لا من مرجع محفوظ، لأن
+     rangePopBody() يستبدل كل أزرار التقويم في كل مرّة (§11 قاعدة 8). */
+  function paintPicker(){
+    var pop = $("ctx").querySelector("#subRangePop");
+    if(!pop) return;
+    pop.innerHTML = state.rp.open ? rangePopBody() : "";
+    pop.hidden = !state.rp.open;
+    var btn = $("ctx").querySelector("#subRangeBtn");
+    if(btn){
+      btn.setAttribute("aria-expanded", String(state.rp.open));
+      var lbl = btn.querySelector("b");
+      if(lbl) lbl.textContent = presetLabel(state.subStart, state.subEnd);
+      var dts = btn.querySelector(".rangeDates");
+      if(dts) dts.textContent = rangeText(state.subStart, state.subEnd);
     }
-    var iso = toISO(t.value);
-    if(t.id==="subStart"){
-      state.subStart = iso;
-      /* نهاية الاشتراك تتبع البداية: بعدها بشهر واحد */
-      if(iso){
-        state.subEnd = oneMonthAfter(iso);
-        var end = $("subEnd");
-        if(end && document.activeElement!==end){
-          end.value = toDMY(state.subEnd);
-          end.setAttribute("aria-invalid", state.subEnd ? "false" : "true");
-        }
-      }
+    var go = $("ctx").querySelector("#subStartBtn");
+    if(go) go.disabled = !datesOk();
+  }
+  function togglePicker(){
+    var rp = state.rp;
+    if(rp.open){ closePicker(); return; }
+    /* الفتح ينسخ القيمة المطبَّقة إلى المسوّدة — ولا شيء يعود إليها
+       إلا عبر «تطبيق». */
+    var p = parts(state.subStart || TODAY);
+    rp.open = true; rp.from = state.subStart; rp.to = state.subEnd;
+    rp.anchor = null; rp.y = p.y; rp.m = p.m;
+    paintPicker();
+  }
+  function closePicker(){
+    state.rp.open = false; state.rp.anchor = null;
+    paintPicker();
+    var back = $("ctx").querySelector("#subRangeBtn");
+    if(back) back.focus();
+  }
+  function pickRangeDay(k){
+    var rp = state.rp;
+    if(!rp.anchor){
+      /* أول ضغطة تختار البداية وتضبط النهاية على المدّة المختارة حاليًا
+         (شهر واحد افتراضيًا) — نفس قاعدة الحقل النصّي القديم: النهاية
+         تتبع البداية، بنفس القصّ حين لا نظير لليوم في الشهر الهدف. */
+      var dur = presetOf(rp.from, rp.to) || 1;   /* قبل تغيير الطرفين */
+      rp.anchor = k;
+      rp.from = k;
+      rp.to = monthsAfter(k, dur);
     } else {
-      state.subEnd = iso;
+      /* الضغطة الثانية تعيّن النهاية، والطرفان يُرتَّبان تلقائيًا مهما كان
+         ترتيب النقر — فالمدى المعكوس لا يمكن إنشاؤه أصلًا (§11 قاعدة 3). */
+      rp.from = k < rp.anchor ? k : rp.anchor;
+      rp.to   = k < rp.anchor ? rp.anchor : k;
+      rp.anchor = null;
     }
-    t.setAttribute("aria-invalid", iso ? "false" : "true");
-    var ok = datesOk();
-    var err = $("subErr"); if(err) err.hidden = ok;
-    var go  = $("subStartBtn"); if(go) go.disabled = !ok;
-  });
+  }
 
   /* إغلاق القوائم المنسدلة بالنقر خارجها أو بـ Escape */
   addEventListener("click", function(){
     if(state.pop){ state.pop = null; render(); }
   });
   addEventListener("keydown", function(e){
-    if(e.key==="Escape" && state.pop){ state.pop = null; render(); }
+    if(e.key!=="Escape") return;
+    /* الأعمق أولًا: Escape فوق التقويم يغلقه ويترك القائمة مفتوحة. */
+    if(state.rp.open){ closePicker(); return; }
+    if(state.pop){ state.pop = null; render(); }
   });
-
-  /* نهاية الاشتراك الافتراضية: نفس اليوم من الشهر التالي — وهو ما يعلنه
-     عنوان القائمة «شهر واحد افتراضيًا». وحين لا نظير لليوم في الشهر التالي
-     (31 يناير ← فبراير) يُقصّ إلى آخر يوم فيه. كان اسمها calendarMonthEnd
-     وهو يصف «آخر يوم في الشهر» — شيء آخر لا تفعله الدالة. */
-  function oneMonthAfter(startDate){
-    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
-    if(!m) return "";
-    var y = +m[1], mo = +m[2], d = +m[3];
-    var ty = y + Math.floor(mo/12), tm = mo % 12;
-    var lastDay = new Date(Date.UTC(ty, tm+1, 0)).getUTCDate();
-    return [String(ty).padStart(4,"0"), String(tm+1).padStart(2,"0"),
-            String(Math.min(d,lastDay)).padStart(2,"0")].join("-");
-  }
 
   /* 7) إنشاء مستخدم — POST /v1/admin/operators */
   $("createBtn").addEventListener("click", function(){
