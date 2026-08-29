@@ -151,30 +151,71 @@ a{color:inherit}
 .seg.segSm button{padding:4px 10px;font-size:11.5px}
 .segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
 
-.dates{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
-.field{display:grid;gap:5px;font-size:11.5px;color:var(--ink-3)}
-.input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
-  color:var(--ink);border-radius:9px;padding:7px 11px;font-size:13px;
-  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
-  color-scheme:dark;min-inline-size:168px;
-  transition:border-color .16s var(--ease),background .16s var(--ease)}
-.input:hover{border-color:rgba(255,255,255,.2)}
-.input[aria-invalid="true"]{border-color:rgba(255,107,107,.6)}
-.swap{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
-  color:var(--ink-2);border-radius:9px;padding:7px 12px;font-size:12px;cursor:pointer;
-  transition:background .16s var(--ease),color .16s var(--ease)}
-.swap:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+/* ── منتقي المدى ─────────────────────────────────── */
+.rangeAnchor{position:relative}
+.rangeBtn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  color:var(--ink-2);border-radius:10px;padding:8px 13px;font-size:13px;
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease)}
+.rangeBtn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:var(--ink)}
+.rangeBtn[aria-expanded="true"]{background:rgba(255,255,255,.11);color:var(--ink);
+  border-color:rgba(255,255,255,.22)}
+.rangeBtn b{color:var(--ink);font-weight:600}
+.rangeDates{color:var(--ink-3);font-size:12px;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rangeBtn .chev{color:var(--ink-3);flex:none}
+
+.rangePop{position:absolute;z-index:200;inset-block-start:calc(100% + 7px);inset-inline-start:0;
+  border-radius:14px;overflow:hidden;background:#101b16;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
+.rangePop[hidden]{display:none}
+.rpGrid{display:grid;grid-template-columns:auto 1fr}
+@media(max-width:620px){.rpGrid{grid-template-columns:1fr}}
+.rpPresets{display:flex;flex-direction:column;gap:2px;padding:10px;
+  border-inline-end:1px solid var(--line-2);min-inline-size:132px}
+@media(max-width:620px){.rpPresets{flex-direction:row;flex-wrap:wrap;
+  border-inline-end:0;border-block-end:1px solid var(--line-2)}}
+.rpP{border:0;background:transparent;cursor:pointer;text-align:start;
+  padding:7px 11px;border-radius:8px;font-size:12.5px;color:var(--ink-2);white-space:nowrap;
+  transition:background .14s var(--ease),color .14s var(--ease)}
+.rpP:hover:not([disabled]){background:rgba(255,255,255,.07);color:var(--ink)}
+.rpP[aria-selected="true"]{background:rgba(110,196,155,.16);color:var(--ink);font-weight:600}
+.rpP[disabled]{color:var(--ink-4);cursor:default}
+.rpP[disabled][aria-selected="true"]{background:rgba(255,255,255,.07);color:var(--ink-2)}
+
+.rpCal{padding:10px 12px 12px;min-inline-size:252px}
+.rpCalHead{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-block-end:8px}
+.rpMonth{font-size:12.5px;font-weight:600;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.rpNav{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  color:var(--ink-2);cursor:pointer;inline-size:26px;block-size:26px;border-radius:8px;
+  display:grid;place-items:center;transition:background .14s var(--ease),color .14s var(--ease)}
+.rpNav:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.rpDow,.rpDays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.rpDow{margin-block-end:4px}
+.rpDow span{font-size:10px;color:var(--ink-4);text-align:center;padding-block:2px}
+.rpD{border:0;background:transparent;cursor:pointer;color:var(--ink-2);
+  block-size:30px;border-radius:7px;font-size:12px;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;
+  transition:background .13s var(--ease),color .13s var(--ease)}
+.rpD:hover:not([disabled]){background:rgba(255,255,255,.09);color:var(--ink)}
+.rpD.out{cursor:default}
+.rpD[disabled]{color:var(--ink-4);cursor:default}
+.rpD.in{background:rgba(110,196,155,.13);color:var(--ink)}
+.rpD.edge{background:var(--accent);color:#06100c;font-weight:700}
+.rpFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 12px;border-block-start:1px solid var(--line-2)}
+.rpSel{font-size:12px;color:var(--ink-2);direction:rtl;unicode-bidi:isolate}
+.rpActs{margin-inline-start:auto;display:flex;gap:7px}
+
 .rangeMeta{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:baseline;
-  font-size:12px;color:var(--ink-3);padding-block-start:2px;
+  font-size:12px;color:var(--ink-3);padding-block-start:11px;
   border-block-start:1px solid var(--line-2)}
 .rangeMeta b{color:var(--ink);font-weight:600;
   font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .rangeMeta .k{color:var(--ink-4)}
-.warn{display:none;gap:9px;align-items:flex-start;font-size:12px;line-height:1.75;
-  padding:9px 12px;border-radius:11px;color:var(--ink-2);
-  background:rgba(232,176,85,.08);border:1px solid rgba(232,176,85,.28)}
-.warn.on{display:flex}
-.warn b{color:var(--unread);font-weight:600}
 
 /* ── ملخّص العمل ─────────────────────────────────── */
 .ledger{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px 0}
@@ -523,38 +564,56 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
             <span class="paneNote">الشاشة الوحيدة التي تقبل مدى حرًّا — كل تقرير أسبوعي أو شهري يُنتج من هنا</span>
           </div>
           <div class="rangeBody">
-            <div class="presets">
-              <span class="segLbl">مدى جاهز</span>
-              <div class="seg segSm" role="group" aria-label="مدى جاهز" id="presetSeg">
-                <button type="button" data-p="d1"  aria-pressed="false">اليوم</button>
-                <button type="button" data-p="d7"  aria-pressed="true">آخر 7 أيام</button>
-                <button type="button" data-p="d30" aria-pressed="false">آخر 30 يومًا</button>
-                <button type="button" data-p="m0"  aria-pressed="false">هذا الشهر</button>
-                <button type="button" data-p="m1"  aria-pressed="false">الشهر الماضي</button>
+            <!-- عنصر تحكّم واحد: زرّ يعرض المدى الحالي، ويفتح لوحة فيها
+                 المدى الجاهز على جهة والتقويم على الأخرى. -->
+            <div class="rangeAnchor">
+              <button class="rangeBtn" type="button" id="rangeBtn"
+                      aria-expanded="false" aria-haspopup="dialog" aria-controls="rangePop">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2.5"/>
+                  <path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                <b id="rangeLabel">آخر 7 أيام</b>
+                <span class="rangeDates" id="rangeDates">23 – 29 أغسطس 2026</span>
+                <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+
+              <div class="rangePop" id="rangePop" role="dialog"
+                   aria-label="اختيار مدى التقرير" hidden>
+                <div class="rpGrid">
+                  <div class="rpPresets" id="rpPresets" role="listbox" aria-label="مدى جاهز"></div>
+                  <div class="rpCal">
+                    <div class="rpCalHead">
+                      <button class="rpNav" type="button" id="calPrev" aria-label="الشهر السابق">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                      </button>
+                      <span class="rpMonth" id="calMonth" aria-live="polite">أغسطس 2026</span>
+                      <button class="rpNav" type="button" id="calNext" aria-label="الشهر التالي">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+                      </button>
+                    </div>
+                    <div class="rpDow" aria-hidden="true"></div>
+                    <div class="rpDays" id="calDays" role="grid" aria-label="أيام الشهر"></div>
+                  </div>
+                </div>
+                <div class="rpFoot">
+                  <span class="rpSel" id="rpSel"></span>
+                  <span class="rpActs">
+                    <button class="btn" type="button" id="rpCancel">إلغاء</button>
+                    <button class="btn primary" type="button" id="rpApply">تطبيق</button>
+                  </span>
+                </div>
               </div>
-            </div>
-
-            <div class="dates">
-              <label class="field" for="fromInput">من تاريخ
-                <input class="input" id="fromInput" type="date" value="2026-08-23">
-              </label>
-              <label class="field" for="toInput">إلى تاريخ
-                <input class="input" id="toInput" type="date" value="2026-08-29">
-              </label>
-              <button class="swap" type="button" id="swapBtn">تبديل الطرفين</button>
-            </div>
-
-            <div class="warn" id="rangeWarn" role="status">
-              <span>
-                <b>مدى معكوس.</b>
-                <span id="rangeWarnText"></span>
-              </span>
             </div>
 
             <div class="rangeMeta">
               <span><span class="k">طول المدى</span> <b id="rmDays">7</b> <span class="k">أيام</span></span>
-              <span><span class="k">من</span> <b id="rmFrom">2026-08-23</b></span>
-              <span><span class="k">إلى</span> <b id="rmTo">2026-08-29</b></span>
               <span><span class="k">السجلات في المدى</span> <b id="rmTotal">8,918</b></span>
             </div>
           </div>
@@ -575,9 +634,11 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
             <code>200</code> بنتيجة فارغة بلا أي رسالة. الحارس أعلاه <b>واجهة فقط</b>،
             ويحتاج تحققًا مماثلاً في الخادم.
             <br>
-            <span class="nw">يحتاج بناءً:</span> «المدى الجاهز» و«تبديل الطرفين» ليس لهما أثر
-            في الخادم — يُحسبان في المتصفّح ثم يُرسلان كتاريخين عاديين، تمامًا كما يفعل
+            <span class="nw">يحتاج بناءً:</span> «المدى الجاهز» ليس له أثر في الخادم —
+            يُحسب في المتصفّح ثم يُرسل كتاريخين عاديين، تمامًا كما يفعل
             <code>OperatorDetailPage.tsx</code> بـ <code>calendarDateOffset(to,-6)</code>.
+            والتقويم هنا مكتوب يدويًا لأن <code>&lt;input type="date"&gt;</code> يعرض أرقامًا
+            هندية وترتيبًا بحسب لغة المتصفّح، فكانت الشاشة تحمل صيغتين للتاريخ نفسه.
           </div>
         </div>
       </section>
@@ -1315,7 +1376,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 
     if(inverted()){
       host.innerHTML='<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
-        'تاريخ البداية بعد تاريخ النهاية — صحّح المدى أو اضغط «تبديل الطرفين».</div>';
+        'تاريخ البداية بعد تاريخ النهاية. اختر المدى من جديد.</div>';
       document.getElementById("pag").innerHTML="";
       document.getElementById("histRange").textContent="—";
       return;
@@ -1482,29 +1543,44 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
     document.getElementById("rmTotal").textContent = fmt(s.total);
   }
 
+  /* ── تنسيق التاريخ: صيغة واحدة في الشاشة كلها، بأرقام غربية ──
+     الحقول الأصلية type="date" تعرض أرقامًا هندية وترتيبًا بحسب لغة المتصفّح،
+     فكانت الشاشة تحمل صيغتين للتاريخ نفسه. */
+  var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+                "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  var DOW = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  function parts(k){ var a=k.split("-"); return {y:+a[0],m:+a[1]-1,d:+a[2]}; }
+  function longDate(k){ var p=parts(k); return p.d+" "+MONTHS[p.m]+" "+p.y; }
+  /* مدى داخل شهر واحد يُكتب مرة واحدة: «23 – 29 أغسطس 2026» */
+  function rangeText(f,t){
+    if(f===t) return longDate(f);
+    var a=parts(f), b=parts(t);
+    if(a.y===b.y && a.m===b.m) return a.d+" – "+b.d+" "+MONTHS[b.m]+" "+b.y;
+    if(a.y===b.y) return a.d+" "+MONTHS[a.m]+" – "+b.d+" "+MONTHS[b.m]+" "+b.y;
+    return longDate(f)+" – "+longDate(t);
+  }
+
+  var PRESETS = [
+    { p:"d1",  label:"اليوم" },
+    { p:"d7",  label:"آخر 7 أيام" },
+    { p:"d30", label:"آخر 30 يومًا" },
+    { p:"m0",  label:"هذا الشهر" },
+    { p:"m1",  label:"الشهر الماضي" }
+  ];
+
   function drawRange(){
-    document.getElementById("fromInput").value=state.from;
-    document.getElementById("toInput").value=state.to;
-    var bad=inverted();
-    document.getElementById("fromInput").setAttribute("aria-invalid",String(bad));
-    document.getElementById("toInput").setAttribute("aria-invalid",String(bad));
-    document.getElementById("rangeWarn").classList.toggle("on",bad);
-    if(bad) document.getElementById("rangeWarnText").innerHTML =
-      'المسار لا يرفض هذا المدى — يعيد <span class="numi">200</span> بقائمة فارغة '+
-      "وملخّص أصفار. الرسالة هنا حارس واجهة فقط.";
+    var bad = inverted();
     var n = bad ? 0 : daysBetween(state.from,state.to)+1;
     document.getElementById("rmDays").textContent = n;
-    document.getElementById("rmFrom").textContent = state.from;
-    document.getElementById("rmTo").textContent = state.to;
+
+    var match = presetOf(state.from,state.to);
+    var named = PRESETS.filter(function(x){ return x.p===match; })[0];
+    document.getElementById("rangeLabel").textContent = named ? named.label : "مدى مخصّص";
+    document.getElementById("rangeDates").textContent = rangeText(state.from,state.to);
+
     document.getElementById("srcUrl").textContent =
       "/v1/admin/operators/"+state.opId+"/work?from="+state.from+"&to="+state.to+
       "&page="+state.page+"&pageSize="+PAGE_SIZE;
-
-    /* أي زر «مدى جاهز» يطابق الحالة الراهنة؟ */
-    var match = presetOf(state.from,state.to);
-    [].forEach.call(document.querySelectorAll("#presetSeg button"),function(b){
-      b.setAttribute("aria-pressed", String(b.dataset.p===match));
-    });
   }
   function presetOf(f,t){
     if(f===TODAY && t===TODAY) return "d1";
@@ -1549,19 +1625,117 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
   }
   function rerenderRange(){ state.page=1; rerenderAll(); }
 
-  document.getElementById("presetSeg").addEventListener("click",function(e){
-    var b=e.target.closest("button"); if(!b) return;
-    applyPreset(b.dataset.p); rerenderRange();
-  });
-  document.getElementById("fromInput").addEventListener("change",function(){
-    if(!this.value) return; state.from=this.value; rerenderRange();
-  });
-  document.getElementById("toInput").addEventListener("change",function(){
-    if(!this.value) return; state.to=this.value; rerenderRange();
-  });
-  document.getElementById("swapBtn").addEventListener("click",function(){
-    var f=state.from; state.from=state.to; state.to=f; rerenderRange();
-  });
+  /* ══ منتقي المدى: زرّ واحد يفتح لوحة فيها المدى الجاهز والتقويم ══
+     لا زرّ «تبديل الطرفين»: اختيار طرف قبل الآخر يُرتَّب تلقائيًا، فالمدى
+     المعكوس لا يمكن إنشاؤه من الأساس بدل تحذير المستخدم منه بعد وقوعه. */
+  (function(){
+    var btn   = document.getElementById("rangeBtn"),
+        pop   = document.getElementById("rangePop"),
+        prSel = document.getElementById("rpPresets"),
+        calM  = document.getElementById("calMonth"),
+        calD  = document.getElementById("calDays"),
+        selTx = document.getElementById("rpSel");
+
+    /* مسوّدة داخل اللوحة: لا شيء يُطبَّق قبل «تطبيق» */
+    var draft = { from:state.from, to:state.to, anchor:null }, cursor;
+
+    document.querySelector(".rpDow").innerHTML =
+      DOW.map(function(d){ return "<span>"+d.slice(0,3)+"</span>"; }).join("");
+
+    function key(y,m,d){
+      return y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    }
+    function drawPresets(){
+      var match = presetOf(draft.from, draft.to);
+      prSel.innerHTML = PRESETS.map(function(x){
+        return '<button class="rpP" type="button" role="option" data-p="'+x.p+'" '+
+               'aria-selected="'+(x.p===match)+'">'+x.label+'</button>';
+      }).join("") +
+      '<button class="rpP" type="button" role="option" data-p="" '+
+      'aria-selected="'+(!match)+'" disabled>مدى مخصّص</button>';
+    }
+    function drawCal(){
+      var y=cursor.y, m=cursor.m;
+      calM.textContent = MONTHS[m]+" "+y;
+      var first = new Date(Date.UTC(y,m,1)).getUTCDay();      /* 0 = الأحد */
+      var len   = new Date(Date.UTC(y,m+1,0)).getUTCDate();
+      var cells = [];
+      for(var i=0;i<first;i++) cells.push('<span class="rpD out"></span>');
+      for(var d=1;d<=len;d++){
+        var k = key(y,m,d);
+        var inR = k>=draft.from && k<=draft.to;
+        var edge = (k===draft.from||k===draft.to);
+        var future = k > TODAY;
+        cells.push('<button class="rpD'+(inR?" in":"")+(edge?" edge":"")+'" type="button" '+
+          'data-k="'+k+'" role="gridcell" '+(future?'disabled ':'')+
+          'aria-label="'+d+" "+MONTHS[m]+" "+y+'"'+
+          (edge?' aria-current="date"':'')+'>'+d+'</button>');
+      }
+      calD.innerHTML = cells.join("");
+      selTx.textContent = draft.anchor
+        ? "اختر نهاية المدى" : rangeText(draft.from,draft.to);
+    }
+    function redraw(){ drawPresets(); drawCal(); }
+
+    function open(){
+      draft = { from:state.from, to:state.to, anchor:null };
+      var p = parts(state.to); cursor = { y:p.y, m:p.m };
+      redraw();
+      pop.hidden = false;
+      btn.setAttribute("aria-expanded","true");
+    }
+    function close(){
+      pop.hidden = true;
+      btn.setAttribute("aria-expanded","false");
+    }
+
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(pop.hidden) open(); else close();
+    });
+    pop.addEventListener("click", function(e){ e.stopPropagation(); });
+    addEventListener("click", function(){ if(!pop.hidden) close(); });
+    addEventListener("keydown", function(e){
+      if(e.key==="Escape" && !pop.hidden){ close(); btn.focus(); }
+    });
+
+    prSel.addEventListener("click", function(e){
+      var b=e.target.closest(".rpP"); if(!b||!b.dataset.p) return;
+      var keep={from:state.from,to:state.to};
+      applyPreset(b.dataset.p);
+      draft={from:state.from,to:state.to,anchor:null};
+      state.from=keep.from; state.to=keep.to;       /* لا يُطبَّق قبل «تطبيق» */
+      var p=parts(draft.to); cursor={y:p.y,m:p.m};
+      redraw();
+    });
+
+    calD.addEventListener("click", function(e){
+      var b=e.target.closest(".rpD"); if(!b||!b.dataset.k||b.disabled) return;
+      var k=b.dataset.k;
+      if(!draft.anchor){ draft.anchor=k; draft.from=k; draft.to=k; }
+      else {
+        /* الترتيب تلقائي — الطرف الأصغر أولًا مهما كان ترتيب النقر */
+        draft.from = k < draft.anchor ? k : draft.anchor;
+        draft.to   = k < draft.anchor ? draft.anchor : k;
+        draft.anchor = null;
+      }
+      redraw();
+    });
+
+    document.getElementById("calPrev").addEventListener("click", function(){
+      cursor.m--; if(cursor.m<0){ cursor.m=11; cursor.y--; } drawCal();
+    });
+    document.getElementById("calNext").addEventListener("click", function(){
+      cursor.m++; if(cursor.m>11){ cursor.m=0; cursor.y++; } drawCal();
+    });
+    document.getElementById("rpCancel").addEventListener("click", function(){
+      close(); btn.focus();
+    });
+    document.getElementById("rpApply").addEventListener("click", function(){
+      state.from=draft.from; state.to=draft.to;
+      close(); btn.focus(); rerenderRange();
+    });
+  })();
 
   /* الرسم: ضغط يوم يقصر المدى عليه، وضغطه ثانيةً يعيد آخر 7 أيام */
   function pickDay(key){
