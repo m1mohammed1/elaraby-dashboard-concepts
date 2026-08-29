@@ -16,12 +16,20 @@
    المشهد والمادة والشريط والصفوف منقولة من الشاشة المرجعية overview.html
    ══════════════════════════════════════════════════════════════════ */
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
+  /* المشهد */
+  --bg:#07100b;
+
+  /* الهوية والحالة — من مواصفة تسليم الواجهة */
+  --brand:#ffd700;       /* ذهبي — الهوية في الشريط العلوي وحده */
+  --wanted:#ffb800;      /* مطلوب — كهرماني، ومعه مثلث تحذير دائمًا */
+  --clean:#65dfa8;       /* غير مطلوبة — ومعها دائرة صحّ */
+  --error:#ff5b5b;       /* خطأ فعلي وإجراء هدّام */
+  --accent:#65dfa8;      /* تركيز وحالات نشطة */
+  --primary:#115033;     /* زرّ أساسي وتبويب نشط */
+
+  /* النصّ والحدود — قيمنا نحن: ink-3 و ink-4 لا تنزل إلى قيم المواصفة */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b;
-  --wanted:#ff6b6b;
-  --clean:#3ddc97;
-  --unread:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
   --far-a:.050;  --far-ink:1;
@@ -34,7 +42,7 @@
 html,body{min-block-size:100%}
 body{
   position:relative;
-  background:#06100c;color:var(--ink);
+  background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
   line-height:1.7;-webkit-font-smoothing:antialiased;
   overflow-x:hidden;
@@ -65,7 +73,11 @@ input{font:inherit;color:inherit}
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
 .brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
-  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px;
+  color:var(--brand)}
+/* --brand للهوية وحدها: الاسم والعلامة في الشريط العلوي. لا حالة ولا زرّ ولا
+   تركيز يأخذ هذا الذهب، وإلا صار في الشاشة ذهبان يتنازعان المعنى. */
+.brand .bn{color:var(--brand)}
 .barSep{width:1px;height:22px;background:var(--line)}
 .barGrow{flex:1}
 
@@ -74,7 +86,8 @@ input{font:inherit;color:inherit}
   padding:6px 11px;border-radius:8px;
   transition:color .16s var(--ease),background .16s var(--ease)}
 .nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
-.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+/* التبويب النشط أخضر أساسي كما في التطبيق المسلَّم. #f0f4f1 على #115033 = 8.5:1. */
+.nav a[aria-current="page"]{background:var(--primary);color:var(--ink)}
 
 .seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
@@ -92,7 +105,7 @@ input{font:inherit;color:inherit}
   background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
 .tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
-.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(101,223,168,.35)}
 .tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
   display:grid;place-items:center}
 .tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
@@ -126,9 +139,11 @@ input{font:inherit;color:inherit}
 /* ── إشعار العملية (Notice) ──────────────────────── */
 .notice{display:flex;align-items:flex-start;gap:11px;padding:10px 15px;border-radius:12px;
   font-size:12.5px;margin-block-end:14px;line-height:1.75}
-.notice.success{background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.28);color:var(--ink)}
-.notice.danger{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.30);color:var(--ink)}
-.notice.warning{background:rgba(232,176,85,.08);border:1px solid rgba(232,176,85,.30);color:var(--ink)}
+.notice.success{background:rgba(101,223,168,.08);border:1px solid rgba(101,223,168,.28);color:var(--ink)}
+/* إشعار فشل — أحمر --error، لا لون الحالة. */
+.notice.danger{background:rgba(255,91,91,.08);border:1px solid rgba(255,91,91,.30);color:var(--ink)}
+/* إشعار انتباه — كهرماني الحالة نفسه، لا كهرمانيًا ثانيًا. */
+.notice.warning{background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.30);color:var(--ink)}
 .notice .nMsg{flex:1;min-inline-size:0}
 .notice .nX{border:0;background:transparent;cursor:pointer;color:var(--ink-3);
   font-size:13px;line-height:1;padding:3px 6px;border-radius:6px}
@@ -150,6 +165,7 @@ input{font:inherit;color:inherit}
 .figV.ar{direction:rtl;unicode-bidi:isolate;text-align:start}
 .figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px;display:flex;gap:7px;align-items:baseline;
   direction:rtl;unicode-bidi:isolate}
+/* عدّاد حالة «مستبعد» — نفس ذهب الشارة، لا الأحمر: هذا عدّ حالة لا فشل. */
 .fig.hot .figV{color:var(--wanted)}
 .fig.ok .figV{color:var(--clean)}
 .snap{position:absolute;inset-block-start:13px;inset-inline-end:16px;
@@ -281,7 +297,7 @@ input{font:inherit;color:inherit}
   border-color:rgba(255,255,255,.2)}
 /* display:inline-flex يتغلّب على [hidden] في ورقة المتصفّح — يجب تعطيله صراحةً. */
 .ctl[hidden]{display:none}
-.ctl .cnt{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+.ctl .cnt{background:var(--accent);color:var(--bg);font-weight:700;font-size:10px;
   min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
   padding-inline:4px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .ctl .cnt[hidden]{display:none}
@@ -299,13 +315,13 @@ input{font:inherit;color:inherit}
   padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-3);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .opt:hover{color:var(--ink-2)}
-.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
-  border-color:rgba(110,196,155,.45)}
+.opt[aria-pressed="true"]{background:rgba(101,223,168,.16);color:var(--ink);
+  border-color:rgba(101,223,168,.45)}
 
 /* الشريط السياقي — hidden بلا تحديد، لا معطّلًا */
 .ctxbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   padding:10px 18px;border-block-end:1px solid var(--line-2);
-  background:rgba(110,196,155,.075)}
+  background:rgba(101,223,168,.075)}
 .ctxbar[hidden]{display:none}
 .ctxbar .c{font-size:12.5px;font-weight:600;direction:rtl;unicode-bidi:isolate}
 .ctxbar .c b{display:inline-block;font-weight:600;
@@ -316,8 +332,10 @@ input{font:inherit;color:inherit}
   padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35)}
-.abtn.danger:hover{background:rgba(255,107,107,.14)}
+/* «استبعاد المحدَّد» إجراء هدّام يوقف أجهزة في الميدان — أحمر --error،
+   لا لون الحالة الذهبي. اللون هنا يعني «انتبه، هذا فعل لا رجعة سهلة عنه». */
+.abtn.danger{color:var(--error);border-color:rgba(255,91,91,.35)}
+.abtn.danger:hover{background:rgba(255,91,91,.14)}
 
 /* مربّع التحديد */
 .cb{inline-size:15px;block-size:15px;border-radius:4px;cursor:pointer;padding:0;
@@ -325,8 +343,8 @@ input{font:inherit;color:inherit}
   transition:border-color .15s var(--ease),background .15s var(--ease)}
 .cb:hover:not(:disabled){border-color:var(--ink-2)}
 .cb[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
-.cb[aria-checked="mixed"]{background:rgba(110,196,155,.4);border-color:var(--accent)}
-.cb svg{opacity:0;color:#06100c}
+.cb[aria-checked="mixed"]{background:rgba(101,223,168,.4);border-color:var(--accent)}
+.cb svg{opacity:0;color:var(--bg)}
 .cb[aria-checked="true"] svg{opacity:1}
 .cb:disabled{opacity:.35;cursor:not-allowed}
 
@@ -350,16 +368,26 @@ input{font:inherit;color:inherit}
   justify-self:start;line-height:1.7}
 .cDate{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* شارة حالة: لون + أيقونة. اللون وحده لا يكفي — الشكل يحمل المعنى حين يغيب
+   تمييز اللون، والحدّ من currentColor فتتبعه الأيقونة والنصّ معًا. */
 .chip{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
   border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap;
-  justify-self:start}
+  justify-self:start;display:inline-flex;align-items:center;gap:5px}
+.chip svg,.vKind svg{flex:none}
 .cs-allow{color:var(--clean)} .cs-block{color:var(--wanted)}
 .cVerdict{min-inline-size:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .vKind{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
-  border:1px solid currentColor;line-height:1.7;white-space:nowrap}
+  border:1px solid currentColor;line-height:1.7;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:5px}
 .k-allowed{color:var(--clean)}
-.k-optional{color:var(--unread)}
-.k-required{color:var(--wanted)}
+/* «تحديث اختياري» حالة تستدعي الانتباه ولا توقف شيئًا — وهذا تعريف --wanted
+   في §3، ومعه مثلث التحذير أصلًا. كهرماني ثانٍ محلّي كان يجعل في الجدول
+   ذهبين متقاربين بلا فرق دلالي بينهما. */
+.k-optional{color:var(--wanted)}
+/* «تحديث إلزامي» ليس حالة انتباه بل عطب واقع: كل طلب من الجهاز يُرفض بـ 426.
+   لهذا --error لا --wanted. وهو أيضًا ما يمنع اصطفاف كهرمانيين متجاورين في
+   نفس العمود مع «تحديث اختياري». */
+.k-required{color:var(--error)}
 .vWhat{font-size:11px;color:var(--ink-3);min-inline-size:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -372,7 +400,7 @@ input{font:inherit;color:inherit}
 .switch-track{position:absolute;inset-block-start:2px;inset-inline-start:2px;
   inline-size:15px;block-size:15px;border-radius:50%;background:var(--ink-3);
   transition:inset-inline-start .16s var(--ease),background .16s var(--ease)}
-.switch[aria-checked="true"]{background:rgba(61,220,151,.22);border-color:rgba(61,220,151,.45)}
+.switch[aria-checked="true"]{background:rgba(101,223,168,.22);border-color:rgba(101,223,168,.45)}
 .switch[aria-checked="true"] .switch-track{inset-inline-start:19px;background:var(--clean)}
 .switch:disabled{cursor:not-allowed;opacity:.45}
 .switch:not(:disabled):hover{border-color:rgba(255,255,255,.26)}
@@ -400,11 +428,12 @@ input{font:inherit;color:inherit}
 /* لا position:fixed في هذه الصفحة إطلاقًا. التأكيد يظهر في مجرى الصفحة
    مباشرة تحت الصف المعني، بخلفية معتمة ليقرأ كطبقة قرار لا كزينة. */
 .confirm{background:#101b16;border-block-end:1px solid var(--line-2);
-  padding:14px 18px 15px;border-inline-start:2px solid var(--wanted)}
+  padding:14px 18px 15px;border-inline-start:2px solid var(--error)}
 .cfT{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
 /* أيقونة SVG مرسومة، لا محرف إيموجي — الإيموجي يُلوَّن من خط النظام فيخرج
    عن لوحة الألوان ويختلف شكله بين المنصّات. */
-.cfT .warn{color:var(--wanted);display:inline-flex;flex:none}
+/* هذا مثلث تحذير على فعل هدّام، لا شارة حالة: لونه --error. */
+.cfT .warn{color:var(--error);display:inline-flex;flex:none}
 .cfD{font-size:12px;color:var(--ink-2);margin-block-start:5px;line-height:1.85}
 .cfList{font-size:11.5px;color:var(--ink-3);margin-block-start:8px;line-height:1.9;
   padding-inline-start:0;list-style:none}
@@ -415,8 +444,8 @@ input{font:inherit;color:inherit}
   padding:6px 14px;border-radius:9px;font-size:12px;cursor:pointer;color:var(--ink-2);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.btn.danger{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.12);color:#ffd3d3}
-.btn.danger:hover{background:rgba(255,107,107,.2);color:#fff}
+.btn.danger{border-color:rgba(255,91,91,.45);background:rgba(255,91,91,.12);color:#ffd3d3}
+.btn.danger:hover{background:rgba(255,91,91,.2);color:#fff}
 
 /* ── محاكي القرار ────────────────────────────────── */
 .simIn{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 18px 4px}
@@ -495,7 +524,8 @@ input{font:inherit;color:inherit}
 .errCode{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
   direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
   border:1px solid var(--line);border-radius:8px;padding:1px 0;text-align:center}
-.errCode.hot{color:var(--wanted);border-color:rgba(255,107,107,.35)}
+/* أكواد 4xx/5xx حقيقية من معالج الأخطاء — فشل، لا حالة: --error. */
+.errCode.hot{color:var(--error);border-color:rgba(255,91,91,.35)}
 .errB{min-inline-size:0}
 .errT{font-size:12px;color:var(--ink);line-height:1.8}
 /* رمز الخطأ نفسه هو ما يبحث عنه القارئ — لا يجوز أن ينزل تحت 4.5:1. */
@@ -522,7 +552,7 @@ input{font:inherit;color:inherit}
 
 <!-- ═══ الشريط العلوي ═══ -->
 <header class="bar"><div class="barIn">
-  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · إصدارات التطبيق</span></div>
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span><span class="bn">العربي</span> · إصدارات التطبيق</span></div>
   <div class="barSep" aria-hidden="true"></div>
 
   <nav class="nav" aria-label="أقسام لوحة الإدارة">
@@ -1022,6 +1052,24 @@ input{font:inherit;color:inherit}
     'aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9' +
     'a2 2 0 0 0-3.4 0"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
 
+  /* ══ أيقونات الشارات ═══════════════════════════════
+     اللون وحده لا يكفي: كل شارة حالة تحمل شكلًا يميّزها حين يغيب تمييز اللون.
+     ثلاثة أشكال لثلاث حالات — لا شكل واحد بلونين. كلّها aria-hidden لأن نصّ
+     الشارة يسمّي الحالة بالفعل، فالإعلان مرتين ضجيج لقارئ الشاشة.          */
+  var IC_TRI = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" ' +
+    'aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9' +
+    'a2 2 0 0 0-3.4 0"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+
+  var IC_OK = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" ' +
+    'aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M8 12.4l2.7 2.7L16 9.8"/></svg>';
+
+  var IC_STOP = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" ' +
+    'aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M9 9l6 6"/>' +
+    '<path d="M15 9l-6 6"/></svg>';
+
   var fmt = function(n){ return n.toLocaleString("en-US"); };
   function esc(s){
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -1054,11 +1102,13 @@ input{font:inherit;color:inherit}
       : { kind:"allowed" };
   }
 
+  /* الأيقونة جزء من تعريف الحكم لا زينة تُضاف عند الرسم: الجدول والمحاكي
+     يقرآن من هنا، فلا تنشأ حالة بشكل في موضع وبلا شكل في الآخر. */
   var KIND = {
-    "allowed":         { cls:"k-allowed",  label:"يعمل",            id:"allowed" },
-    "optional-update": { cls:"k-optional", label:"تحديث اختياري",   id:"optional-update" },
-    "required-update": { cls:"k-required", label:"تحديث إلزامي",    id:"required-update" },
-    "unavailable":     { cls:"",           label:"السياسة غير مهيأة", id:"unavailable" }
+    "allowed":         { cls:"k-allowed",  ic:IC_OK,   label:"يعمل",            id:"allowed" },
+    "optional-update": { cls:"k-optional", ic:IC_TRI,  label:"تحديث اختياري",   id:"optional-update" },
+    "required-update": { cls:"k-required", ic:IC_STOP, label:"تحديث إلزامي",    id:"required-update" },
+    "unavailable":     { cls:"",           ic:IC_STOP, label:"السياسة غير مهيأة", id:"unavailable" }
   };
   var KIND_WHAT = {
     "allowed":         "يفحص اللوحات طبيعيًا ولا يرى أي تنبيه",
@@ -1324,10 +1374,13 @@ input{font:inherit;color:inherit}
         /* عمود «الأحدث» محجوز دائمًا حتى حين يكون فارغًا */
         (latest ? '<span class="cLatest">الأحدث</span>' : '<span class="cLatest" style="border-color:transparent"></span>') +
         '<span class="cDate">' + esc(r.created) + '</span>' +
+        /* شارة الحالة: مستبعد = مثلث تحذير + ذهبي، مسموح = دائرة صحّ + أخضر.
+           الشكل يسبق النصّ في مجرى القراءة كما في التطبيق المسلَّم. */
         '<span class="chip cState ' + (r.allowed ? "cs-allow" : "cs-block") + '">' +
+          (r.allowed ? IC_OK : IC_TRI) +
           (r.allowed ? "مسموح" : "مستبعد") + '</span>' +
         '<span class="cVerdict">' +
-          '<span class="vKind ' + meta.cls + '">' + meta.label + '</span>' +
+          '<span class="vKind ' + meta.cls + '">' + meta.ic + meta.label + '</span>' +
           '<span class="vWhat">' +
             (latest ? "لا يمكن استبعاد الأحدث" : KIND_WHAT[k]) +
           '</span>' +
@@ -1429,8 +1482,9 @@ input{font:inherit;color:inherit}
   function renderImpact(){
     var buckets = {
       "allowed":         { n:0, label:"يعمل بلا تنبيه",  sub:"على أحدث إصدار", color:"var(--clean)" },
-      "optional-update": { n:0, label:"يعمل مع تنبيه",   sub:"إصدار أقدم لكنه مسموح", color:"var(--unread)" },
-      "required-update": { n:0, label:"متوقّف",          sub:"إصدار مستبعد أو بلا رقم", color:"var(--wanted)" }
+      "optional-update": { n:0, label:"يعمل مع تنبيه",   sub:"إصدار أقدم لكنه مسموح", color:"var(--wanted)" },
+      /* «متوقّف» عطب واقع في الميدان لا حالة انتباه — نفس أحمر شارة الحكم. */
+      "required-update": { n:0, label:"متوقّف",          sub:"إصدار مستبعد أو بلا رقم", color:"var(--error)" }
     };
     VERSIONS.forEach(function(r){ buckets[decide(r.v).kind].n += r.ops; });
     buckets[decide(null).kind].n += LEGACY_OPS;
@@ -1474,7 +1528,7 @@ input{font:inherit;color:inherit}
     var v = state.sim, d = decide(v), meta = KIND[d.kind], out = [];
 
     var head = '<div class="simKind">' +
-      '<span class="vKind ' + meta.cls + '">' + meta.label + '</span>' +
+      '<span class="vKind ' + meta.cls + '">' + meta.ic + meta.label + '</span>' +
       '<span class="simKindId">kind: "' + meta.id + '"</span>' +
       '<span style="font-size:11px;color:var(--ink-3)">' +
         (v === null ? "بلا ترويسة إصدار" : 'الترويسة: ' +

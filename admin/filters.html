@@ -9,14 +9,30 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
+  /* المشهد */
+  --bg:#07100b;
+
+  /* الهوية والحالة — من مواصفة تسليم الواجهة */
+  --brand:#ffd700;       /* ذهبي — الهوية في الشريط العلوي وحده. لا شريط علوي هنا */
+  --wanted:#ffb800;      /* «مطلوب» حالةً فقط — لا وجود لهذه الحالة في هذه الصفحة */
+  --clean:#65dfa8;       /* «غير مطلوبة» */
+  --error:#ff5b5b;       /* خطأ فعلي وإجراء هدّام */
+  --accent:#65dfa8;      /* تركيز وحالات نشطة */
+  --primary:#115033;     /* زرّ أساسي وتبويب نشط — لا يوجد أيّ منهما هنا */
+  /* الاسم البيتي للكهرماني المحلّي في بقيّة الشاشات (operators · operator-detail ·
+     admins · login · notifications · change-password). كان اسمه هنا --warn وحده،
+     فاسم واحد لقيمة واحدة. يحمل «معلّق» و«يوشك على الانتهاء» — تنبيه لا فشل،
+     ولا يجوز أن يحملهما --wanted لأنّه حالة «مطلوب» المرورية وحدها. */
+  --warn:#e8b055;
+
+  /* النصّ والحدود — قيمنا نحن، أعلى من المواصفة عمدًا */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b; --wanted:#ff6b6b; --clean:#3ddc97; --warn:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-block-size:100%}
-body{position:relative;background:#06100c;color:var(--ink);
+body{position:relative;background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.75;
   -webkit-font-smoothing:antialiased;overflow-x:hidden}
 button,input,select{font:inherit;color:inherit}
@@ -48,15 +64,16 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
 .pbL{font-size:11.5px;color:var(--ink-3)}
 .pbV{font-size:25px;font-weight:600;line-height:1.3;font-variant-numeric:tabular-nums;
   direction:ltr;unicode-bidi:isolate;text-align:start}
-.pbV.bad{color:var(--wanted)}
+.pbV.bad{color:var(--error)}   /* أرقام العيب المقيس — فشل لا حالة */
 .pbM{font-size:11px;color:var(--ink-3);direction:rtl;unicode-bidi:isolate}
 
 /* الأنماط */
 .pat{margin-block-start:34px;border-radius:16px;overflow:hidden;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.085);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55);
-  transition:border-color .18s var(--ease)}
-.pat[data-picked="1"]{border-color:rgba(110,196,155,.5)}
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+/* بلا حركة على الزجاج (§0): الانتقال يجمّع اللوحة في طبقة مؤقّتة فيترك أثرًا
+   على الحواف. حدّ الاختيار ينتقل فورًا، والحركة تبقى على الزرّ غير الزجاجي. */
+.pat[data-picked="1"]{border-color:rgba(101,223,168,.5)}
 .patHead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   padding:14px 18px;border-block-end:1px solid var(--line-2)}
 .patLetter{inline-size:26px;block-size:26px;border-radius:8px;display:grid;place-items:center;
@@ -71,8 +88,8 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
   padding:5px 13px;border-radius:9px;font-size:12px;cursor:pointer;color:var(--ink-2);
   transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease)}
 .pick:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.pat[data-picked="1"] .pick{background:rgba(110,196,155,.16);color:var(--ink);
-  border-color:rgba(110,196,155,.5)}
+.pat[data-picked="1"] .pick{background:rgba(101,223,168,.16);color:var(--ink);
+  border-color:rgba(101,223,168,.5)}
 
 .demo{padding:0}
 .patNote{padding:13px 18px 15px;border-block-start:1px solid var(--line-2);
@@ -97,7 +114,7 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
 .ctl[aria-expanded="true"],.ctl.on{background:rgba(255,255,255,.11);color:var(--ink);
   border-color:rgba(255,255,255,.2)}
 .ctl b{color:var(--ink);font-weight:600}
-.ctl .cnt{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+.ctl .cnt{background:var(--accent);color:var(--bg);font-weight:700;font-size:10px;
   min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
   padding-inline:4px;font-variant-numeric:tabular-nums}
 .chev{flex:none;color:var(--ink-3)}
@@ -105,7 +122,7 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
 /* رقائق */
 .chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;
-  background:rgba(110,196,155,.11);border:1px solid rgba(110,196,155,.3);
+  background:rgba(101,223,168,.11);border:1px solid rgba(101,223,168,.3);
   border-radius:99px;padding:4px 6px 4px 11px;color:var(--ink)}
 .chip .k{color:var(--ink-3)}
 .chip button{border:0;background:transparent;cursor:pointer;color:var(--ink-3);
@@ -140,8 +157,8 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
   padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-3);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .opt:hover{color:var(--ink-2)}
-.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
-  border-color:rgba(110,196,155,.45)}
+.opt[aria-pressed="true"]{background:rgba(101,223,168,.16);color:var(--ink);
+  border-color:rgba(101,223,168,.45)}
 
 /* مناظير محفوظة */
 .views{display:flex;gap:2px;padding:0 18px;border-block-end:1px solid var(--line-2);
@@ -159,7 +176,7 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
 /* سطر ملخّص التصفية */
 .summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:8px 18px;border-block-end:1px solid var(--line-2);
-  background:rgba(110,196,155,.055);font-size:12px;color:var(--ink-2)}
+  background:rgba(101,223,168,.055);font-size:12px;color:var(--ink-2)}
 .summary[hidden]{display:none}
 .summary b{color:var(--ink);font-weight:600}
 .summary .clear{margin-inline-start:auto;border:1px solid rgba(255,255,255,.14);
@@ -182,20 +199,24 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
   transition:background .14s var(--ease)}
 .tr:last-child{border-block-end:0}
 .tr:hover{background:rgba(255,255,255,.04)}
-.tr[data-sel="1"]{background:rgba(110,196,155,.08)}
+.tr[data-sel="1"]{background:rgba(101,223,168,.08)}
 .uname{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
   border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap;
   justify-self:start}
+/* «منتهٍ» حالةُ اشتراك تُقرأ، لا فشلًا ولا إجراءً هدّامًا — فلا تلبس --error.
+   الأحمر هنا محجوز لزرّ «حذف» ولأرقام العيب المقيس. مطابق للتسمية المعتمدة
+   في OperatorRow: expired → cMuted، و ink-3 لا ink-4 (ink-4 يعطي 3.2:1 فقط
+   على اللوحة المركّبة، و ink-3 يعطي 5.65:1). */
 .p-active{color:var(--clean)} .p-susp{color:var(--warn)}
-.p-valid{color:var(--clean)} .p-expiring{color:var(--warn)} .p-expired{color:var(--wanted)}
+.p-valid{color:var(--clean)} .p-expiring{color:var(--warn)} .p-expired{color:var(--ink-3)}
 .muted{color:var(--ink-3);font-size:11.5px}
 .num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;text-align:start}
 .cb{inline-size:15px;block-size:15px;border-radius:4px;cursor:pointer;
   border:1.5px solid var(--ink-3);background:transparent;display:grid;place-items:center;
   padding:0;transition:border-color .15s var(--ease),background .15s var(--ease)}
 .cb[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
-.cb svg{opacity:0;color:#06100c}
+.cb svg{opacity:0;color:var(--bg)}
 .cb[aria-checked="true"] svg{opacity:1}
 .empty{padding:26px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
 .empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:3px}
@@ -203,15 +224,18 @@ h1{font-size:28px;font-weight:600;line-height:1.35}
 /* شريط الإجراءات السياقي — لا يظهر إلا عند وجود تحديد */
 .ctxbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   padding:10px 18px;border-block-end:1px solid var(--line-2);
-  background:rgba(110,196,155,.075)}
+  background:rgba(101,223,168,.075)}
 .ctxbar[hidden]{display:none}
 .ctxbar .c{font-size:12.5px;font-weight:600}
 .ctxbar .sp{margin-inline-start:auto;display:flex;gap:7px;flex-wrap:wrap}
 .abtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
   padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2)}
 .abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35)}
-.abtn.danger:hover{background:rgba(255,107,107,.14)}
+/* الإجراء الهدّام غائر لا مضاء: تعبئة داكنة تحفظ تباين الأحمر فوق الشريط السياقي
+   (التعبئة البيضاء المشتركة كانت تهبط به إلى 3.93:1، وهي تحت الحدّ أصلًا قبل التبديل) */
+.abtn.danger{color:var(--error);background:rgba(0,0,0,.16);border-color:rgba(255,91,91,.38)}
+.abtn.danger:hover{color:var(--error);background:rgba(0,0,0,.28);
+  border-color:rgba(255,91,91,.62)}
 
 .foot{margin-block-start:44px;padding-block-start:18px;border-block-start:1px solid var(--line-2);
   color:var(--ink-4);font-size:11.5px;line-height:1.9}

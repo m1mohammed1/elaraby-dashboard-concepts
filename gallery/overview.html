@@ -14,12 +14,22 @@
    كل رقم هنا له مصدر حقيقي في الباك إند — شغّل «مصادر البيانات» لتراه.
    ══════════════════════════════════════════════════════════════════ */
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
+  /* المشهد */
+  --bg:#07100b;
+
+  /* الهوية والحالة — من مواصفة تسليم الواجهة، والمرجع الحيّ prototype/admin/palette.html */
+  --brand:#ffd700;       /* ذهبي — الهوية في الشريط العلوي وحدها، لا حالة ولا زر ولا تركيز */
+  --wanted:#ffb800;      /* «مطلوب» حالةً فقط — ومعها مثلث تحذير دائمًا */
+  --clean:#65dfa8;       /* «غير مطلوبة» — ومعها دائرة صحّ */
+  --error:#ff5b5b;       /* الهدّام والفشل الفعلي — الأحمر تحرّر حين صارت «مطلوب» ذهبية */
+  --accent:#65dfa8;      /* تركيز وحالات نشطة */
+  --primary:#115033;     /* زرّ أساسي مصمت */
+
+  /* النصّ: --ink-3 و --ink-4 تبقيان كما هما عمدًا. قيمة المواصفة #78827b
+     تقيس 4.20:1 وهي تحت الحدّ، ولا نُنزل التباين لمطابقة مواصفة. */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b;
-  --wanted:#ff6b6b;
-  --clean:#3ddc97;
-  --unread:#e8b055;
+  --warn:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
   /* الوضع الافتراضي: كل الطبقات مقروءة بالكامل.
@@ -34,7 +44,7 @@
 html,body{min-block-size:100%}
 body{
   position:relative;
-  background:#06100c;color:var(--ink);
+  background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
   line-height:1.7;-webkit-font-smoothing:antialiased;
   overflow-x:hidden;
@@ -62,6 +72,10 @@ button{font:inherit;color:inherit}
   background:rgba(255,255,255,.05);
   box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+/* الذهب الوحيد خارج الحالة: اسم النظام في الشريط العلوي ولا شيء غيره.
+   لا يُستعمل --brand في شارة ولا زرّ ولا تركيز — ذهبان بمعنيين على شاشة
+   واحدة هو الالتباس الذي نتجنّبه، فـ --wanted وحدها تعني «مطلوب». */
+.brand .wm{color:var(--brand)}
 .brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
 .barSep{width:1px;height:22px;background:var(--line)}
@@ -86,8 +100,10 @@ button{font:inherit;color:inherit}
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink-2);
   transition:background .16s var(--ease),color .16s var(--ease)}
 .btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.btn.primary{border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.14);color:var(--ink)}
-.btn.primary:hover{background:rgba(110,196,155,.22)}
+/* الزرّ الأساسي مصمت بـ --primary كما في التطبيق المسلَّم.
+   النصّ فاتح لأن #115033 داكن: ‎#f0f4f1 عليه يقيس 8.5:1. */
+.btn.primary{border-color:#1a6b45;background:var(--primary);color:var(--ink)}
+.btn.primary:hover{background:#166642;border-color:#238055}
 .btn[disabled]{opacity:.5;cursor:default}
 .btn svg{display:block;flex:none}
 
@@ -119,7 +135,7 @@ button{font:inherit;color:inherit}
   padding:7px 11px;border-radius:8px;font-size:12.5px;color:var(--ink-2);white-space:nowrap;
   transition:background .14s var(--ease),color .14s var(--ease)}
 .rpP:hover:not([disabled]){background:rgba(255,255,255,.07);color:var(--ink)}
-.rpP[aria-selected="true"]{background:rgba(110,196,155,.16);color:var(--ink);font-weight:600}
+.rpP[aria-selected="true"]{background:rgba(101,223,168,.16);color:var(--ink);font-weight:600}
 .rpP[disabled]{color:var(--ink-4);cursor:default}
 .rpP[disabled][aria-selected="true"]{background:rgba(255,255,255,.07);color:var(--ink-2)}
 
@@ -142,14 +158,14 @@ button{font:inherit;color:inherit}
 .rpD:hover:not([disabled]){background:rgba(255,255,255,.09);color:var(--ink)}
 .rpD.out{cursor:default}
 .rpD[disabled]{color:var(--ink-4);cursor:default}
-.rpD.in{background:rgba(110,196,155,.13);color:var(--ink)}
-.rpD.edge{background:var(--accent);color:#06100c;font-weight:700}
+.rpD.in{background:rgba(101,223,168,.13);color:var(--ink)}
+.rpD.edge{background:var(--accent);color:var(--bg);font-weight:700}
 .rpFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 12px;border-block-start:1px solid var(--line-2)}
 .rpSel{font-size:12px;color:var(--ink-2);direction:rtl;unicode-bidi:isolate}
 .rpActs{margin-inline-start:auto;display:flex;gap:7px}
 /* تحذير المسوّدة: يظهر قبل «تطبيق» لا بعده، فلا يكتشف المستخدم العجز متأخّرًا */
-.rpWarn{flex-basis:100%;font-size:11px;line-height:1.65;color:var(--unread)}
+.rpWarn{flex-basis:100%;font-size:11px;line-height:1.65;color:var(--warn)}
 .rpWarn[hidden]{display:none}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
@@ -157,7 +173,7 @@ button{font:inherit;color:inherit}
   background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
 .tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
-.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(101,223,168,.35)}
 .tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
   display:grid;place-items:center}
 .tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
@@ -222,8 +238,14 @@ button{font:inherit;color:inherit}
   direction:ltr;unicode-bidi:isolate;text-align:start}
 .figU{font-size:13px;font-weight:400;color:var(--ink-3);margin-inline-start:3px}
 .figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px;display:flex;gap:7px;align-items:baseline}
-.figM .up{color:var(--clean)} .figM .dn{color:var(--wanted)}
+/* اتجاه الفرق عن المدى السابق — ليس حالة «مطلوب» ولا فشلًا، فلا يأخذ الذهب
+   ولا الأحمر. --error محجوز للفشل الفعلي والإجراء الهدّام (كالصفوف المرفوضة
+   في الاستيراد)، وانخفاض عدّ الفحص 3.4% عن الأمس ليس فشلًا في شيء —
+   صبغه بالأحمر هو نفس الخلط الدلالي مقلوبًا.
+   ▲ بـ --accent، و▼ نصّ محايد: الاتجاه يحمله الشكل لا اللون. */
+.figM .up{color:var(--accent)} .figM .dn{color:var(--ink-2)}
 .fig.hero .figV{color:var(--ink)}
+/* عدد المركبات المطلوبة — حالة، فيبقى على --wanted الذهبي */
 .fig.hot .figV{color:var(--wanted)}
 .snap{position:absolute;inset-block-start:13px;inset-inline-end:16px;
   font-size:9.5px;color:var(--ink-4);border:1px solid var(--line-2);
@@ -239,7 +261,7 @@ button{font:inherit;color:inherit}
 /* مؤشّر الجلسات الصوتية النشطة — النبضة الوحيدة المسموح بها في الشاشة */
 .voiceNow{display:inline-flex;align-items:center;gap:6px;color:var(--clean)}
 .pulse{inline-size:7px;block-size:7px;border-radius:50%;background:var(--clean);
-  flex:none;position:relative;box-shadow:0 0 8px -1px rgba(61,220,151,.6)}
+  flex:none;position:relative;box-shadow:0 0 8px -1px rgba(101,223,168,.6)}
 .pulse::after{content:"";position:absolute;inset:0;border-radius:50%;
   border:1.5px solid var(--clean);animation:ring 2s var(--ease) infinite}
 @keyframes ring{
@@ -273,7 +295,7 @@ button{font:inherit;color:inherit}
 .ou .ouName{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ثابتة عمدًا — النبضة الوحيدة في الشاشة هي عدّاد الجلسات الصوتية في الأعلى */
 .ou .vdot{margin-inline-start:auto;inline-size:8px;block-size:8px;border-radius:50%;
-  background:var(--clean);flex:none;box-shadow:0 0 7px -1px rgba(61,220,151,.6)}
+  background:var(--clean);flex:none;box-shadow:0 0 7px -1px rgba(101,223,168,.6)}
 .opFoot{padding:9px 14px 11px;border-block-start:1px solid var(--line-2);
   font-size:10.5px;color:var(--ink-4);line-height:1.7}
 
@@ -336,7 +358,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 .hrCol:hover .hrBar,.hrCol:focus-visible .hrBar{opacity:1}
 .hrCol .hit{fill:transparent}
 .hrCol:focus-visible{outline:none}
-.hrCol:focus-visible .hit{fill:rgba(110,196,155,.16);stroke:rgba(110,196,155,.85);stroke-width:1}
+.hrCol:focus-visible .hit{fill:rgba(101,223,168,.16);stroke:rgba(101,223,168,.85);stroke-width:1}
 .dim .hrBar{opacity:.28}
 .chLbl{font-size:10.5px;color:var(--ink-3);padding-inline-start:4px;margin-block-end:2px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;padding:2px 18px 14px;font-size:11px;color:var(--ink-3)}
@@ -351,7 +373,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   border-block-end:1px solid var(--line-2);flex-wrap:wrap}
 /* ثابتة عمدًا: النبضة الوحيدة في الشاشة هي مؤشّر الجلسات الصوتية. */
 .dot{width:6px;height:6px;border-radius:50%;background:var(--clean);flex:none;
-  box-shadow:0 0 8px -1px rgba(61,220,151,.55)}
+  box-shadow:0 0 8px -1px rgba(101,223,168,.55)}
 
 .feed{max-block-size:266px;overflow-y:auto;scrollbar-width:thin;
   scrollbar-color:rgba(255,255,255,.16) transparent}
@@ -388,8 +410,15 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   background:rgba(255,255,255,.08)}
 .locBtn svg{display:block;flex:none}
 .locBtn[disabled]{opacity:.5}
-.rV{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+/* شارة الحكم — اللون وحده لا يكفي: كل حالة تحمل أيقونتها كما في التطبيق
+   المسلَّم (مثلث تحذير لـ«مطلوب»، دائرة صحّ لـ«غير مطلوبة»). الأيقونة
+   aria-hidden لأن نصّ الشارة يسمّي الحالة أصلاً.
+   المنع في §0 على display:flex لصفوف الجدول لا للشارة نفسها؛ والشارة تظلّ
+   بعرض عمودها لأن عنصر الشبكة يتحوّل إلى مستوى كتلة. */
+.rV{display:inline-flex;align-items:center;justify-content:center;gap:3px;
+  font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:999px;
   border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap}
+.rV svg{flex:none;display:block}
 .vw{color:var(--wanted)} .vs{color:var(--clean)}
 /* على الشاشات الضيقة الصف يصبح سطرين:
    الوقت واللوحة والموقع والحكم فوق، والمشغّل والجهة تحت.
@@ -432,7 +461,8 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   transition:font-size .18s var(--ease)}
 .opHit.zero{color:var(--ink-4)}
 .opHit.lead{font-size:13px;font-weight:600}
-.opBar.hits{background:rgba(255,107,107,.55)}
+/* شريط الإصابات = عدّ «مطلوب» لكل مشغّل — حالة لا فشل، فبذهب --wanted */
+.opBar.hits{background:rgba(255,184,0,.55)}
 .seg.segSm button{padding:4px 10px;font-size:11.5px}
 .paneSub{font-size:11.5px;color:var(--ink-3);padding:6px 18px 2px}
 .opRest{padding:10px 18px 4px;margin-block-start:4px;border-block-start:1px solid var(--line-2);
@@ -442,7 +472,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 /* شريط النطاق النشط */
 .scopeBar{display:none;align-items:center;gap:12px;flex-wrap:wrap;
   padding:10px 16px;margin-block-end:14px;border-radius:12px;
-  background:rgba(110,196,155,.07);border:1px solid rgba(110,196,155,.22);
+  background:rgba(101,223,168,.07);border:1px solid rgba(101,223,168,.22);
   font-size:12.5px;color:var(--ink-2)}
 .scopeBar.on{display:flex}
 .scopeBar .w{flex:1;min-inline-size:120px}
@@ -462,7 +492,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 .rangeNote .w{flex:1;min-inline-size:180px}
 .rangeNote b{color:var(--ink);font-weight:600;
   direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
-.rangeNote .warnMk{color:var(--unread);font-weight:600}
+.rangeNote .warnMk{color:var(--warn);font-weight:600}
 
 /* ── قائمة المطلوبين (متوسطة، أسفل العمود) ───────── */
 .wl{margin-block-start:18px}
@@ -473,6 +503,8 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 .wlMeta{margin-block-start:12px;padding-block-start:11px;border-block-start:1px solid var(--line-2);
   font-size:11.5px;color:var(--ink-3);line-height:1.85}
 .wlMeta b{color:var(--ink-2);font-weight:500}
+/* الصفوف المرفوضة في آخر استيراد = فشل فعلي، لا حالة «مطلوب» — فـ --error */
+.wlMeta b.bad{color:var(--error)}
 
 .foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-4);font-size:11.5px;
   display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
@@ -508,7 +540,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 
 <!-- ═══ الشريط العلوي ═══ -->
 <header class="bar"><div class="barIn">
-  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · النظرة العامة</span></div>
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span><span class="wm">العربي</span> · النظرة العامة</span></div>
   <div class="barSep" aria-hidden="true"></div>
 
   <!-- منتقي المدى الزمني — يستبدل المقسّم المجزّأ «اليوم / 7 أيام».
@@ -720,7 +752,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
           </div>
           <div class="legend">
             <span class="lgi"><span class="lgs" style="background:rgba(255,255,255,.5)"></span>إجمالي الفحص</span>
-            <span class="lgi"><span class="lgs" style="background:#ff6b6b"></span>مركبات مطلوبة</span>
+            <span class="lgi"><span class="lgs" style="background:var(--wanted)"></span>مركبات مطلوبة</span>
             <span class="lgi" style="color:var(--ink-4)">اضغط أي ساعة لقصر الشاشة عليها</span>
           </div>
           <div class="src">
@@ -794,7 +826,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
             <div class="wlV" data-count="48392">48,392</div>
             <div class="wlMeta">
               آخر تحديث: <b>أمس 09:14</b><br>
-              نفّذه: <b>أحمد عماد</b> · <b>48,392</b> صفًا · <b>3</b> صفوف مرفوضة
+              نفّذه: <b>أحمد عماد</b> · <b>48,392</b> صفًا · <b class="bad">3</b> صفوف مرفوضة
             </div>
           </div>
           <div class="src">
@@ -1074,6 +1106,11 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   /* ══ أيقونات المصدر ══ */
   var IC_VOICE  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3v10"/><path d="M8.5 6.5v3"/><path d="M15.5 6.5v3"/><path d="M5 16.5a7 7 0 0 0 14 0"/><path d="M12 20.5v0"/></svg>';
   var IC_MANUAL = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>';
+  /* ══ أيقونات الحالة ══
+     ملازمة للشارة: الذهب وحده لا يفرّق بين «مطلوب» وأي تنبيه آخر، والقارئ
+     الذي لا يميّز اللون يقرأ الشكل. aria-hidden لأن نصّ الشارة يسمّي الحالة. */
+  var IC_WANTED = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.1 1.9 18.4A2 2 0 0 0 3.6 21.4h16.8a2 2 0 0 0 1.7-3L13.7 4.1a2 2 0 0 0-3.4 0Z"/><path d="M12 9.6v4"/><path d="M12 17.4h.01"/></svg>';
+  var IC_CLEAN  = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.4 12.3 2.5 2.5 4.7-5"/></svg>';
   /* نفس أيقونة MapPin المستخدمة في لوحة الإدارة الحالية */
   var IC_PIN    = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
 
@@ -1152,7 +1189,10 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
       var hB=HOURS.wanted[i]/topB*HB;
       if(HOURS.wanted[i]>0)
         g.appendChild(mk("rect",{ "class":"hrBar", x:x, y:y0+HB-hB,
-          width:bw, height:Math.max(hB,2), rx:2.5, fill:"#ff6b6b" }));
+          /* عمود المطلوبين = حالة، فبذهب --wanted لا بالأحمر.
+             التوكن نفسه لا نسخة منه: الرقم المكتوب هنا يتخلّف صامتًا لو تغيّر
+             --wanted، وقيمة fill تُحلّ كأي قيمة CSS داخل SVG. */
+          width:bw, height:Math.max(hB,2), rx:2.5, fill:"var(--wanted)" }));
 
       g.appendChild(mk("rect",{ "class":"hit", x:x-SLOT*0.25, y:PAD.t-6,
         width:SLOT, height:(y0+HB)-PAD.t+10, rx:4 }));
@@ -1240,7 +1280,8 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
            الأعمدة التالية مصطفّة بين كل الصفوف */
         '<span class="rOrg">'+(w&&e.org ? e.org : "")+'</span>'+
         locationAction(e)+
-        '<span class="rV '+(w?"vw":"vs")+'">'+(w?"مطلوب":"غير مطلوبة")+'</span>'+
+        '<span class="rV '+(w?"vw":"vs")+'">'+(w?IC_WANTED:IC_CLEAN)+
+        '<span>'+(w?"مطلوب":"غير مطلوبة")+'</span></span>'+
       '</div>';
     }).join("");
   }

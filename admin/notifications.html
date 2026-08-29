@@ -21,12 +21,25 @@
    شغّل «مصادر البيانات» ليظهر أسفل كل لوحة ما يغذّيها وما ينقصه.
    ══════════════════════════════════════════════════════════════════ */
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
+  /* المشهد */
+  --bg:#07100b;
+
+  /* الهوية والحالة — من مواصفة تسليم الواجهة، انظر عقد التصميم §3
+     --wanted ذهبية للحالة «مطلوب» وحدها، و--error للإجراء الهدّام والفشل.
+     هذه الصفحة لا تعرض حكم لوحة، فلا استعمال لـ --wanted فيها إطلاقًا:
+     كل أحمرها السابق كان هدّامًا أو فشلًا، وانتقل كلّه إلى --error. */
+  --brand:#ffd700;       /* الهوية في الشريط العلوي وحده — لا حالة ولا زر ولا تركيز */
+  --wanted:#ffb800;      /* «مطلوب» — حالة فقط، ومعها مثلث تحذير */
+  --clean:#65dfa8;       /* «غير مطلوبة» — ومعها دائرة صحّ */
+  --error:#ff5b5b;       /* خطأ فعلي وإجراء هدّام */
+  --accent:#65dfa8;      /* تركيز وحالات نشطة */
+  --primary:#115033;     /* زرّ أساسي وتبويب تنقّل نشط */
+
+  /* النصّ والحدود — قيمنا نحن. --ink-3 و--ink-4 لا تنزلان إلى #78827b
+     في المواصفة (4.20:1، تحت الحدّ). */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b;
-  --wanted:#ff6b6b;
-  --clean:#3ddc97;
-  --unread:#e8b055;
+  --warn:#e8b055;      /* تنبيه محلي: اقتراب من الحدّ · «يحتاج بناءً» — ليس حالة لوحة */
   --ease:cubic-bezier(.22,.61,.36,1);
 
   --far-a:.050;  --far-ink:1;
@@ -39,7 +52,7 @@
 html,body{min-block-size:100%}
 body{
   position:relative;
-  background:#06100c;color:var(--ink);
+  background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
   line-height:1.7;-webkit-font-smoothing:antialiased;
   overflow-x:hidden;
@@ -67,17 +80,25 @@ button,input,textarea{font:inherit;color:inherit}
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
 .brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
-  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px;
+  color:var(--brand)}
+/* --brand ذهب الهوية، وهو محصور بهذا الموضع وحده. لا يُستعمل لحالة ولا زر ولا تركيز:
+   ذهبان على شاشة واحدة يجعلان الهوية تُقرأ كحالة «مطلوب». #ffd700 على خلفية
+   الشريط المركَّبة (~#131c17) = 12.4:1. */
+.brand .wm{color:var(--brand)}
+.brand .wmRest{color:var(--ink-2);font-weight:500}
 .barSep{width:1px;height:22px;background:var(--line)}
 .barGrow{flex:1}
 
-/* التنقّل — سبع صفحات، النشط بخلفية .10 */
+/* التنقّل — سبع صفحات، والنشط بحبّة --primary الصلبة كما في التطبيق.
+   #115033 تحت --ink = 8.5:1. */
 .nav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
 .nav a{text-decoration:none;color:var(--ink-3);font-size:12.5px;font-weight:500;
   padding:6px 11px;border-radius:8px;
   transition:color .16s var(--ease),background .16s var(--ease)}
 .nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
-.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.nav a[aria-current="page"]{background:var(--primary);color:var(--ink)}
+.nav a[aria-current="page"]:hover{background:var(--primary);color:var(--ink)}
 
 .seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
@@ -87,8 +108,10 @@ button,input,textarea{font:inherit;color:inherit}
 .seg button:hover{color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
 .seg.segSm button{padding:4px 10px;font-size:11.5px}
-/* --ink-4 (#5f6b65) يعطي 3.09:1 فقط فوق اللوحة المركَّبة (~#151d19) — دون 4.5:1.
-   لذلك كل نصّ يحمل معنى يستخدم --ink-3 (5.39:1)، ويبقى --ink-4 للزخرفة وحدها. */
+/* درجتا الرمادي لم تتغيّرا مع تغيّر اللوحة: #78827b في المواصفة يقيس 4.20:1 وهو دون
+   الحدّ، فلا ننزل إليه. فوق اللوحة المركَّبة (~#151d19): --ink-3 (#87938c) = 5.38:1
+   و--ink-4 (#7b8780) = 4.60:1 — على الحافّة. لذلك كل نصّ يحمل معنى يستخدم --ink-3،
+   ويبقى --ink-4 للزخرفة وحدها (أيقونات شريط حالة الهاتف في المعاينة). */
 .segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
@@ -96,7 +119,7 @@ button,input,textarea{font:inherit;color:inherit}
   background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
 .tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
-.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(101,223,168,.35)}
 .tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
   display:grid;place-items:center}
 .tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
@@ -154,13 +177,14 @@ button,input,textarea{font:inherit;color:inherit}
   padding:11px 16px;margin-block-end:14px;border-radius:12px;font-size:12.5px;
   border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--ink-2)}
 .notice.on{display:flex}
-.notice.ok{background:rgba(61,220,151,.07);border-color:rgba(61,220,151,.26)}
-.notice.bad{background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.28)}
+.notice.ok{background:rgba(101,223,168,.07);border-color:rgba(101,223,168,.26)}
+/* فشل إرسال فعلي راجع من الخادم — خطأ لا حالة. --error لا --wanted. */
+.notice.bad{background:rgba(255,91,91,.07);border-color:rgba(255,91,91,.28)}
 .notice .nMsg{flex:1;min-inline-size:160px}
 .notice .nSrv{display:block;margin-block-start:2px;color:var(--ink-3);font-size:11px;
   direction:ltr;unicode-bidi:isolate;text-align:start;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.notice.ok .nTag{color:var(--clean)} .notice.bad .nTag{color:var(--wanted)}
+.notice.ok .nTag{color:var(--clean)} .notice.bad .nTag{color:var(--error)}
 .notice .nTag{font-weight:600}
 .clearBtn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
   padding:4px 11px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
@@ -177,14 +201,14 @@ button,input,textarea{font:inherit;color:inherit}
 .fieldHint{font-size:11px;color:var(--ink-3);flex:1}
 .cnt{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;
   direction:ltr;unicode-bidi:isolate}
-.cnt.warn{color:var(--unread)}
+.cnt.warn{color:var(--warn)}
 .input{inline-size:100%;background:rgba(255,255,255,.04);color:var(--ink);
   border:1px solid rgba(255,255,255,.11);border-radius:11px;
   padding:10px 13px;font-size:13px;line-height:1.8;
   transition:border-color .16s var(--ease),background .16s var(--ease)}
 .input::placeholder{color:var(--ink-3)}
 .input:hover{border-color:rgba(255,255,255,.17)}
-.input:focus{outline:none;border-color:rgba(110,196,155,.45);background:rgba(255,255,255,.055)}
+.input:focus{outline:none;border-color:rgba(101,223,168,.45);background:rgba(255,255,255,.055)}
 .input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 textarea.input{resize:vertical;min-block-size:112px}
 
@@ -197,7 +221,7 @@ textarea.input{resize:vertical;min-block-size:112px}
   border-radius:12px;padding:10px 13px;
   transition:background .16s var(--ease),border-color .16s var(--ease)}
 .aud:hover{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.15)}
-.aud[aria-pressed="true"]{background:rgba(255,255,255,.08);border-color:rgba(110,196,155,.35)}
+.aud[aria-pressed="true"]{background:rgba(255,255,255,.08);border-color:rgba(101,223,168,.35)}
 .audDot{inline-size:14px;block-size:14px;border-radius:50%;margin-block-start:4px;
   border:1.5px solid var(--ink-3);display:grid;place-items:center;flex:none}
 .aud[aria-pressed="true"] .audDot{border-color:var(--accent)}
@@ -206,10 +230,16 @@ textarea.input{resize:vertical;min-block-size:112px}
 .aud[aria-pressed="true"] .audDot::after{transform:scale(1)}
 .audName{font-size:12.5px;font-weight:500;display:block}
 .audMeta{font-size:11px;color:var(--ink-3);display:block;line-height:1.65}
+/* اللون وحده لا يكفي — كل شارة حالة تحمل أيقونتها (عقد التصميم §3).
+   هذه الصفحة لا تعرض حكم لوحة، فليست هنا شارة «مطلوب» ولا «غير مطلوبة»؛
+   الشارتان الوحيدتان تصفان جاهزية الجمهور، ومنطق «لون + أيقونة» ينطبق عليهما.
+   الأيقونة aria-hidden لأن نصّ الشارة يسمّي الحالة أصلًا. */
 .audTag{font-size:10px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;
-  white-space:nowrap;line-height:1.8;flex:none}
+  white-space:nowrap;line-height:1.8;flex:none;
+  display:inline-flex;align-items:center;gap:4px}
+.audTag svg{flex:none}
 .audTag.live{color:var(--clean)}
-.audTag.todo{color:var(--unread)}
+.audTag.todo{color:var(--warn)}
 .aud[data-blocked="1"] .audName{color:var(--ink-2)}
 
 .blockNote{display:none;gap:9px;align-items:flex-start;
@@ -217,8 +247,8 @@ textarea.input{resize:vertical;min-block-size:112px}
   border-radius:12px;padding:11px 14px;margin-block-end:14px;
   font-size:11.5px;color:var(--ink-2);line-height:1.75}
 .blockNote.on{display:flex}
-.blockIcon{flex:none;color:var(--unread);margin-block-start:3px}
-.blockNote b{color:var(--unread);font-weight:600}
+.blockIcon{flex:none;color:var(--warn);margin-block-start:3px}
+.blockNote b{color:var(--warn);font-weight:600}
 .blockNote code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
   font-size:10.5px;color:var(--ink-3)}
 
@@ -236,17 +266,22 @@ textarea.input{resize:vertical;min-block-size:112px}
   transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease)}
 .btn:hover:not(:disabled){background:rgba(255,255,255,.11);color:var(--ink)}
 .btn:disabled{opacity:.42;cursor:not-allowed}
-.btn.primary{border-color:rgba(110,196,155,.42);background:rgba(110,196,155,.14);color:var(--ink)}
-.btn.primary:hover:not(:disabled){background:rgba(110,196,155,.22)}
-.btn.danger{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.13);color:var(--ink)}
-.btn.danger:hover:not(:disabled){background:rgba(255,107,107,.2)}
+/* الزرّ الأساسي صلب بـ --primary كما في التطبيق. #115033 تحت --ink = 8.5:1. */
+.btn.primary{border-color:rgba(101,223,168,.34);background:var(--primary);color:var(--ink)}
+.btn.primary:hover:not(:disabled){background:#166540;border-color:rgba(101,223,168,.5)}
+/* «إرسال إلى الجميع» إجراء لا يمكن سحبه بعد تنفيذه — هدّام، فلونه --error.
+   كان يشترك في اللون نفسه مع شارة «مطلوب» قبل الفصل. */
+.btn.danger{border-color:rgba(255,91,91,.45);background:rgba(255,91,91,.13);color:var(--ink)}
+.btn.danger:hover:not(:disabled){background:rgba(255,91,91,.2)}
 .btnWhy{font-size:11px;color:var(--ink-3);flex:1;min-inline-size:140px}
 
 /* ── خطوة التأكيد ────────────────────────────────── */
 .cfHead{display:flex;align-items:center;gap:10px;margin-block-end:10px}
+/* علامة خطوة التأكيد: تحذير من إجراء هدّام غير قابل للسحب — --error لا --wanted.
+   ليست حالة «مطلوب» ولا تشبهها في المعنى. */
 .cfHead .warnMk{inline-size:26px;block-size:26px;border-radius:9px;flex:none;
-  display:grid;place-items:center;color:var(--wanted);
-  border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.1)}
+  display:grid;place-items:center;color:var(--error);
+  border:1px solid rgba(255,91,91,.35);background:rgba(255,91,91,.1)}
 .cfTitle{font-size:14px;font-weight:600}
 .cfLead{font-size:12.5px;color:var(--ink-2);line-height:1.85;margin-block-end:14px}
 .cfLead q{color:var(--ink);font-weight:600}
@@ -271,10 +306,11 @@ textarea.input{resize:vertical;min-block-size:112px}
    داخل لوحة RTL. يعود إلى rtl صراحةً. */
 .cfNV.unknown{font-size:15px;color:var(--ink-2);font-weight:500;
   direction:rtl;unicode-bidi:isolate}
-.cfWarn{border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.07);
+/* تحذير عواقب الإرسال إلى هواتف حقيقية — خطر إجراء، --error. */
+.cfWarn{border:1px solid rgba(255,91,91,.3);background:rgba(255,91,91,.07);
   border-radius:12px;padding:12px 14px;font-size:12px;color:var(--ink-2);
   line-height:1.85;margin-block-end:14px}
-.cfWarn b{color:var(--wanted);font-weight:600}
+.cfWarn b{color:var(--error);font-weight:600}
 .cfWarn ul{margin-block-start:6px;padding-inline-start:18px}
 .cfWarn li{margin-block-start:3px}
 .ack{display:flex;align-items:flex-start;gap:10px;cursor:pointer;
@@ -283,7 +319,7 @@ textarea.input{resize:vertical;min-block-size:112px}
   border-radius:12px;padding:11px 14px;inline-size:100%;text-align:start;
   transition:border-color .16s var(--ease),background .16s var(--ease)}
 .ack:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.055)}
-.ack[aria-pressed="true"]{border-color:rgba(110,196,155,.4)}
+.ack[aria-pressed="true"]{border-color:rgba(101,223,168,.4)}
 .ackBox{inline-size:16px;block-size:16px;border-radius:5px;flex:none;margin-block-start:3px;
   border:1.5px solid var(--ink-3);display:grid;place-items:center}
 .ack[aria-pressed="true"] .ackBox{border-color:var(--accent)}
@@ -310,7 +346,7 @@ textarea.input{resize:vertical;min-block-size:112px}
 .nMeta{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--ink-3);
   margin-block-end:5px}
 .nIcon{inline-size:17px;block-size:17px;border-radius:5px;flex:none;display:grid;
-  place-items:center;font-size:9.5px;font-weight:700;color:#06100c;background:var(--accent)}
+  place-items:center;font-size:9.5px;font-weight:700;color:var(--bg);background:var(--accent)}
 .nChev{margin-inline-start:auto;color:var(--ink-3);display:grid;place-items:center}
 .nTitle{font-size:12.5px;font-weight:600;line-height:1.6;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -338,7 +374,7 @@ textarea.input{resize:vertical;min-block-size:112px}
 .rl2 .v.na{color:var(--ink-3);font-weight:400;direction:rtl;unicode-bidi:isolate}
 .reachWarn{margin-block-start:12px;padding-block-start:11px;
   border-block-start:1px solid var(--line-2);font-size:11.5px;color:var(--ink-3);line-height:1.85}
-.reachWarn b{color:var(--unread);font-weight:600}
+.reachWarn b{color:var(--warn);font-weight:600}
 .reachWarn code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
   font-size:10.5px;color:var(--ink-2)}
 
@@ -415,7 +451,7 @@ textarea.input{resize:vertical;min-block-size:112px}
 
 <!-- ═══ الشريط العلوي ═══ -->
 <header class="bar"><div class="barIn">
-  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · الإشعارات</span></div>
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span><span class="wm">العربي</span><span class="wmRest"> · الإشعارات</span></span></div>
   <div class="barSep" aria-hidden="true"></div>
 
   <nav class="nav" aria-label="أقسام لوحة الإدارة">
@@ -503,7 +539,10 @@ textarea.input{resize:vertical;min-block-size:112px}
                     <span class="audName">جميع أجهزة التطبيق</span>
                     <span class="audMeta">بثّ إلى الموضوع <span dir="ltr">elaraby_all_devices</span> — كل جهاز مشترك فيه</span>
                   </span>
-                  <span class="audTag live">منفَّذ</span>
+                  <span class="audTag live"><svg width="10" height="10" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                      stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/>
+                      <path d="m8.4 12.3 2.5 2.5 4.7-5"/></svg>منفَّذ</span>
                 </button>
                 <button class="aud" type="button" data-a="picked" data-blocked="1" aria-pressed="false">
                   <span class="audDot" aria-hidden="true"></span>
@@ -511,7 +550,11 @@ textarea.input{resize:vertical;min-block-size:112px}
                     <span class="audName">مشغّلون محدَّدون</span>
                     <span class="audMeta">اختيار أسماء من قائمة المشغّلين</span>
                   </span>
-                  <span class="audTag todo">يحتاج بناءً</span>
+                  <span class="audTag todo"><svg width="10" height="10" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                      stroke-linejoin="round" aria-hidden="true">
+                      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <path d="M12 9v3"/><path d="M12 16h.01"/></svg>يحتاج بناءً</span>
                 </button>
                 <button class="aud" type="button" data-a="online" data-blocked="1" aria-pressed="false">
                   <span class="audDot" aria-hidden="true"></span>
@@ -519,7 +562,11 @@ textarea.input{resize:vertical;min-block-size:112px}
                     <span class="audName">المتصلون الآن فقط</span>
                     <span class="audMeta">من لديه حضور نشط في اللحظة الحالية</span>
                   </span>
-                  <span class="audTag todo">يحتاج بناءً</span>
+                  <span class="audTag todo"><svg width="10" height="10" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                      stroke-linejoin="round" aria-hidden="true">
+                      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <path d="M12 9v3"/><path d="M12 16h.01"/></svg>يحتاج بناءً</span>
                 </button>
               </div>
 
@@ -573,7 +620,7 @@ textarea.input{resize:vertical;min-block-size:112px}
 
               <p class="cfLead">
                 سيُرسل إشعار <q id="cfTitleQ">—</q> الآن إلى جميع أجهزة التطبيق.
-                <b style="color:var(--wanted);font-weight:600">لا يمكن سحبه بعد الإرسال.</b>
+                <b style="color:var(--error);font-weight:600">لا يمكن سحبه بعد الإرسال.</b>
               </p>
 
               <div class="cfSum">

@@ -15,16 +15,33 @@
    المشهد والمادة والشريط والصف منقولة من gallery/overview.html.
    ══════════════════════════════════════════════════════════════════ */
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c;
-  /* --ink-4 مرفوع من #5f6b65: القيمة القديمة تعطي 3.25:1 فقط فوق اللوحة
+  /* ── المشهد ── */
+  --bg:#07100b;
+
+  /* ── الهوية والحالة — من مواصفة تسليم الواجهة ──
+     «مطلوب» ذهبية لا حمراء: تغيير دلالة لا درجة. يترتّب عليه فصلٌ كان
+     مفقودًا — قبله كان زرّ «حذف» وشارة «مطلوب» بلون واحد:
+       --wanted  حالة «مطلوب» وحدها: الشارة، عدّاد المطلوبين، أعمدة المطلوبين
+       --error   الإجراء الهدّام والفشل الحقيقي: خطأ إدخال، تنبيه فشل، حساب محذوف
+     واللون وحده لا يكفي — كل شارة حالة تحمل أيقونتها (مثلث تحذير / دائرة صحّ). */
+  --brand:#ffd700;       /* الهوية في الشريط العلوي وحدها — لا حالة ولا زرّ */
+  --wanted:#ffb800;
+  --clean:#65dfa8;
+  --error:#ff5b5b;
+  --accent:#65dfa8;
+  --primary:#115033;     /* الزرّ الأساسي والتبويب النشط */
+  --primary-hi:#17694a;  /* مرور فوق الزرّ الأساسي وحده */
+  --warn:#e8b055;
+
+  /* ── النصّ والحدود — قيمنا نحن ──
+     --ink-3 و --ink-4 لا تتبعان المواصفة: قيمة المواصفة #78827b تقيس 4.20:1
+     على سطحها المعتم، تحت الحدّ. لا نُنزل التباين لنطابق مواصفة. */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c;
+  /* --ink-4 مرفوع من #5f6b65: القيمة القديمة تعطي 3.09:1 فقط فوق اللوحة
      المركّبة (~#151d19) وهي تحمل نصًّا حقيقيًا (سطور «مصادر البيانات»،
-     عدّاد الصفحات، معرّف المشغّل، التذييل). #7a867f يعطي 4.76:1. */
+     عدّاد الصفحات، معرّف المشغّل، التذييل). #7b8780 يعطي 4.60:1. */
   --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b;
-  --wanted:#ff6b6b;
-  --clean:#3ddc97;
-  --unread:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
   --far-a:.050;  --far-ink:1;
@@ -35,7 +52,7 @@
 html,body{min-block-size:100%}
 body{
   position:relative;
-  background:#06100c;color:var(--ink);
+  background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
   line-height:1.7;-webkit-font-smoothing:antialiased;
   overflow-x:hidden;
@@ -67,6 +84,10 @@ a{color:inherit}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
 .brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+/* --brand ذهبي الهوية، ومكانه الوحيد في الشاشة كلها هو كلمة «العربي» هنا.
+   لا يُستعمل لحالة ولا لزرّ ولا لتركيز: ذهبان على شاشة واحدة يُلبسان
+   الهوية بالحالة، وهو الالتباس الذي يفصل بينه وبين --wanted أصلًا. */
+.brand .wm{color:var(--brand)}
 .barSep{width:1px;height:22px;background:var(--line)}
 .barGrow{flex:1}
 
@@ -76,14 +97,15 @@ a{color:inherit}
   padding:6px 11px;border-radius:8px;
   transition:color .16s var(--ease),background .16s var(--ease)}
 .nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
-.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+/* التبويب النشط بـ --primary كما في التطبيق المسلَّم — #f0f4f1 عليه 8.1:1 */
+.nav a[aria-current="page"]{background:var(--primary);color:var(--ink)}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
 .tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
-.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(101,223,168,.35)}
 .tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
   display:grid;place-items:center}
 .tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
@@ -124,8 +146,10 @@ a{color:inherit}
 .pageHead p{inline-size:100%;font-size:12.5px;color:var(--ink-3);margin-block-start:-2px}
 .chip{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
   border:1px solid currentColor;line-height:1.7;white-space:nowrap}
-.cSuccess{color:var(--clean)} .cDanger{color:var(--wanted)}
-.cWarning{color:var(--unread)} .cInfo{color:var(--accent)} .cMuted{color:var(--ink-4)}
+/* ‎.cDanger‎ يلبسه «محذوف» وحده (حالة حساب منتهية لا رجعة فيها) — فهو
+   --error لا --wanted. لا علاقة له بحالة «مطلوب» المرورية. */
+.cSuccess{color:var(--clean)} .cDanger{color:var(--error)}
+.cWarning{color:var(--warn)} .cInfo{color:var(--accent)} .cMuted{color:var(--ink-4)}
 
 /* ── الشبكة ──────────────────────────────────────── */
 .grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;gap:18px;align-items:start}
@@ -180,7 +204,7 @@ a{color:inherit}
   padding:7px 11px;border-radius:8px;font-size:12.5px;color:var(--ink-2);white-space:nowrap;
   transition:background .14s var(--ease),color .14s var(--ease)}
 .rpP:hover:not([disabled]){background:rgba(255,255,255,.07);color:var(--ink)}
-.rpP[aria-selected="true"]{background:rgba(110,196,155,.16);color:var(--ink);font-weight:600}
+.rpP[aria-selected="true"]{background:rgba(101,223,168,.16);color:var(--ink);font-weight:600}
 .rpP[disabled]{color:var(--ink-4);cursor:default}
 .rpP[disabled][aria-selected="true"]{background:rgba(255,255,255,.07);color:var(--ink-2)}
 
@@ -203,8 +227,9 @@ a{color:inherit}
 .rpD:hover:not([disabled]){background:rgba(255,255,255,.09);color:var(--ink)}
 .rpD.out{cursor:default}
 .rpD[disabled]{color:var(--ink-4);cursor:default}
-.rpD.in{background:rgba(110,196,155,.13);color:var(--ink)}
-.rpD.edge{background:var(--accent);color:#06100c;font-weight:700}
+.rpD.in{background:rgba(101,223,168,.13);color:var(--ink)}
+/* حشوة --accent فاتحة، فنصّها داكن لا فاتح — 11.7:1 */
+.rpD.edge{background:var(--accent);color:var(--bg);font-weight:700}
 .rpFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 12px;border-block-start:1px solid var(--line-2)}
 .rpSel{font-size:12px;color:var(--ink-2);direction:rtl;unicode-bidi:isolate}
@@ -226,6 +251,7 @@ a{color:inherit}
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
   direction:ltr;unicode-bidi:isolate;text-align:start}
 .figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px}
+/* عدّاد «مطلوب» — حالة لا فشل، فيبقى --wanted بعد تذهيبه */
 .fig.hot .figV{color:var(--wanted)}
 .fig.calm .figV{color:var(--clean)}
 .fig.small .figV{font-size:16px;font-weight:500;line-height:1.9;
@@ -245,9 +271,11 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 .dCol .hit{fill:transparent}
 .dCol{cursor:pointer}
 .dCol:focus-visible{outline:none}
-.dCol:focus-visible .hit{fill:rgba(110,196,155,.16);stroke:rgba(110,196,155,.85);stroke-width:1}
+.dCol:focus-visible .hit{fill:rgba(101,223,168,.16);stroke:rgba(101,223,168,.85);stroke-width:1}
 .dCol:hover .hit{fill:rgba(255,255,255,.05)}
-.dCol.sel .hit{fill:rgba(110,196,155,.14);stroke:rgba(110,196,155,.55);stroke-width:1}
+.dCol.sel .hit{fill:rgba(101,223,168,.14);stroke:rgba(101,223,168,.55);stroke-width:1}
+/* عمود المطلوبين — اللون من التوكن لا من قيمة مكرّرة داخل JS */
+.dCol .bar.w{fill:var(--wanted)}
 .legend{display:flex;gap:16px;flex-wrap:wrap;padding:2px 18px 14px;font-size:11px;color:var(--ink-3)}
 .lgi{display:flex;align-items:center;gap:6px}
 .lgs{width:10px;height:10px;border-radius:3px;flex:none}
@@ -313,8 +341,8 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 .rMeta{min-inline-size:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .rBy{color:var(--ink-3);font-size:11px;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
-.rBy.gone{color:var(--unread)}
-.hidBadge{font-size:10px;color:var(--unread);border:1px solid rgba(232,176,85,.4);
+.rBy.gone{color:var(--warn)}
+.hidBadge{font-size:10px;color:var(--warn);border:1px solid rgba(232,176,85,.4);
   background:rgba(232,176,85,.07);border-radius:999px;padding:1px 8px;
   line-height:1.8;white-space:nowrap}
 /* زر الموقع — منقول حرفيًا من WorkHistory.tsx (LocationAction) */
@@ -328,8 +356,13 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
   background:rgba(255,255,255,.08)}
 .locBtn svg{display:block;flex:none}
 .locBtn[disabled]{opacity:.5}
-.rV{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+/* شارة الحكم — اللون وحده لا يكفي: كل حالة تحمل أيقونتها.
+   حبّة بحدّ currentColor بلا حشوة مصمتة، فالذهبي يبقى نصًّا على الزجاج
+   (9.9:1) ولا يصير سطحًا فاتحًا يحتاج نصًّا داكنًا. */
+.rV{display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;
   border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap}
+.rV svg{display:block;flex:none}
 .vw{color:var(--wanted)} .vs{color:var(--clean)}
 /* كل موضع هنا مقيّد بـ ‎.row‎ — الأصناف نفسها تُستعمل في ‎.wrow‎ بتخطيط آخر. */
 @media(max-width:760px){
@@ -365,12 +398,13 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 .pagJump input{inline-size:74px;padding:5px 9px;font-size:12px;border-radius:8px;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);
   font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;text-align:center}
-.pagJump input[aria-invalid="true"]{border-color:rgba(255,107,107,.6)}
+/* رقم صفحة غير صالح = خطأ إدخال ⇒ --error */
+.pagJump input[aria-invalid="true"]{border-color:rgba(255,91,91,.6)}
 .pagJumpBtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
   color:var(--ink-2);border-radius:8px;padding:5px 12px;font-size:11.5px;cursor:pointer;
   transition:background .15s var(--ease)}
 .pagJumpBtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.pagErr{color:var(--wanted);font-size:11px;inline-size:100%}
+.pagErr{color:var(--error);font-size:11px;inline-size:100%}
 .pagTotal{font-size:11.5px;color:var(--ink-4)}
 /* كل مقطع رقمي يُبنى بـ JS داخل جملة عربية يلبس هذا الصنف.
    «1–25»: الشرطة محايدة بين رقمين وفي فقرة RTL تأخذ اتجاه الفقرة فينقلب
@@ -444,8 +478,9 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink-2);
   transition:background .16s var(--ease),color .16s var(--ease)}
 .btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.btn.primary{border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.14);color:var(--ink)}
-.btn.primary:hover{background:rgba(110,196,155,.22)}
+/* الزرّ الأساسي مصمَت بـ --primary كما في التطبيق — #f0f4f1 عليه 8.1:1 */
+.btn.primary{border-color:rgba(101,223,168,.34);background:var(--primary);color:var(--ink)}
+.btn.primary:hover{background:var(--primary-hi)}
 .btn[disabled]{opacity:.5;cursor:default}
 .btn svg{display:block;flex:none}
 .pwForm{display:grid;gap:9px}
@@ -461,13 +496,14 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 .pwConfirm{font-size:11.5px;line-height:1.85;border-radius:11px;padding:11px 13px;
   color:var(--ink-2);background:rgba(232,176,85,.08);border:1px solid rgba(232,176,85,.3)}
 .pwConfirm[hidden]{display:none}
-.pwcT{display:block;color:var(--unread);font-size:12.5px;font-weight:600;margin-block-end:3px}
+.pwcT{display:block;color:var(--warn);font-size:12.5px;font-weight:600;margin-block-end:3px}
 .pwConfirm strong{color:var(--ink);font-weight:600}
 .pwcRow{display:flex;gap:8px;flex-wrap:wrap;margin-block-start:10px}
 .pwcRow .btn{font-size:12px;padding:7px 12px}
 .notice{font-size:11.5px;line-height:1.75;border-radius:10px;padding:8px 11px}
-.notice.success{color:var(--ink-2);background:rgba(61,220,151,.09);border:1px solid rgba(61,220,151,.3)}
-.notice.danger{color:var(--ink-2);background:rgba(255,107,107,.09);border:1px solid rgba(255,107,107,.32)}
+.notice.success{color:var(--ink-2);background:rgba(101,223,168,.09);border:1px solid rgba(101,223,168,.3)}
+/* فشل حقيقي (كلمة مرور مرفوضة) ⇒ --error، لا لون حالة «مطلوب» */
+.notice.danger{color:var(--ink-2);background:rgba(255,91,91,.09);border:1px solid rgba(255,91,91,.32)}
 
 .ctx{padding:14px 18px 16px;font-size:12px;color:var(--ink-3);line-height:1.95}
 .ctx b{color:var(--ink);font-weight:600;
@@ -511,7 +547,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 
 <!-- ═══ الشريط العلوي ═══ -->
 <header class="bar"><div class="barIn">
-  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · تفاصيل مشغّل</span></div>
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span><span class="wm">العربي</span> · تفاصيل مشغّل</span></div>
   <div class="barSep" aria-hidden="true"></div>
 
   <nav class="nav" aria-label="أقسام لوحة الإدارة">
@@ -704,7 +740,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
           </div>
           <div class="legend">
             <span class="lgi"><span class="lgs" style="background:rgba(255,255,255,.5)"></span>إجمالي الفحص</span>
-            <span class="lgi"><span class="lgs" style="background:#ff6b6b"></span>مركبات مطلوبة</span>
+            <span class="lgi"><span class="lgs" style="background:var(--wanted)"></span>مركبات مطلوبة</span>
             <span class="lgi" style="color:var(--ink-4)">اضغط أي يوم لقصر المدى عليه</span>
           </div>
           <div class="src">
@@ -1206,6 +1242,12 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
   var IC_LINK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></svg>';
   var IC_SHIELD='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>';
   var IC_ALERT='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>';
+  /* أيقونتا الحكم — اللون وحده لا يكفي، فكل شارة حالة تحملهما:
+     «مطلوب» مثلث تحذير، و«غير مطلوبة» دائرة صحّ. النصّ داخل الشارة يسمّي
+     الحالة كاملةً، فالأيقونة زخرفية للقارئ الآلي: aria-hidden. */
+  var IC_WANTED='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+  var IC_CLEAN='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.4 12.4 2.6 2.6 4.6-5.2"/></svg>';
+
   var IC_PREV='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
   var IC_NEXT='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
 
@@ -1288,8 +1330,9 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
         height:Math.max(hA,d.total?1.5:0), rx:2.5, fill:"rgba(255,255,255,.44)" }));
       if(d.wanted>0){
         var hB=d.wanted/topB*HB;
-        g.appendChild(mk("rect",{ "class":"bar", x:x, y:y0+HB-hB, width:BW,
-          height:Math.max(hB,2), rx:2.5, fill:"#ff6b6b" }));
+        /* اللون من ‎.bar.w‎ في CSS: ‎fill‎ كخاصية عرض لا يقبل ‎var()‎ بشكل موثوق */
+        g.appendChild(mk("rect",{ "class":"bar w", x:x, y:y0+HB-hB, width:BW,
+          height:Math.max(hB,2), rx:2.5 }));
       }
       g.appendChild(mk("rect",{ "class":"hit", x:xOf(i,n)-SLOT/2, y:PAD.t-6,
         width:SLOT, height:(y0+HB)-PAD.t+10, rx:4 }));
@@ -1355,7 +1398,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
         '<span class="wD">'+humanDate(r.day)+'</span>'+
         '<span class="rT">'+r.time+'</span>'+
         '<span class="rP">'+r.letters+' '+r.numbers+'</span>'+
-        '<span class="rMeta"><span class="rV vw">مطلوب</span></span>'+
+        '<span class="rMeta"><span class="rV vw">'+IC_WANTED+'مطلوب</span></span>'+
         locationAction(r)+
         '<button class="wPage" type="button" data-page="'+r.page+'" '+
           'aria-label="عرض هذا السجل في السجل الكامل، الصفحة '+r.page+'">'+
@@ -1424,7 +1467,8 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
             /* العمود محجوز دائمًا حتى حين يكون فارغًا */
             '<span class="rMeta">'+meta+'</span>'+
             locationAction(r)+
-            '<span class="rV '+(w?"vw":"vs")+'">'+(w?"مطلوب":"غير مطلوبة")+'</span>'+
+            '<span class="rV '+(w?"vw":"vs")+'">'+(w?IC_WANTED:IC_CLEAN)+
+              (w?"مطلوب":"غير مطلوبة")+'</span>'+
           '</article>';
         }).join("")+
       '</section>';

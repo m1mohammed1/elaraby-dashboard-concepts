@@ -9,14 +9,25 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
+  /* المشهد */
+  --bg:#07100b;
+
+  /* الهوية والحالة — من مواصفة تسليم الواجهة */
+  --brand:#ffd700;       /* ذهبي — الهوية وحدها */
+  --wanted:#ffb800;      /* مطلوب — كهرماني، ومعه مثلث تحذير دائمًا */
+  --clean:#65dfa8;       /* غير مطلوبة — ومعها دائرة صحّ */
+  --error:#ff5b5b;       /* خطأ فعلي وإجراء هدّام */
+  --accent:#65dfa8;      /* تركيز وحالات نشطة */
+  --primary:#115033;     /* زرّ أساسي وتبويب نشط */
+
+  /* النصّ والحدود — قيمنا نحن، أعلى من المواصفة عمدًا */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b; --wanted:#ff6b6b; --clean:#3ddc97;
   --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-block-size:100%}
-body{position:relative;background:#06100c;color:var(--ink);
+body{position:relative;background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.75;
   -webkit-font-smoothing:antialiased;overflow-x:hidden}
 .scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
@@ -32,6 +43,8 @@ body{position:relative;background:#06100c;color:var(--ink);
 .wrap{position:relative;z-index:10;inline-size:100%;max-inline-size:1080px;
   margin-inline:auto;padding:46px 26px 70px}
 h1{font-size:30px;font-weight:600;line-height:1.35}
+/* الهوية وحدها. --brand ممنوع على الحالة والأزرار والتركيز. */
+.brand{color:var(--brand)}
 .sub{color:var(--ink-3);font-size:14.5px;margin-block-start:9px;max-width:70ch}
 .sub b{color:var(--ink-2);font-weight:500}
 
@@ -60,8 +73,9 @@ section{margin-block-start:44px}
 .card.hero{grid-column:1/-1;background:rgba(255,255,255,.08);
   border-color:rgba(255,255,255,.14)}
 .card.hero .cName{font-size:18px}
+/* --clean محجوز لحالة «غير مطلوبة» وحدها. هذه شارة تمييز لا حالة لوحة. */
 .tag{align-self:flex-start;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;
-  border:1px solid currentColor;color:var(--clean);margin-block-end:2px}
+  border:1px solid currentColor;color:var(--accent);margin-block-end:2px}
 
 .foot{margin-block-start:52px;padding-block-start:18px;border-block-start:1px solid var(--line-2);
   color:var(--ink-4);font-size:11.5px;line-height:1.9}
@@ -78,7 +92,7 @@ section{margin-block-start:44px}
 <div class="grain" aria-hidden="true"></div>
 
 <div class="wrap">
-  <h1>لوحة إدارة العربي</h1>
+  <h1>لوحة إدارة <span class="brand">العربي</span></h1>
   <p class="sub">
     شاشات نظام العربي لفحص اللوحات، مبنيّة كلها على نظام تصميم واحد.
     <b>كل رقم وكل عمود هنا مأخوذ من الكود الحقيقي</b> — وما لا تعرفه قاعدة البيانات

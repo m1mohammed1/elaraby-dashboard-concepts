@@ -15,14 +15,30 @@
    ما لا يوجد له مسار في الواجهة الخلفية مُعلَّم «مقترح» ومشروح في
    «مصادر البيانات» بدل أن يُعرض كأنه يعمل.
    المشهد والمادة والشريط والصفوف منقولة من gallery/overview.html.
+
+   ألوان الهوية والحالة من مواصفة تسليم الواجهة (§3)، والمادة تبقى زجاجًا
+   محايدًا فوق المشهد (§2) — لا أسطح معتمة.
+   الفصل الذي أتاحه تحويل «مطلوب» إلى الذهبي: --wanted للحالة، و --error
+   للإجراء الهدّام والفشل. وهذه الشاشة **بلا حالة «مطلوب» أصلًا** — لا لوحات
+   ولا فحوصات فيها — فكل استعمال سابق لـ --wanted هنا كان هدّامًا أو فشلًا،
+   وانتقل بالكامل إلى --error. لا شارة حالة تحتاج مثلث تحذير أو دائرة صحّ.
    ══════════════════════════════════════════════════════════════════ */
 :root{
-  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#7b8780;
+  /* المشهد */
+  --bg:#07100b;
+
+  /* الهوية والحالة — من مواصفة تسليم الواجهة (§3) */
+  --brand:#ffd700;       /* ذهبي — «العربي» في الشريط العلوي وحده، لا حالة ولا زرّ */
+  --wanted:#ffb800;      /* «مطلوب» الحالة وحدها — لا وجود لها في هذه الشاشة، انظر أدناه */
+  --clean:#65dfa8;
+  --error:#ff5b5b;       /* الإجراء الهدّام والفشل الفعلي — كان --wanted قبل الفصل */
+  --accent:#65dfa8;
+  --primary:#115033;     /* الزرّ الأساسي المصمت ورابط التنقّل النشط */
+
+  /* النصّ والحدود — قيمنا نحن؛ --ink-3 و --ink-4 لا تنزلان إلى #78827b (4.20:1) */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-  --accent:#6ec49b;
-  --wanted:#ff6b6b;
-  --clean:#3ddc97;
-  --unread:#e8b055;
+  --warn:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
   --far-a:.050;  --far-ink:1;
@@ -33,7 +49,7 @@
 html,body{min-block-size:100%}
 body{
   position:relative;
-  background:#06100c;color:var(--ink);
+  background:var(--bg);color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
   line-height:1.7;-webkit-font-smoothing:antialiased;
   overflow-x:hidden;
@@ -62,6 +78,10 @@ button,input,select{font:inherit;color:inherit}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
 .brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+/* --brand ذهبيّ الهوية، وهنا وحده في الصفحة كلها: على كلمة «العربي» لا غير.
+   ليس لونَ حالة ولا زرّ ولا تركيز — ذهبيّان في شاشة واحدة هو الالتباس المقصود
+   تجنّبه. 12.2:1 على أرضية الشريط. */
+.brand .wm{color:var(--brand)}
 .barSep{width:1px;height:22px;background:var(--line)}
 .barGrow{flex:1}
 
@@ -69,7 +89,9 @@ button,input,select{font:inherit;color:inherit}
 .nav a{font-size:12.5px;color:var(--ink-3);text-decoration:none;padding:6px 11px;border-radius:8px;
   transition:color .16s var(--ease),background .16s var(--ease)}
 .nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
-.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+/* الرابط النشط بـ --primary المصمت كما في التطبيق (§3)، بدل بياض .10.
+   --ink فوق #115033 = 8.5:1. */
+.nav a[aria-current="page"]{background:var(--primary);color:var(--ink)}
 
 .seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
@@ -89,7 +111,7 @@ button,input,select{font:inherit;color:inherit}
   background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
 .tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
-.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(101,223,168,.35)}
 .tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
   display:grid;place-items:center}
 .tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
@@ -148,7 +170,7 @@ button,input,select{font:inherit;color:inherit}
    عزل صريح وإلا زحفت النقطتان والفاصلة إلى الطرف الخطأ من الرقم (§5). */
 .figM span{direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
 .fig.hero .figV{color:var(--ink)}
-.fig.warn .figV{color:var(--unread)}
+.fig.warn .figV{color:var(--warn)}
 /* لا شارة «لحظي» هنا: في هذا النظام «لحظي» محجوزة لحضور المشغّلين
    (TTL دقيقتان). الاشتراكات وحجم قائمة المطلوبين لقطتان من تقرير اللوحة،
    لا قياس لحظي، فوسمهما بذلك كان ادّعاءً لا يقابله شيء. */
@@ -187,7 +209,7 @@ button,input,select{font:inherit;color:inherit}
 .find{display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.09);
   background:rgba(255,255,255,.035);border-radius:9px;padding:4px 10px;
   transition:border-color .16s var(--ease)}
-.find:focus-within{border-color:rgba(110,196,155,.4)}
+.find:focus-within{border-color:rgba(101,223,168,.4)}
 .find svg{flex:none;color:var(--ink-4)}
 .find input{border:0;background:transparent;outline:0;font-size:12.5px;
   inline-size:150px;color:var(--ink);padding:2px 0}
@@ -229,9 +251,9 @@ button,input,select{font:inherit;color:inherit}
   padding:5px 11px;border-radius:9px;font-size:12.5px;color:var(--ink-2);
   transition:color .16s var(--ease),border-color .16s var(--ease),background .16s var(--ease)}
 .ctl:hover{color:var(--ink);border-color:rgba(255,255,255,.17)}
-.ctl[aria-expanded="true"]{color:var(--ink);border-color:rgba(110,196,155,.4);
-  background:rgba(110,196,155,.10)}
-.ctl .cnt{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+.ctl[aria-expanded="true"]{color:var(--ink);border-color:rgba(101,223,168,.4);
+  background:rgba(101,223,168,.10)}
+.ctl .cnt{background:var(--accent);color:var(--bg);font-weight:700;font-size:10px;
   min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
   padding-inline:4px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .ctl .chev{flex:none;color:var(--ink-3);transition:transform .16s var(--ease)}
@@ -250,14 +272,14 @@ button,input,select{font:inherit;color:inherit}
   padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .opt:hover{color:var(--ink)}
-.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
-  border-color:rgba(110,196,155,.45)}
+.opt[aria-pressed="true"]{background:rgba(101,223,168,.16);color:var(--ink);
+  border-color:rgba(101,223,168,.45)}
 .panelEnd{display:flex;align-items:flex-end;justify-content:flex-end}
 .panelEnd .abtn{padding:4px 11px;font-size:11.5px}
 
 /* شريط الإجراءات السياقي — hidden بلا تحديد، لا disabled */
 .ctxbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 18px;
-  border-block-end:1px solid var(--line-2);background:rgba(110,196,155,.075)}
+  border-block-end:1px solid var(--line-2);background:rgba(101,223,168,.075)}
 .ctxbar .c{font-size:12.5px;font-weight:600;
   direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
 .ctxbar .sp{margin-inline-start:auto;display:flex;gap:7px;flex-wrap:wrap}
@@ -265,20 +287,21 @@ button,input,select{font:inherit;color:inherit}
   padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-/* --wanted قانون منتج ولا يُستبدل (§3/§11-4)، والمشكلة في الأرضية لا في اللون:
-   أبيض .05 فوق شريط سياقي مخضرّ فوق لوحة .near يعطي 4.33:1 لـ #ff6b6b — تحت
-   العتبة. الأرضية هنا داكنة بدل فاتحة (5.6:1)، والتمرير يزيدها عمقًا لا ضوءًا
-   (6.1:1) ويشدّ الحدّ الأحمر بدلًا من إغراق الخلفية به. */
-.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35);
+/* «حذف المحدَّد» — إجراء هدّام، فلونه --error لا --wanted. (§11-4 كُتب قبل فصل
+   §3، يوم كان الأحمر نفسه اسمه --wanted؛ الفقرة تعني اللون الأحمر لا حالة
+   «مطلوب».) والمشكلة في الأرضية لا في اللون: أبيض .05 فوق شريط سياقي مخضرّ فوق
+   لوحة .near ينزل بـ #ff5b5b تحت العتبة. الأرضية هنا داكنة بدل فاتحة (5.1:1)،
+   والتمرير يزيدها عمقًا لا ضوءًا (5.5:1) ويشدّ الحدّ الأحمر بدل إغراق الخلفية به. */
+.abtn.danger{color:var(--error);border-color:rgba(255,91,91,.35);
   background:rgba(0,0,0,.2)}
-.abtn.danger:hover{background:rgba(0,0,0,.34);border-color:rgba(255,107,107,.62)}
+.abtn.danger:hover{background:rgba(0,0,0,.34);border-color:rgba(255,91,91,.62)}
 
 /* مربّع تحديد الصف */
 .cb{inline-size:15px;block-size:15px;border-radius:4px;cursor:pointer;padding:0;
   border:1.5px solid var(--ink-3);background:transparent;display:grid;place-items:center;
   transition:border-color .15s var(--ease),background .15s var(--ease)}
 .cb[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
-.cb svg{display:block;opacity:0;color:#06100c}
+.cb svg{display:block;opacity:0;color:var(--bg)}
 .cb[aria-checked="true"] svg{opacity:1}
 .cb[disabled]{opacity:.34;cursor:not-allowed}
 
@@ -294,7 +317,7 @@ button,input,select{font:inherit;color:inherit}
 .row{font-size:12.5px;transition:background .14s var(--ease)}
 .row:last-child{border-block-end:0}
 .row:hover{background:rgba(255,255,255,.045)}
-.row.isSelf{background:rgba(110,196,155,.045)}
+.row.isSelf{background:rgba(101,223,168,.045)}
 .av2{inline-size:26px;block-size:26px;border-radius:50%;display:grid;place-items:center;
   flex:none;font-size:10.5px;font-weight:600;border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.05);direction:ltr;unicode-bidi:isolate}
@@ -307,7 +330,7 @@ button,input,select{font:inherit;color:inherit}
 .cAdmin{color:var(--accent)}
 .cMod{color:var(--ink-3)}
 .pwd{font-size:11.5px;color:var(--ink-3)}
-.pwd.due{color:var(--unread)}
+.pwd.due{color:var(--warn)}
 .selfTag{font-size:10.5px;color:var(--accent);white-space:nowrap}
 .acts{display:flex;gap:5px;justify-content:flex-end}
 .iBtn{inline-size:30px;block-size:30px;border-radius:8px;display:grid;place-items:center;
@@ -317,10 +340,14 @@ button,input,select{font:inherit;color:inherit}
 .iBtn:hover:not([disabled]){color:var(--ink);border-color:rgba(255,255,255,.2);
   background:rgba(255,255,255,.08)}
 .iBtn[disabled]{opacity:.34;cursor:not-allowed}
-.iBtn.danger:hover:not([disabled]){color:var(--wanted);border-color:rgba(255,107,107,.4)}
+/* زرّ الحذف في الصفّ — إجراء هدّام، --error. ونفس علاج .abtn.danger: أرضية
+   المرور العامة (أبيض .08) كانت تُنزل #ff5b5b إلى 4.17:1، فالأرضية هنا تُعتِم
+   بدل أن تُضيء (5.7:1) ويبقى الشكل الواحد للهدّام في الشاشة كلها. */
+.iBtn.danger:hover:not([disabled]){color:var(--error);border-color:rgba(255,91,91,.4);
+  background:rgba(0,0,0,.22)}
 .iBtn svg{display:block}
 .iBtn.spec::after{content:"";position:absolute;inset-block-start:-3px;inset-inline-start:-3px;
-  inline-size:7px;block-size:7px;border-radius:50%;background:var(--unread)}
+  inline-size:7px;block-size:7px;border-radius:50%;background:var(--warn)}
 @media(max-width:760px){
   .rowH{display:none}
   /* العمود الثالث 110px لا 66px: «مطلوب عند الدخول» كان ينكسر سطرين.
@@ -348,8 +375,10 @@ button,input,select{font:inherit;color:inherit}
 .notice{display:none;align-items:flex-start;gap:11px;padding:11px 16px;margin-block-end:14px;
   border-radius:12px;font-size:12.5px;line-height:1.75}
 .notice.on{display:flex}
-.notice.success{background:rgba(61,220,151,.07);border:1px solid rgba(61,220,151,.24);color:var(--ink-2)}
-.notice.danger{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.26);color:var(--ink-2)}
+/* نغمتا Notice.tsx: النجاح --clean، والفشل --error. كل ما يصل إلى النغمة
+   «danger» هنا ردّ خطأ فعليّ من الخادم (CONFLICT / INVALID_INPUT)، لا حالة. */
+.notice.success{background:rgba(101,223,168,.07);border:1px solid rgba(101,223,168,.24);color:var(--ink-2)}
+.notice.danger{background:rgba(255,91,91,.07);border:1px solid rgba(255,91,91,.26);color:var(--ink-2)}
 .notice .w{flex:1;min-inline-size:120px}
 .notice code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
   font-size:11px;color:var(--ink-3);overflow-wrap:anywhere}
@@ -365,20 +394,21 @@ button,input,select{font:inherit;color:inherit}
 .stp .bd{block-size:3px;border-radius:99px;background:rgba(255,255,255,.08);margin-block-end:5px}
 .stp.on{color:var(--ink-2)}
 .stp.on .bd{background:var(--accent)}
-.stp.done .bd{background:rgba(110,196,155,.45)}
+.stp.done .bd{background:rgba(101,223,168,.45)}
 .field{display:block;margin-block-end:12px}
 .field > span{display:block;font-size:11.5px;color:var(--ink-3);margin-block-end:5px}
 .inp{inline-size:100%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);
   border-radius:9px;padding:8px 11px;font-size:13px;outline:0;
   direction:ltr;unicode-bidi:isolate;text-align:start;
   transition:border-color .16s var(--ease)}
-.inp:focus{border-color:rgba(110,196,155,.45)}
+.inp:focus{border-color:rgba(101,223,168,.45)}
 /* نفس فخّ حقل البحث: outline:0 في .inp يلغي الحلقة العامة، فتُعاد صراحةً. */
 .inp:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.inp.bad{border-color:rgba(255,107,107,.5)}
+/* خطأ تحقّق من صحّة الإدخال — --error، وهو أوضح مثال على ما يستحقّ الأحمر. */
+.inp.bad{border-color:rgba(255,91,91,.5)}
 /* تلميح الحقل نصّ يقرؤه المستخدم ليعرف لماذا الزر معطّل — لا يصلح --ink-4. */
 .hint{font-size:10.5px;color:var(--ink-3);margin-block-start:5px;line-height:1.7}
-.hint.bad{color:var(--wanted)}
+.hint.bad{color:var(--error)}   /* «أقصر من 12 محرفًا» — فشل تحقّق، 5.6:1 */
 .hint.ok{color:var(--clean)}
 .radios{display:grid;gap:7px}
 .rad{display:flex;align-items:flex-start;gap:9px;border:1px solid rgba(255,255,255,.09);
@@ -386,7 +416,7 @@ button,input,select{font:inherit;color:inherit}
   text-align:start;inline-size:100%;
   transition:border-color .16s var(--ease),background .16s var(--ease)}
 .rad:hover{background:rgba(255,255,255,.06)}
-.rad[aria-pressed="true"]{border-color:rgba(110,196,155,.42);background:rgba(110,196,155,.07)}
+.rad[aria-pressed="true"]{border-color:rgba(101,223,168,.42);background:rgba(101,223,168,.07)}
 .rad .mark{inline-size:14px;block-size:14px;border-radius:50%;flex:none;margin-block-start:4px;
   border:1.5px solid var(--ink-4);display:grid;place-items:center}
 .rad[aria-pressed="true"] .mark{border-color:var(--accent)}
@@ -401,10 +431,13 @@ button,input,select{font:inherit;color:inherit}
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .btn:hover:not([disabled]){background:rgba(255,255,255,.1);color:var(--ink)}
 .btn[disabled]{opacity:.4;cursor:not-allowed}
-.btn.primary{border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.14);color:var(--ink)}
-.btn.primary:hover:not([disabled]){background:rgba(110,196,155,.22)}
-.btn.danger{border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.13);color:#ffd9d9}
-.btn.danger:hover:not([disabled]){background:rgba(255,107,107,.2)}
+/* الزرّ الأساسي مصمت بـ --primary كما في التطبيق المسلَّم، لا شفافية نعناعية.
+   --ink فوق #115033 يعطي 8.5:1، وفوق حالة المرور #16653f يعطي 6.4:1. */
+.btn.primary{border-color:rgba(255,255,255,.16);background:var(--primary);color:var(--ink)}
+.btn.primary:hover:not([disabled]){background:#16653f;border-color:rgba(255,255,255,.24)}
+/* الزرّ الهدّام --error لا --wanted: هذا تأكيد حذف، لا حالة «مطلوب». */
+.btn.danger{border-color:rgba(255,91,91,.4);background:rgba(255,91,91,.13);color:#ffd9d9}
+.btn.danger:hover:not([disabled]){background:rgba(255,91,91,.2)}
 .review{border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:11px 13px;
   background:rgba(255,255,255,.03);font-size:12px;line-height:1.85;color:var(--ink-2)}
 .review li{margin-inline-start:16px;margin-block-start:4px}
@@ -453,8 +486,18 @@ button,input,select{font:inherit;color:inherit}
   direction:rtl;unicode-bidi:isolate;color:var(--ink-2)}
 .wSt{font-size:10px;padding:1px 7px;border-radius:999px;border:1px solid currentColor;
   text-align:center;white-space:nowrap}
+/* حالات القائمة الشخصية الخمس ليست حالة «مطلوب» في شيء — هذه دورة حياة قائمة،
+   لا حكم على لوحة — فلا يجوز أن تلبس الذهبي. لكن الذهبي ليس الخطأ الوحيد الممكن:
+   §3 تحصر --error في «الإجراء الهدّام والفشل»، و«منتهية» ليست إجراءً ولا فشلًا —
+   هي مرور وقت على مراجعة ما زال محتواها موجودًا (203 صفًا في العيّنة). فبقاؤها
+   حمراء كان الخطأ نفسه معكوسًا: حالةٌ تلبس لون الفشل.
+   وحجّة إبقائها حمراء («لئلا تندمج مع معطّلة») كانت تنقض نفسها: كانت مندمجة
+   أصلًا مع «محذوفة» في اللون ذاته. فنُقلت إلى --warn حيث تنتمي — «لا تخدم
+   الآن، والقائمة قائمة» — و«محذوفة» وحدها تبقى --error لأنها أثر إجراء هدّام،
+   وهو ما تسمّيه §3 بالضبط. والتمييز بين الحالتين يحمله نصّ الشارة لا لونها،
+   كما ينصّ العقد على أنّ اللون وحده لا يكفي. */
 .sActive{color:var(--clean)} .sMissing{color:var(--ink-3)}
-.sDisabled{color:var(--unread)} .sExpired{color:var(--wanted)} .sDeleted{color:var(--wanted)}
+.sDisabled{color:var(--warn)} .sExpired{color:var(--warn)} .sDeleted{color:var(--error)}
 .wOpen{padding:11px 18px 13px;border-block-end:1px solid var(--line-2);
   background:rgba(0,0,0,.16);font-size:11.5px;color:var(--ink-3);line-height:1.8}
 /* الأعداد داخل السطر العربي («مقبولة 396 · حروف ممنوعة 9») — عزل، وإلا
@@ -465,7 +508,7 @@ button,input,select{font:inherit;color:inherit}
   font-feature-settings:"tnum" 1;margin-inline-end:12px}
 .auditLine{margin-block-start:8px;padding-block-start:8px;
   border-block-start:1px dashed rgba(255,255,255,.1);color:var(--ink-3);font-size:10.5px}
-.auditLine code{direction:ltr;unicode-bidi:isolate;color:var(--unread);
+.auditLine code{direction:ltr;unicode-bidi:isolate;color:var(--warn);
   font-family:ui-monospace,Menlo,monospace;font-size:10px;overflow-wrap:anywhere}
 
 /* ── قائمة القواعد ───────────────────────────────── */
@@ -478,7 +521,9 @@ button,input,select{font:inherit;color:inherit}
    الأخضر، فبدا كلّ السطور تأكيدات. */
 .rules .g{display:grid;place-items:center;margin-block-start:4px}
 .rules .g svg{display:block}
-.rules .no{color:var(--wanted)}
+/* «ما يرفضه الخادم» — الرفض فشل فعليّ (CONFLICT / INVALID_INPUT) فلونه --error.
+   وهذه الأيقونات كانت مضمَّنة أصلًا: علامة ✕ للرفض وصحّ للضمان. */
+.rules .no{color:var(--error)}
 .rules .ok{color:var(--clean)}
 .rules code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
   font-family:ui-monospace,Menlo,monospace;font-size:10.5px;overflow-wrap:anywhere}
@@ -495,7 +540,8 @@ button,input,select{font:inherit;color:inherit}
 .dlg::backdrop{background:rgba(3,10,8,.66)}
 .dlgIn{padding:18px 20px 18px}
 .dlgT{font-size:15px;font-weight:600;line-height:1.6}
-.dlgT.bad{color:var(--wanted)}
+/* عنوان حوار هدّام («حذف …») — --error؛ الحوار الوحيد الذي يحمل .bad هو الحذف. */
+.dlgT.bad{color:var(--error)}
 .dlgD{font-size:12.5px;color:var(--ink-2);line-height:1.85;margin-block-start:9px}
 .dlgD ul{margin-block-start:8px}
 .dlgD li{margin-inline-start:17px;margin-block-start:4px}
@@ -506,15 +552,16 @@ button,input,select{font:inherit;color:inherit}
 .blocked{margin-block-start:12px;border:1px solid rgba(232,176,85,.3);
   background:rgba(232,176,85,.08);border-radius:11px;padding:10px 12px;
   font-size:11.5px;color:var(--ink-2);line-height:1.8}
-.blocked b{color:var(--unread)}
+.blocked b{color:var(--warn)}
 .blocked code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
   font-size:10.5px;overflow-wrap:anywhere}
 
 /* ── منع الوصول (معاينة بدور مشرف عمليات) ────────── */
 .deny{max-inline-size:760px;margin-inline:auto;margin-block-start:8px}
 .denyBody{padding:26px 24px 22px;text-align:start}
+/* منع الوصول = 403 FORBIDDEN، أي فشل فعليّ لا حالة: --error. */
 .denyIco{inline-size:38px;block-size:38px;border-radius:11px;display:grid;place-items:center;
-  border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);color:var(--wanted)}
+  border:1px solid rgba(255,91,91,.3);background:rgba(255,91,91,.08);color:var(--error)}
 .denyT{font-size:17px;font-weight:600;margin-block-start:13px}
 .denyD{font-size:12.5px;color:var(--ink-2);line-height:1.9;margin-block-start:9px}
 /* overflow-wrap:anywhere ضروري هنا: بطاقة المنع تحمل سطرًا برمجيًا كاملًا،
@@ -552,7 +599,7 @@ button,input,select{font:inherit;color:inherit}
 
 <!-- ═══ الشريط العلوي ═══ -->
 <header class="bar"><div class="barIn">
-  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · المشرفون</span></div>
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span><span class="wm">العربي</span> · المشرفون</span></div>
   <div class="barSep" aria-hidden="true"></div>
 
   <nav class="nav" aria-label="أقسام اللوحة">
@@ -858,7 +905,7 @@ button,input,select{font:inherit;color:inherit}
               <div class="paneBody">
                 <p style="font-size:12px;color:var(--ink-3);line-height:1.85">
                   الحساب الجديد يبدأ دائمًا وعليه
-                  <span style="color:var(--unread)">تغيير كلمة مرور إلزامي</span>،
+                  <span style="color:var(--warn)">تغيير كلمة مرور إلزامي</span>،
                   وكلمة المرور الأولية لا تقلّ عن 12 محرفًا.
                 </p>
                 <div class="btnRow">
