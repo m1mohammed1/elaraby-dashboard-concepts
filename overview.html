@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>النظرة العامة — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   النظرة العامة — إعادة بناء تصميم «الطبقات»
+   العمق هو الفكرة المنظِّمة: الزجاج يقول كم يبعد الشيء عنك.
+   كل رقم هنا له مصدر حقيقي في الباك إند — شغّل «مصادر البيانات» لتراه.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  /* أعماق الطبقات — تتغيّر بزر العمق */
+  --far-a:.026;  --far-blur:34px; --far-ink:.42; --far-z:0;
+  --mid-a:.050;  --mid-blur:22px; --mid-ink:.86; --mid-z:0;
+  --near-a:.075; --near-blur:12px;--near-ink:1;  --near-z:0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ── المشهد ───────────────────────────────────────── */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── الشريط العلوي ────────────────────────────────── */
+.bar{position:relative;z-index:40;display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+  padding:14px 26px;border-block-end:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  backdrop-filter:blur(26px) saturate(1.2);-webkit-backdrop-filter:blur(26px) saturate(1.2);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+.brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+.barSep{width:1px;height:22px;background:var(--line)}
+.barGrow{flex:1}
+
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
+
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center}
+.tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+
+.who{display:flex;align-items:center;gap:9px;font-size:13px}
+.who .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  font-size:12px;font-weight:600}
+.who .rl{color:var(--ink-3);font-size:11.5px}
+
+/* ── المسرح والطبقات ─────────────────────────────── */
+.stage{position:relative;z-index:10;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.plane{transition:opacity .5s var(--ease),filter .5s var(--ease),transform .5s var(--ease)}
+.pane{border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+
+/* الطبقة الخلفية — كبيرة، باهتة، ضباب كثيف */
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  backdrop-filter:blur(var(--far-blur)) saturate(1.15);
+  -webkit-backdrop-filter:blur(var(--far-blur)) saturate(1.15);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.far{opacity:var(--far-ink)}
+/* الطبقة المتوسطة */
+.mid .pane{background:rgba(255,255,255,var(--mid-a));
+  backdrop-filter:blur(var(--mid-blur)) saturate(1.25);
+  -webkit-backdrop-filter:blur(var(--mid-blur)) saturate(1.25)}
+.mid{opacity:var(--mid-ink)}
+/* الطبقة الأمامية — أصغر، أحدّ، ظل أكبر */
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  backdrop-filter:blur(var(--near-blur)) saturate(1.3);
+  -webkit-backdrop-filter:blur(var(--near-blur)) saturate(1.3);
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near{opacity:var(--near-ink)}
+
+/* ترتيب العمق */
+:root[data-depth="far"]{ --far-a:.05;--far-blur:18px;--far-ink:1;
+  --mid-a:.04;--mid-blur:26px;--mid-ink:.6; --near-a:.045;--near-blur:30px;--near-ink:.42 }
+:root[data-depth="mid"]{ --far-a:.024;--far-blur:38px;--far-ink:.3;
+  --mid-a:.062;--mid-blur:16px;--mid-ink:1; --near-a:.055;--near-blur:24px;--near-ink:.55 }
+:root[data-depth="near"]{ --far-a:.022;--far-blur:40px;--far-ink:.26;
+  --mid-a:.042;--mid-blur:26px;--mid-ink:.62; --near-a:.085;--near-blur:10px;--near-ink:1 }
+:root[data-depth="far"]  .near{transform:scale(.985)}
+:root[data-depth="near"] .far {transform:scale(1.012)}
+
+/* ── دفتر الأرقام (متوسطة، أعلى المسرح) ──────────── */
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(168px,100%),1fr));
+  gap:0;padding:4px 0;overflow:hidden}
+.fig{padding:15px 20px;border-inline-start:1px solid var(--line-2);position:relative}
+.fig:first-child{border-inline-start:0}
+.figL{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.figV{font-size:31px;font-weight:600;line-height:1.25;margin-block-start:3px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+.figU{font-size:13px;font-weight:400;color:var(--ink-3);margin-inline-start:3px}
+.figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px;display:flex;gap:7px;align-items:baseline}
+.figM .up{color:var(--clean)} .figM .dn{color:var(--wanted)}
+.fig.hero .figV{color:var(--ink)}
+.fig.hot .figV{color:var(--wanted)}
+.snap{position:absolute;inset-block-start:13px;inset-inline-end:16px;
+  font-size:9.5px;color:var(--ink-4);border:1px solid var(--line-2);
+  padding:1px 6px;border-radius:999px}
+
+/* ── مصادر البيانات ──────────────────────────────── */
+.src{display:none;font-size:10.5px;color:var(--ink-4);line-height:1.7;
+  padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.src .nw{color:var(--accent)}
+:root[data-src="1"] .src{display:block}
+
+/* ── تخطيط المسرح ────────────────────────────────── */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,364px);
+  gap:18px;margin-block-start:18px;align-items:start}
+@media(max-width:1080px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* منطقة الرسم — الطبقة الأمامية بتطفو فوقها */
+.chartZone{position:relative}
+.paneHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:14px 18px 0}
+.paneTitle{font-size:14.5px;font-weight:600}
+.paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
+.chartBody{padding:10px 14px 16px}
+svg.hrs{display:block;width:100%;height:auto}
+svg.hrs text{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:9px;fill:var(--ink-3)}
+svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
+.hrBar{cursor:pointer;transition:opacity .15s var(--ease)}
+.hrCol:hover .hrBar,.hrCol:focus-visible .hrBar{opacity:1}
+.hrCol .hit{fill:transparent}
+.hrCol:focus-visible{outline:none}
+.hrCol:focus-visible .hit{fill:rgba(110,196,155,.16);stroke:rgba(110,196,155,.85);stroke-width:1}
+.dim .hrBar{opacity:.28}
+.chLbl{font-size:10.5px;color:var(--ink-3);padding-inline-start:4px;margin-block-end:2px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:2px 18px 14px;font-size:11px;color:var(--ink-3)}
+.lgi{display:flex;align-items:center;gap:6px}
+.lgs{width:10px;height:10px;border-radius:3px;flex:none}
+
+/* البطاقة الطافية — الطبقة الأمامية */
+.floatCard{margin-block-start:-52px;margin-inline-start:20px;
+  inline-size:min(560px,calc(100% - 40px));position:relative;z-index:20}
+@media(max-width:1080px){.floatCard{margin-block-start:16px;margin-inline-start:0;inline-size:100%}}
+
+.liveHead{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;
+  border-block-end:1px solid var(--line-2);flex-wrap:wrap}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--clean);flex:none;
+  box-shadow:0 0 8px -1px rgba(61,220,151,.55);animation:blip 2.6s ease-in-out infinite}
+@keyframes blip{0%,100%{opacity:1}50%{opacity:.35}}
+.onlineChips{display:flex;gap:6px;flex-wrap:wrap;padding:11px 18px;border-block-end:1px solid var(--line-2)}
+.chip{font-size:11px;color:var(--ink-2);padding:3px 9px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);white-space:nowrap}
+.chip .n{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;display:inline-block}
+
+.feed{max-block-size:266px;overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.16) transparent}
+.feed::-webkit-scrollbar{width:7px}
+.feed::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:99px}
+.row{display:flex;align-items:center;gap:11px;padding:9px 18px;
+  border-block-end:1px solid var(--line-2);font-size:12.5px;
+  transition:background .14s var(--ease)}
+.row:last-child{border-block-end:0}
+.row:hover{background:rgba(255,255,255,.045)}
+.rT{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;flex:none;inline-size:36px}
+.rP{font-weight:600;direction:rtl;unicode-bidi:isolate;flex:none;min-inline-size:104px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.rSrc{flex:none;color:var(--ink-4);display:grid;place-items:center}
+.rSrc svg{display:block}
+.rOp{color:var(--ink-2);flex:1;min-inline-size:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.rOrg{color:var(--ink-3);font-size:10.5px;flex:none}
+.rV{flex:none;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7}
+.vw{color:var(--wanted)} .vs{color:var(--clean)}
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
+
+/* ── ترتيب المشغّلين ─────────────────────────────── */
+.opList{padding:6px 0 8px}
+.op{display:grid;grid-template-columns:22px 1fr auto;gap:11px;align-items:center;
+  padding:9px 18px;cursor:pointer;background:transparent;border:0;inline-size:100%;
+  text-align:start;transition:background .14s var(--ease)}
+.op:hover{background:rgba(255,255,255,.045)}
+.op[aria-pressed="true"]{background:rgba(255,255,255,.085)}
+.opN{font-size:11px;color:var(--ink-4);font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;text-align:center}
+.opName{font-size:12.5px;font-weight:500;line-height:1.5;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opBarWrap{block-size:3px;border-radius:99px;background:rgba(255,255,255,.07);
+  margin-block-start:5px;overflow:hidden}
+.opBar{block-size:100%;background:rgba(255,255,255,.42);border-radius:99px;
+  transform-origin:right center;transform:scaleX(0);
+  animation:grow .8s var(--ease) forwards}
+@keyframes grow{to{transform:scaleX(1)}}
+.opNums{text-align:end;flex:none}
+.opScan{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate}
+.opHit{font-size:10.5px;color:var(--wanted);margin-block-start:1px}
+.opHit.zero{color:var(--ink-4)}
+.opRest{padding:10px 18px 4px;margin-block-start:4px;border-block-start:1px solid var(--line-2);
+  font-size:11.5px;color:var(--ink-3);display:flex;justify-content:space-between;gap:10px}
+.opRest .v{color:var(--ink-2);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+/* شريط النطاق النشط */
+.scopeBar{display:none;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 16px;margin-block-end:14px;border-radius:12px;
+  background:rgba(110,196,155,.07);border:1px solid rgba(110,196,155,.22);
+  font-size:12.5px;color:var(--ink-2)}
+.scopeBar.on{display:flex}
+.scopeBar .w{flex:1;min-inline-size:120px}
+.scopeBar b{color:var(--ink);font-weight:600}
+.clearBtn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+  padding:4px 11px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease)}
+.clearBtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+
+/* ── قائمة المطلوبين (متوسطة، أسفل العمود) ───────── */
+.wl{margin-block-start:18px}
+.wlBody{padding:15px 18px 16px}
+.wlV{font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;line-height:1.25}
+.wlL{font-size:11.5px;color:var(--ink-3)}
+.wlMeta{margin-block-start:12px;padding-block-start:11px;border-block-start:1px solid var(--line-2);
+  font-size:11.5px;color:var(--ink-3);line-height:1.85}
+.wlMeta b{color:var(--ink-2);font-weight:500}
+
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-4);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+/* ── الدخول ──────────────────────────────────────── */
+.plane{opacity:0}
+.far   {animation:rise .7s var(--ease) .00s forwards}
+.mid   {animation:rise .7s var(--ease) .14s forwards}
+.near  {animation:rise .7s var(--ease) .28s forwards}
+@keyframes rise{from{transform:translateY(22px)}to{opacity:var(--pl-ink,1);transform:none}}
+.far{--pl-ink:var(--far-ink)} .mid{--pl-ink:var(--mid-ink)} .near{--pl-ink:var(--near-ink)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+  .plane{opacity:1;transform:none}
+  .opBar{transform:scaleX(1)}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="bar">
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · النظرة العامة</span></div>
+  <div class="barSep" aria-hidden="true"></div>
+
+  <div style="display:flex;align-items:center">
+    <span class="segLbl">المدى</span>
+    <div class="seg" role="group" aria-label="المدى الزمني" id="rangeSeg">
+      <button type="button" data-r="today" aria-pressed="true">اليوم</button>
+      <button type="button" data-r="yday"  aria-pressed="false">أمس</button>
+      <button type="button" data-r="w7"    aria-pressed="false">7 أيام</button>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center">
+    <span class="segLbl">العمق</span>
+    <div class="seg" role="group" aria-label="طبقة العمق" id="depthSeg">
+      <button type="button" data-d="far"  aria-pressed="false">خلفية</button>
+      <button type="button" data-d="mid"  aria-pressed="false">متوسط</button>
+      <button type="button" data-d="near" aria-pressed="true">أمامي</button>
+    </div>
+  </div>
+
+  <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+    <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+  </button>
+
+  <span class="barGrow"></span>
+
+  <div class="who">
+    <span class="av" aria-hidden="true">أ</span>
+    <span><span style="display:block">أحمد عماد</span><span class="rl">مدير النظام</span></span>
+  </div>
+</header>
+
+<main class="stage">
+
+  <!-- شريط النطاق النشط -->
+  <div class="scopeBar" id="scopeBar" role="status">
+    <span class="w">مقصور على: <b id="scopeText">—</b></span>
+    <button class="clearBtn" type="button" id="scopeClear">عرض الكل</button>
+  </div>
+
+  <!-- ═══ الطبقة المتوسطة — دفتر الأرقام ═══ -->
+  <section class="plane mid" aria-label="الأرقام الرئيسية">
+    <div class="pane">
+      <div class="ledger">
+        <div class="fig hero">
+          <div class="figL">إجمالي عمليات الفحص</div>
+          <div class="figV" data-count="12847">12,847</div>
+          <div class="figM"><span id="mDeltaV" class="up">▲ 6.2%</span><span id="mDelta">عن الفترة السابقة</span></div>
+        </div>
+        <div class="fig hot">
+          <div class="figL">مركبات مطلوبة</div>
+          <div class="figV" data-count="38">38</div>
+          <div class="figM"><span>نسبة الإصابة</span><span id="mRate">0.30%</span></div>
+        </div>
+        <div class="fig">
+          <div class="figL">مركبات سليمة</div>
+          <div class="figV" data-count="12809">12,809</div>
+          <div class="figM"><span id="mSafe">99.70% من الفحص</span></div>
+        </div>
+        <div class="fig">
+          <div class="figL" id="lblOps">مشغّلون فحصوا اليوم</div>
+          <div class="figV" data-count="18">18</div>
+          <div class="figM"><span id="mOps">من 26 مشغّلاً</span></div>
+        </div>
+        <div class="fig">
+          <span class="snap">لحظي</span>
+          <div class="figL">متصلون الآن</div>
+          <div class="figV" data-count="7">7</div>
+          <div class="figM"><span>3 جلسات صوتية</span></div>
+        </div>
+      </div>
+      <div class="src">
+        الأربعة الأولى من <code>GET /v1/admin/dashboard?date=</code> — الحقول
+        <code>screenings</code> و <code>wantedHits</code> و <code>activeUsers</code>.
+        «مركبات سليمة» = الفرق بينهما، لأن <code>result</code> محصور في
+        <code>safe | wanted</code>.
+        «متصلون الآن» من <code>GET /v1/admin/dashboard/online-users</code> — مؤشّر لحظي فقط:
+        المجموعة عليها <code>TTL</code> بدقيقتين، فلا يمكن رسمه عبر الزمن إطلاقًا.
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <!-- ═══ الطبقة الخلفية — ذروة الساعات ═══ -->
+    <div class="chartZone">
+      <section class="plane far" aria-label="ذروة ساعات اليوم">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ذروة ساعات اليوم</span>
+            <span class="paneNote" id="chartNote">رسمان بمحور ساعات مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير</span>
+          </div>
+          <div class="chartBody">
+            <svg class="hrs" id="chart" viewBox="0 0 700 268" role="img"
+                 aria-label="فحوصات كل ساعة، وتحتها المركبات المطلوبة بنفس محور الساعات"></svg>
+          </div>
+          <div class="legend">
+            <span class="lgi"><span class="lgs" style="background:rgba(255,255,255,.5)"></span>إجمالي الفحص</span>
+            <span class="lgi"><span class="lgs" style="background:#ff6b6b"></span>مركبات مطلوبة</span>
+            <span class="lgi" style="color:var(--ink-4)">اضغط أي ساعة لقصر الشاشة عليها</span>
+          </div>
+          <div class="src">
+            <span class="nw">يحتاج بناءً:</span> تجميعة <code>$group</code> مع
+            <code>$dateTrunc</code> على <code>createdAt</code>، مع <code>$sum</code> شرطي
+            لـ <code>result:'wanted'</code>.
+            <span class="nw">تحذير أداء:</span> لا يوجد فهرس على <code>createdAt</code> وحده —
+            يجب إضافة <code>{createdAt:1}</code> قبل الإطلاق وإلا كان مسحًا كاملاً لمجموعة
+            لا تُنظَّف أبدًا.
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ الطبقة الأمامية — تطفو فوق الرسم ═══ -->
+      <section class="plane near floatCard" aria-label="النشاط المباشر">
+        <div class="pane">
+          <div class="liveHead">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="paneTitle">آخر عمليات الفحص</span>
+            <span class="paneNote" id="feedCount">آخر 20 عملية</span>
+          </div>
+          <div class="onlineChips" id="onlineChips"></div>
+          <div class="feed" id="feed"></div>
+          <div class="src">
+            <code>GET /v1/admin/dashboard</code> — آخر 20 سجلاً، بلا ترقيم صفحات.
+            <span class="nw">ملاحظة:</span> هذه القائمة <b>لا تتبع المدى الزمني</b> —
+            المسار يعيد الأحدث دائمًا مهما كان التاريخ المختار، فتُركت كما هي بدل ادّعاء
+            تصفية لا يقوم بها الباك إند.
+            الحقول المعروضة: <code>createdAt</code> · <code>plate</code> ·
+            <code>source</code> · <code>operatorId</code> · <code>result</code> ·
+            <code>match.organization</code>.
+            الحسابات المحذوفة تظهر بالنص «حساب محذوف».
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ الطبقة المتوسطة — العمود الجانبي ═══ -->
+    <div>
+      <section class="plane mid" aria-label="ترتيب المشغّلين">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ترتيب المشغّلين</span>
+            <span class="paneNote">اضغط اسمًا لقصر الشاشة عليه</span>
+          </div>
+          <div class="opList" id="opList"></div>
+          <div class="src">
+            <span class="nw">يحتاج بناءً:</span> تجميعة <code>$group</code> على
+            <code>operatorId</code> ثم <code>$sort</code> و <code>$limit</code> ثم
+            <code>$lookup</code> على <code>operators</code> للاسم.
+            نمطها منسوخ من التجميعة القائمة في
+            <code>work-report-mongo-repository.ts</code> بتغيير <code>_id</code> من
+            <code>null</code> إلى <code>'$operatorId'</code>.
+            المسار الحالي <code>/v1/admin/operators/:id/work</code> يخدم مشغّلاً واحدًا فقط.
+          </div>
+        </div>
+      </section>
+
+      <section class="plane mid wl" aria-label="قائمة المطلوبين">
+        <div class="pane">
+          <div class="wlBody">
+            <div class="wlL">حجم قائمة المطلوبين النشطة</div>
+            <div class="wlV" data-count="48392">48,392</div>
+            <div class="wlMeta">
+              آخر تحديث: <b>أمس 09:14</b><br>
+              نفّذه: <b>أحمد عماد</b> · <b>48,392</b> صفًا · <b>3</b> صفوف مرفوضة
+            </div>
+          </div>
+          <div class="src">
+            الحجم من <code>wanted_plate_dataset_state</code>، والتحديث من سجل التدقيق —
+            وهذه هي القراءة الوحيدة الموجودة فعليًا على سجل التدقيق في النظام كله.
+            رقم لحظي بحت: كل استيراد يستبدل المجموعة بالكامل، فلا يوجد أرشيف لحجم القائمة
+            عبر الزمن.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>لا يعرض النظام «لوحات غير مقروءة» ولا زمن معالجة ولا دقة تعرّف — هذه الحقول غير موجودة في قاعدة البيانات</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ══ بيانات بشكل السجل الحقيقي ══════════════════════
+     الحقول مطابقة لـ PlateCheckRecordDocument:
+     operatorId · source · watchlistSource · plate · result · match · createdAt   */
+
+  /* لكل مدى مجموعته الخاصة — لا تحجيم ولا ضرب في معامل،
+     لأن التقريب المتكرّر يُفسد الأرقام الصغيرة (المطلوب) بصمت. */
+  var DATA = {
+    today: {
+      periodLbl:"اليوم", opsLbl:"مشغّلون فحصوا اليوم", delta:"▲ 6.2%", deltaUp:true,
+      chartNote:"رسمان بمحور ساعات مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير",
+      figs:[12847,38,12809,18],
+      hours:{
+        total :[218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270],
+        wanted:[1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0]
+      },
+      operators:[
+        { id:"o1",name:"خالد المطيري",scans:1412,hits:6 },
+        { id:"o2",name:"نورة السبيعي",scans:1268,hits:5 },
+        { id:"o3",name:"فهد القحطاني",scans:1104,hits:4 },
+        { id:"o4",name:"ريم الدوسري", scans: 986,hits:3 },
+        { id:"o5",name:"سعود العتيبي",scans: 902,hits:4 },
+        { id:"o6",name:"لطيفة الحربي",scans: 847,hits:2 },
+        { id:"o7",name:"ماجد الشمري", scans: 793,hits:3 },
+        { id:"o8",name:"هند الزهراني",scans: 748,hits:2 }
+      ],
+      rest:{ count:10, scans:4787, hits:9 }
+    },
+    yday: {
+      periodLbl:"أمس", opsLbl:"مشغّلون فحصوا أمس", delta:"▼ 2.4%", deltaUp:false,
+      chartNote:"رسمان بمحور ساعات مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير",
+      figs:[12094,43,12051,17],
+      hours:{
+        total :[204,158,126,111,139,251,486,712,829,801,714,689,668,624,655,672,761,814,762,617,462,372,298,179],
+        wanted:[1,1,0,0,1,1,2,4,5,3,2,2,1,2,2,3,4,4,3,2,1,1,0,0]
+      },
+      operators:[
+        { id:"o2",name:"نورة السبيعي",scans:1341,hits:7 },
+        { id:"o1",name:"خالد المطيري",scans:1288,hits:5 },
+        { id:"o5",name:"سعود العتيبي",scans:1042,hits:6 },
+        { id:"o3",name:"فهد القحطاني",scans: 974,hits:4 },
+        { id:"o7",name:"ماجد الشمري", scans: 908,hits:3 },
+        { id:"o4",name:"ريم الدوسري", scans: 861,hits:4 },
+        { id:"o8",name:"هند الزهراني",scans: 792,hits:2 },
+        { id:"o6",name:"لطيفة الحربي",scans: 704,hits:3 }
+      ],
+      rest:{ count:9, scans:4184, hits:9 }
+    },
+    w7: {
+      periodLbl:"آخر 7 أيام", opsLbl:"مشغّلون فحصوا خلال 7 أيام", delta:"▲ 4.1%", deltaUp:true,
+      chartNote:"متوسط الفحص لكل ساعة عبر 7 أيام — المحور مشترك وكل رسم بمقياسه الصحيح",
+      figs:[84620,271,84349,24],
+      hours:{
+        total :[211,160,128,115,143,259,497,731,848,822,731,704,682,638,671,689,779,833,781,632,472,381,304,229],
+        wanted:[1,1,1,0,1,1,2,4,4,3,2,2,2,2,2,2,4,4,3,2,1,1,1,0]
+      },
+      operators:[
+        { id:"o1",name:"خالد المطيري",scans:9418,hits:41 },
+        { id:"o2",name:"نورة السبيعي",scans:8974,hits:38 },
+        { id:"o5",name:"سعود العتيبي",scans:7106,hits:34 },
+        { id:"o3",name:"فهد القحطاني",scans:6892,hits:29 },
+        { id:"o4",name:"ريم الدوسري", scans:6217,hits:24 },
+        { id:"o7",name:"ماجد الشمري", scans:5804,hits:22 },
+        { id:"o6",name:"لطيفة الحربي",scans:5391,hits:18 },
+        { id:"o8",name:"هند الزهراني",scans:4966,hits:15 }
+      ],
+      rest:{ count:16, scans:29852, hits:50 }
+    }
+  };
+
+  var ONLINE = [
+    { name:"خالد المطيري", voice:true },
+    { name:"نورة السبيعي", voice:true },
+    { name:"فهد القحطاني", voice:false },
+    { name:"ريم الدوسري",  voice:true },
+    { name:"سعود العتيبي", voice:false },
+    { name:"ماجد الشمري",  voice:false },
+    { name:"هند الزهراني", voice:false }
+  ];
+
+  var EVENTS = [
+    { h:14,t:"14:31",plate:"ر ن ب 4582",op:"o2",src:"voice", r:"wanted",org:"شرطة المنطقة الشرقية" },
+    { h:14,t:"14:29",plate:"أ ل م 7123",op:"o1",src:"voice", r:"safe" },
+    { h:14,t:"14:27",plate:"ك ط د 9046",op:"o3",src:"manual",r:"safe" },
+    { h:14,t:"14:26",plate:"ص ع ه 1187",op:"o5",src:"voice", r:"safe" },
+    { h:14,t:"14:24",plate:"ب ي و 6350",op:"o4",src:"voice", r:"safe" },
+    { h:14,t:"14:22",plate:"د ر ق 2708",op:"o3",src:"manual",r:"wanted",org:"الإدارة العامة للمرور" },
+    { h:14,t:"14:20",plate:"ه م ن 5419",op:"o5",src:"voice", r:"safe" },
+    { h:14,t:"14:18",plate:"ط س ل 8264",op:"o6",src:"manual",r:"safe" },
+    { h:14,t:"14:17",plate:"و ح أ 3095",op:"o2",src:"voice", r:"safe" },
+    { h:14,t:"14:15",plate:"ق ب ع 7731",op:"o4",src:"voice", r:"wanted",org:"قائمة مراقبة داخلية" },
+    { h:14,t:"14:13",plate:"ل د ص 4426",op:"o7",src:"manual",r:"safe" },
+    { h:14,t:"14:11",plate:"ن أ ط 6802",op:"o3",src:"voice", r:"safe" },
+    { h:14,t:"14:09",plate:"ع ك ر 1573",op:"o8",src:"voice", r:"safe" },
+    { h:14,t:"14:07",plate:"م و ه 9218",op:"o2",src:"manual",r:"safe" },
+    { h:14,t:"14:05",plate:"س ق ب 2947",op:"o5",src:"voice", r:"wanted",org:"شرطة المنطقة الشرقية" },
+    { h:14,t:"14:03",plate:"ح ل ي 5064",op:"o6",src:"voice", r:"safe" },
+    { h:13,t:"13:58",plate:"ي ط م 6109",op:"o1",src:"manual",r:"safe" },
+    { h:13,t:"13:54",plate:"ر ص و 8437",op:"o7",src:"voice", r:"safe" },
+    { h:13,t:"13:51",plate:"ب ه ق 2265",op:"o8",src:"voice", r:"safe" },
+    { h:13,t:"13:47",plate:"ك ع د 7790",op:"o1",src:"voice", r:"wanted",org:"الإدارة العامة للمرور" }
+  ];
+
+  var opName = {};
+  Object.keys(DATA).forEach(function(k){
+    DATA[k].operators.forEach(function(o){ opName[o.id]=o.name; });
+  });
+
+  var state = { range:"today", op:null, hour:null };
+  function cur(){ return DATA[state.range]; }
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+
+  /* ══ أيقونات المصدر ══ */
+  var IC_VOICE  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3v10"/><path d="M8.5 6.5v3"/><path d="M15.5 6.5v3"/><path d="M5 16.5a7 7 0 0 0 14 0"/><path d="M12 20.5v0"/></svg>';
+  var IC_MANUAL = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>';
+
+  /* ══ الرسم — رسمان بمحور مشترك، بلا تكبير ══════════ */
+  var NS="http://www.w3.org/2000/svg";
+  function mk(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+  function niceTop(v){
+    if(v<=0) return 1;
+    var e=Math.pow(10,Math.floor(Math.log10(v))), f=v/e;
+    return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;
+  }
+
+  var W=700,H=268,PAD={t:14,r:18,b:26,l:18},GAP=22,HA=134,HB=52;
+  function xOf(i){ var inner=W-PAD.l-PAD.r; return W-PAD.r-(i+0.5)*(inner/24); }
+
+  function drawChart(){
+    var svg=document.getElementById("chart"), HOURS=cur().hours;
+    svg.innerHTML="";
+    document.getElementById("chartNote").textContent=cur().chartNote;
+    var bw=(W-PAD.l-PAD.r)/24-3.5,
+        topA=niceTop(Math.max.apply(null,HOURS.total)),
+        topB=niceTop(Math.max.apply(null,HOURS.wanted)),
+        y0=PAD.t+HA+GAP, i, x, g;
+
+    /* عناوين المقياسين */
+    var lblA=mk("text",{x:W-PAD.r,y:PAD.t-3,"text-anchor":"end"});
+    lblA.setAttribute("class","ax"); lblA.textContent=String(topA); svg.appendChild(lblA);
+    var lblB=mk("text",{x:W-PAD.r,y:y0-3,"text-anchor":"end"});
+    lblB.setAttribute("class","ax"); lblB.textContent=String(topB); svg.appendChild(lblB);
+
+    for(i=0;i<24;i++){
+      x=xOf(i)-bw/2;
+      g=mk("g",{ "class":"hrCol", tabindex:"0", role:"button",
+                 "aria-label":"الساعة "+String(i).padStart(2,"0")+" — "+
+                   fmt(HOURS.total[i])+" فحصًا و"+HOURS.wanted[i]+" مطلوبًا" });
+      g.dataset.h=i;
+
+      var hA=HOURS.total[i]/topA*HA;
+      g.appendChild(mk("rect",{ "class":"hrBar", x:x, y:PAD.t+HA-hA,
+        width:bw, height:Math.max(hA,1), rx:2, fill:"rgba(255,255,255,.5)" }));
+
+      var hB=HOURS.wanted[i]/topB*HB;
+      if(HOURS.wanted[i]>0)
+        g.appendChild(mk("rect",{ "class":"hrBar", x:x, y:y0+HB-hB,
+          width:bw, height:Math.max(hB,2), rx:2, fill:"#ff6b6b" }));
+
+      g.appendChild(mk("rect",{ "class":"hit", x:x-1.5, y:PAD.t-6,
+        width:bw+3, height:(y0+HB)-PAD.t+10, rx:3 }));
+      svg.appendChild(g);
+    }
+
+    svg.appendChild(mk("line",{x1:PAD.l,y1:PAD.t+HA,x2:W-PAD.r,y2:PAD.t+HA,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+    svg.appendChild(mk("line",{x1:PAD.l,y1:y0+HB,x2:W-PAD.r,y2:y0+HB,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+
+    for(i=0;i<24;i+=3){
+      var t=mk("text",{x:xOf(i),y:H-9,"text-anchor":"middle"});
+      t.setAttribute("class","ax"); t.textContent=String(i).padStart(2,"0");
+      svg.appendChild(t);
+    }
+    paintChartScope();
+  }
+  function paintChartScope(){
+    [].forEach.call(document.querySelectorAll(".hrCol"),function(g){
+      g.classList.toggle("dim", state.hour!==null && +g.dataset.h!==state.hour);
+    });
+  }
+
+  /* ══ ترتيب المشغّلين ══════════════════════════════ */
+  function drawOps(){
+    var host=document.getElementById("opList"),
+        OPERATORS=cur().operators, REST=cur().rest, max=OPERATORS[0].scans;
+    host.innerHTML = OPERATORS.map(function(o,i){
+      return '<button class="op" type="button" data-op="'+o.id+'" aria-pressed="false">'+
+        '<span class="opN">'+(i+1)+'</span>'+
+        '<span style="min-inline-size:0"><span class="opName">'+o.name+'</span>'+
+          '<span class="opBarWrap"><span class="opBar" style="width:'+
+            (o.scans/max*100).toFixed(1)+'%;animation-delay:'+(i*55+300)+'ms"></span></span></span>'+
+        '<span class="opNums"><span class="opScan">'+fmt(o.scans)+'</span>'+
+          '<span class="opHit'+(o.hits?"":" zero")+'">'+o.hits+' مطلوب</span></span>'+
+      '</button>';
+    }).join("") +
+    '<div class="opRest"><span>و '+REST.count+' مشغّلين آخرين</span>'+
+      '<span class="v">'+fmt(REST.scans)+' فحص · '+REST.hits+' مطلوب</span></div>';
+  }
+
+  /* ══ المتصلون الآن ════════════════════════════════ */
+  document.getElementById("onlineChips").innerHTML =
+    '<span class="chip"><span class="n">'+ONLINE.length+'</span> متصل الآن</span>' +
+    ONLINE.slice(0,4).map(function(o){
+      return '<span class="chip">'+o.name+(o.voice?' · صوت':'')+'</span>';
+    }).join("") +
+    (ONLINE.length>4 ? '<span class="chip">+<span class="n">'+(ONLINE.length-4)+'</span></span>' : '');
+
+  /* ══ السجل ════════════════════════════════════════ */
+  function visible(){
+    return EVENTS.filter(function(e){
+      if(state.op   && e.op!==state.op)   return false;
+      if(state.hour!==null && e.h!==state.hour) return false;
+      return true;
+    });
+  }
+  function drawFeed(){
+    var rows=visible(), host=document.getElementById("feed");
+    document.getElementById("feedCount").textContent =
+      rows.length===EVENTS.length ? "آخر 20 عملية" : (rows.length+" من 20 عملية");
+
+    if(!rows.length){
+      host.innerHTML='<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
+        'جرّب توسيع النطاق أو اضغط «عرض الكل».</div>';
+      return;
+    }
+    host.innerHTML = rows.map(function(e){
+      var w = e.r==="wanted";
+      return '<div class="row">'+
+        '<span class="rT">'+e.t+'</span>'+
+        '<span class="rP">'+e.plate+'</span>'+
+        '<span class="rSrc" title="">'+(e.src==="voice"?IC_VOICE:IC_MANUAL)+'</span>'+
+        '<span class="rOp">'+(opName[e.op]||"حساب محذوف")+'</span>'+
+        (w&&e.org ? '<span class="rOrg">'+e.org+'</span>' : '')+
+        '<span class="rV '+(w?"vw":"vs")+'">'+(w?"مطلوب":"سليم")+'</span>'+
+      '</div>';
+    }).join("");
+  }
+
+  /* ══ النطاق ═══════════════════════════════════════ */
+  function drawScope(){
+    var bar=document.getElementById("scopeBar"), bits=[];
+    if(state.op)   bits.push(opName[state.op]);
+    if(state.hour!==null) bits.push("الساعة "+String(state.hour).padStart(2,"0")+":00");
+    bar.classList.toggle("on", bits.length>0);
+    if(bits.length) document.getElementById("scopeText").textContent=bits.join(" · ");
+    [].forEach.call(document.querySelectorAll(".op"),function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.op===state.op));
+    });
+    paintChartScope();
+  }
+  function rerender(){ drawScope(); drawFeed(); }
+
+  /* ══ التفاعلات ════════════════════════════════════ */
+  document.getElementById("opList").addEventListener("click",function(e){
+    var b=e.target.closest(".op"); if(!b) return;
+    state.op = (state.op===b.dataset.op) ? null : b.dataset.op;
+    rerender();
+  });
+  document.getElementById("chart").addEventListener("click",function(e){
+    var g=e.target.closest(".hrCol"); if(!g) return;
+    var h=+g.dataset.h;
+    state.hour = (state.hour===h) ? null : h;
+    rerender();
+  });
+  document.getElementById("chart").addEventListener("keydown",function(e){
+    if(e.key!=="Enter" && e.key!==" ") return;
+    var g=e.target.closest(".hrCol"); if(!g) return;
+    e.preventDefault();
+    var h=+g.dataset.h;
+    state.hour = (state.hour===h) ? null : h;
+    rerender();
+  });
+  document.getElementById("scopeClear").addEventListener("click",function(){
+    state.op=null; state.hour=null; rerender();
+  });
+
+  function segment(id, apply){
+    var g=document.getElementById(id);
+    g.addEventListener("click",function(e){
+      var b=e.target.closest("button"); if(!b) return;
+      [].forEach.call(g.querySelectorAll("button"),function(x){
+        x.setAttribute("aria-pressed", String(x===b));
+      });
+      apply(b);
+    });
+  }
+  segment("depthSeg", function(b){
+    document.documentElement.setAttribute("data-depth", b.dataset.d);
+  });
+  segment("rangeSeg", function(b){
+    state.range = b.dataset.r;
+    state.op = null; state.hour = null;   /* النطاق السابق قد لا يوجد في المدى الجديد */
+    drawFigures(); drawChart(); drawOps(); rerender();
+  });
+
+  /* الأرقام الأربعة تتبع المدى. «متصلون الآن» لحظي ولا يتبعه إطلاقًا —
+     المجموعة عليها TTL بدقيقتين، فلا معنى لقراءته «أمس». */
+  function drawFigures(){
+    var d=cur(), figs=document.querySelectorAll(".ledger .figV");
+    for(var i=0;i<4;i++){ figs[i].dataset.count=d.figs[i]; countTo(figs[i], d.figs[i]); }
+    var rate = (d.figs[1]/d.figs[0]*100).toFixed(2);
+    document.getElementById("mRate").textContent = rate+"%";
+    document.getElementById("mSafe").textContent = (100-rate).toFixed(2)+"% من الفحص";
+    var dv=document.getElementById("mDeltaV");
+    dv.textContent = d.delta;
+    dv.className = d.deltaUp ? "up" : "dn";
+    document.getElementById("mDelta").textContent =
+      state.range==="w7" ? "عن الأسبوع السابق" : "عن الفترة السابقة";
+    document.getElementById("lblOps").textContent = d.opsLbl;
+  }
+
+  document.getElementById("srcTgl").addEventListener("click",function(){
+    var on = this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed", String(on));
+    document.documentElement.setAttribute("data-src", on?"1":"0");
+  });
+
+  /* ══ العدّادات — القيمة الحقيقية في الـ markup أصلاً ══ */
+  function countTo(el, target){
+    if(document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches){
+      el.textContent = fmt(target); return;
+    }
+    var from=0, t0=performance.now(), dur=900;
+    function step(now){
+      var p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3);
+      el.textContent = fmt(Math.round(from+(target-from)*e));
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  [].forEach.call(document.querySelectorAll("[data-count]"),function(el){
+    countTo(el, +el.dataset.count);
+  });
+
+  /* ══ اختلاف المنظر — تفاعل بالمؤشّر لا حركة تلقائية ══ */
+  (function(){
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if(matchMedia("(pointer: coarse)").matches) return;
+    var planes=[
+      { el:document.querySelector(".far"),  k:6 },
+      { el:document.querySelectorAll(".mid"), k:12 },
+      { el:document.querySelector(".near"), k:20 }
+    ];
+    var tx=0,ty=0,cx=0,cy=0,raf=null;
+    addEventListener("pointermove",function(e){
+      tx=(e.clientX/innerWidth -.5)*2;
+      ty=(e.clientY/innerHeight-.5)*2;
+      if(!raf) raf=requestAnimationFrame(tick);
+    },{passive:true});
+    function tick(){
+      cx+=(tx-cx)*.07; cy+=(ty-cy)*.07;
+      planes.forEach(function(p){
+        var t="translate3d("+(-cx*p.k).toFixed(2)+"px,"+(-cy*p.k*.6).toFixed(2)+"px,0)";
+        if(p.el instanceof NodeList) [].forEach.call(p.el,function(n){ n.style.transform=t; });
+        else if(p.el) p.el.style.transform=t;
+      });
+      raf = (Math.abs(tx-cx)>.001||Math.abs(ty-cy)>.001) ? requestAnimationFrame(tick) : null;
+    }
+  })();
+
+  drawChart(); drawOps(); rerender();
+})();
+</script>
+</body>
+</html>
