@@ -131,6 +131,9 @@ button{font:inherit;color:inherit}
    transform على أب فيه backdrop-filter يُنتج أثرًا على الحواف. */
 
 /* ── دفتر الأرقام (متوسطة، أعلى المسرح) ──────────── */
+/* يُرفع القسم كله فوق الشبكة التي تليه، وإلا حبس سياقُ التكديس الناتج عن
+   حركة الشفافية على .plane قيمةَ z-index الخاصة بالقائمة المنسدلة داخله. */
+.ledgerSec{position:relative;z-index:60}
 .ledger{display:grid;gap:0;padding:4px 0;overflow:hidden}
 .fig{padding:15px 20px;border-inline-start:1px solid var(--line-2);position:relative}
 .fig:first-child{border-inline-start:0}
@@ -154,16 +157,28 @@ button{font:inherit;color:inherit}
 .figBtn:hover{background:rgba(255,255,255,.04)}
 .figBtn .figL,.figBtn .figV,.figBtn .figM{display:block}
 .figCue{color:var(--accent);opacity:0;transition:opacity .16s var(--ease)}
+/* مؤشّر الجلسات الصوتية النشطة — النبضة الوحيدة المسموح بها في الشاشة */
+.voiceNow{display:inline-flex;align-items:center;gap:6px;color:var(--clean)}
+.pulse{inline-size:7px;block-size:7px;border-radius:50%;background:var(--clean);
+  flex:none;position:relative;box-shadow:0 0 8px -1px rgba(61,220,151,.6)}
+.pulse::after{content:"";position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid var(--clean);animation:ring 2s var(--ease) infinite}
+@keyframes ring{
+  0%{transform:scale(1);opacity:.85}
+  70%{transform:scale(2.6);opacity:0}
+  100%{transform:scale(2.6);opacity:0}
+}
 .figBtn:hover .figCue,.figBtn:focus-visible .figCue{opacity:1}
 .figBtn[aria-expanded="true"]{background:rgba(255,255,255,.06)}
 .figBtn[aria-expanded="true"] .figCue{opacity:1}
 
-.onlinePanel{position:absolute;z-index:50;inset-inline-end:14px;inset-block-start:calc(100% - 6px);
-  inline-size:min(310px,calc(100vw - 40px));border-radius:14px;overflow:hidden;
-  background:rgba(20,30,25,.86);
-  backdrop-filter:blur(26px) saturate(1.3);-webkit-backdrop-filter:blur(26px) saturate(1.3);
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.14) inset,0 30px 64px -20px rgba(0,0,0,.8)}
+/* قائمة منسدلة: خلفية معتمة تمامًا.
+   الشفافية هنا كانت تجعل نصّها ونص القائمة تحتها يتداخلان. */
+.onlinePanel{position:absolute;z-index:200;inset-inline-end:14px;inset-block-start:calc(100% - 6px);
+  inline-size:min(320px,calc(100vw - 40px));border-radius:14px;overflow:hidden;
+  background:#101b16;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
 .onlinePanel[hidden]{display:none}
 .opHead{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:11px 14px;border-block-end:1px solid var(--line-2);font-size:12.5px;font-weight:600}
@@ -201,13 +216,19 @@ button{font:inherit;color:inherit}
 @media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
 @media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
 
-.ledger{grid-template-columns:repeat(5,minmax(0,1fr))}
-@media(max-width:1180px){ .ledger{grid-template-columns:repeat(3,minmax(0,1fr))} }
-@media(max-width:760px){  .ledger{grid-template-columns:repeat(2,minmax(0,1fr))} }
-/* الحدّ الفاصل الأفقي يختفي في أول عمود من كل صف */
-@media(max-width:1180px){ .fig:nth-child(3n+1){border-inline-start:0} }
-@media(max-width:760px){  .fig{border-inline-start:0}
-  .fig:nth-child(2n){border-inline-start:1px solid var(--line-2)} }
+/* ستّ خانات: 6 ← 3 ← 2. الحدّ الفاصل يُرفع عن أول خانة في كل صف. */
+.ledger{grid-template-columns:repeat(6,minmax(0,1fr))}
+.fig:first-child{border-inline-start:0}
+@media(max-width:1279px){
+  .ledger{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(3n+1){border-inline-start:0}
+}
+@media(max-width:760px){
+  .ledger{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(2n+1){border-inline-start:0}
+}
 
 @media(max-width:620px){
   .stage{padding:16px 14px 24px}
@@ -246,9 +267,9 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 
 .liveHead{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;
   border-block-end:1px solid var(--line-2);flex-wrap:wrap}
+/* ثابتة عمدًا: النبضة الوحيدة في الشاشة هي مؤشّر الجلسات الصوتية. */
 .dot{width:6px;height:6px;border-radius:50%;background:var(--clean);flex:none;
-  box-shadow:0 0 8px -1px rgba(61,220,151,.55);animation:blip 2.6s ease-in-out infinite}
-@keyframes blip{0%,100%{opacity:1}50%{opacity:.35}}
+  box-shadow:0 0 8px -1px rgba(61,220,151,.55)}
 
 .feed{max-block-size:266px;overflow-y:auto;scrollbar-width:thin;
   scrollbar-color:rgba(255,255,255,.16) transparent}
@@ -423,7 +444,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   </div>
 
   <!-- ═══ الطبقة المتوسطة — دفتر الأرقام ═══ -->
-  <section class="plane mid" aria-label="الأرقام الرئيسية">
+  <section class="plane mid ledgerSec" aria-label="الأرقام الرئيسية">
     <div class="pane">
       <div class="ledger">
         <div class="fig hero">
@@ -446,12 +467,21 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
           <div class="figV" data-count="18">18</div>
           <div class="figM"><span id="mOps">من 26 مشغّلاً</span></div>
         </div>
+        <div class="fig">
+          <span class="snap">لحظي</span>
+          <div class="figL">اشتراكات سارية</div>
+          <div class="figV" data-count="26">26</div>
+          <div class="figM"><span>من 31 مشغّلاً مسجّلاً</span></div>
+        </div>
         <button class="fig figBtn" type="button" id="onlineBtn"
                 aria-expanded="false" aria-controls="onlinePanel">
           <span class="snap">لحظي</span>
           <span class="figL">متصلون الآن</span>
           <span class="figV" data-count="7">7</span>
-          <span class="figM"><span>3 جلسات صوتية</span><span class="figCue">عرض القائمة</span></span>
+          <span class="figM">
+            <span class="voiceNow"><span class="pulse" aria-hidden="true"></span>3 جلسات صوتية</span>
+            <span class="figCue">عرض القائمة</span>
+          </span>
         </button>
       </div>
       <div class="onlinePanel" id="onlinePanel" role="dialog" aria-label="المتصلون الآن" hidden>
@@ -469,8 +499,12 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
         <code>screenings</code> و <code>wantedHits</code> و <code>activeUsers</code>.
         «مركبات سليمة» = الفرق بينهما، لأن <code>result</code> محصور في
         <code>safe | wanted</code>.
-        «متصلون الآن» من <code>GET /v1/admin/dashboard/online-users</code> — مؤشّر لحظي فقط:
-        المجموعة عليها <code>TTL</code> بدقيقتين، فلا يمكن رسمه عبر الزمن إطلاقًا.
+        «اشتراكات سارية» من <code>operators.countDocuments</code> بشرط اشتراك ساري —
+        يُقيَّم بلحظة الطلب لا بالتاريخ المختار، ولذلك يحمل شارة «لحظي» ولا يتغيّر مع المدى.
+        «متصلون الآن» و«الجلسات الصوتية» من
+        <code>GET /v1/admin/dashboard/online-users</code> — لحظي أيضًا:
+        <code>operator_presence</code> و <code>active_voice_sessions</code> عليهما
+        <code>TTL</code> بدقيقتين، فلا يمكن رسمهما عبر الزمن إطلاقًا.
       </div>
     </div>
   </section>
