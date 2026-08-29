@@ -275,22 +275,28 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   scrollbar-color:rgba(255,255,255,.16) transparent}
 .feed::-webkit-scrollbar{width:7px}
 .feed::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:99px}
-.row{display:flex;align-items:center;gap:11px;padding:9px 18px;
+/* أعمدة ثابتة لا flex: صفوف «مطلوب» تحمل اسم الجهة وصفوف «غير مطلوبة» لا
+   تحمله، ومع flex كان ذلك يزيح زر الموقع وشارة الحكم بين صف وآخر.
+   عمود الجهة محجوز دائمًا حتى حين يكون فارغًا، فتبقى الأعمدة مصطفّة. */
+.row{display:grid;
+  grid-template-columns:38px 108px 16px minmax(0,1fr) 160px 66px 78px;
+  align-items:center;gap:11px;padding:9px 18px;
   border-block-end:1px solid var(--line-2);font-size:12.5px;
   transition:background .14s var(--ease)}
 .row:last-child{border-block-end:0}
 .row:hover{background:rgba(255,255,255,.045)}
 .rT{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
-  direction:ltr;unicode-bidi:isolate;flex:none;inline-size:36px}
-.rP{font-weight:600;direction:rtl;unicode-bidi:isolate;flex:none;min-inline-size:104px;
+  direction:ltr;unicode-bidi:isolate}
+.rP{font-weight:600;direction:rtl;unicode-bidi:isolate;
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
-.rSrc{flex:none;color:var(--ink-4);display:grid;place-items:center}
+.rSrc{color:var(--ink-4);display:grid;place-items:center}
 .rSrc svg{display:block}
-.rOp{color:var(--ink-2);flex:1;min-inline-size:0;overflow:hidden;
+.rOp{color:var(--ink-2);min-inline-size:0;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;font-size:12px}
-.rOrg{color:var(--ink-3);font-size:10.5px;flex:none}
+.rOrg{color:var(--ink-3);font-size:10.5px;min-inline-size:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
 /* زر الموقع — نفس سلوك لوحة الإدارة الحالية */
-.locBtn{display:inline-flex;align-items:center;gap:5px;flex:none;
+.locBtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;
   font-size:11px;padding:3px 9px;border-radius:8px;text-decoration:none;
   border:1px solid var(--line);background:rgba(255,255,255,.03);
   color:var(--ink-4);cursor:not-allowed;
@@ -300,15 +306,21 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   background:rgba(255,255,255,.08)}
 .locBtn svg{display:block;flex:none}
 .locBtn[disabled]{opacity:.5}
-.rV{flex:none;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
-  border:1px solid currentColor;line-height:1.7}
+.rV{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap}
 .vw{color:var(--wanted)} .vs{color:var(--clean)}
-/* على الشاشات الضيقة: اسم المشغّل والجهة يأخذان سطرًا خاصًا،
-   وإلا انقطع زر الموقع وشارة الحكم خارج حدود الصف. */
-@media(max-width:640px){
-  .row{flex-wrap:wrap;row-gap:7px}
-  .rOp{flex:1 1 100%;order:9}
-  .rOrg{order:10}
+/* على الشاشات الضيقة الصف يصبح سطرين:
+   الوقت واللوحة والموقع والحكم فوق، والمشغّل والجهة تحت.
+   الأعمدة تبقى ثابتة في السطرين فيظل كل شيء مصطفًّا. */
+@media(max-width:760px){
+  .row{grid-template-columns:38px minmax(0,1fr) 66px 78px;row-gap:7px}
+  .rSrc{display:none}
+  .rT  {grid-area:1/1/2/2}
+  .rP  {grid-area:1/2/2/3}
+  .locBtn{grid-area:1/3/2/4}
+  .rV  {grid-area:1/4/2/5}
+  .rOp {grid-area:2/1/3/3}
+  .rOrg{grid-area:2/3/3/5;text-align:end}
 }
 .empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
 .empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
@@ -372,12 +384,12 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
 
 /* ── الدخول ──────────────────────────────────────────
-   الحالة الأساسية ظاهرة، والحركة تُخفي ثم تُظهر فوقها.
-   لو لم تُنفَّذ الحركة لأي سبب تبقى الشاشة مقروءة بدل أن تكون بيضاء. */
+   لا حركة إطلاقًا على اللوحات الزجاجية — لا إزاحة ولا تلاشي.
+   أي حركة على عنصر يحتوي backdrop-filter تجعل المتصفّح يجمّعه في طبقة
+   مؤقّتة ويأخذ عيّنة الخلفية بشكل خاطئ، فيظهر شريط ضبابي على الحافة لا
+   يزول إلا عند أول إعادة رسم — وهو ما كان يظهر بين لوحة المشغّلين والرسم.
+   دخول الصفحة تحمله الأرقام والرسوم، وهي عناصر غير زجاجية. */
 .plane{opacity:var(--pl-ink,1)}
-.far   {animation:rise .7s var(--ease) .00s both}
-.mid   {animation:rise .7s var(--ease) .14s both}
-.near  {animation:rise .7s var(--ease) .28s both}
 /* تلاشٍ فقط، بلا transform إطلاقًا.
    أي إزاحة على عنصر يحتوي backdrop-filter تترك أثرًا ضبابيًا على الحواف
    لا يزول إلا عند أول إعادة رسم — وهذا هو ما كان يظهر عند حافة القائمة. */
@@ -458,7 +470,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
           <div class="figM"><span>نسبة الإصابة</span><span id="mRate">0.30%</span></div>
         </div>
         <div class="fig">
-          <div class="figL">مركبات سليمة</div>
+          <div class="figL">مركبات غير مطلوبة</div>
           <div class="figV" data-count="12809">12,809</div>
           <div class="figM"><span id="mSafe">99.70% من الفحص</span></div>
         </div>
@@ -468,10 +480,8 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
           <div class="figM"><span id="mOps">من 26 مشغّلاً</span></div>
         </div>
         <div class="fig">
-          <span class="snap">لحظي</span>
           <div class="figL">اشتراكات سارية</div>
           <div class="figV" data-count="26">26</div>
-          <div class="figM"><span>من 31 مشغّلاً مسجّلاً</span></div>
         </div>
         <button class="fig figBtn" type="button" id="onlineBtn"
                 aria-expanded="false" aria-controls="onlinePanel">
@@ -497,7 +507,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
       <div class="src">
         الأربعة الأولى من <code>GET /v1/admin/dashboard?date=</code> — الحقول
         <code>screenings</code> و <code>wantedHits</code> و <code>activeUsers</code>.
-        «مركبات سليمة» = الفرق بينهما، لأن <code>result</code> محصور في
+        «مركبات غير مطلوبة» = الفرق بينهما، لأن <code>result</code> محصور في
         <code>safe | wanted</code>.
         «اشتراكات سارية» من <code>operators.countDocuments</code> بشرط اشتراك ساري —
         يُقيَّم بلحظة الطلب لا بالتاريخ المختار، ولذلك يحمل شارة «لحظي» ولا يتغيّر مع المدى.
@@ -872,9 +882,11 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
         '<span class="rP">'+e.plate+'</span>'+
         '<span class="rSrc" title="">'+(e.src==="voice"?IC_VOICE:IC_MANUAL)+'</span>'+
         '<span class="rOp">'+(opName[e.op]||"حساب محذوف")+'</span>'+
-        (w&&e.org ? '<span class="rOrg">'+e.org+'</span>' : '')+
+        /* العمود محجوز دائمًا — فارغ في الصفوف غير المطلوبة — لتبقى
+           الأعمدة التالية مصطفّة بين كل الصفوف */
+        '<span class="rOrg">'+(w&&e.org ? e.org : "")+'</span>'+
         locationAction(e)+
-        '<span class="rV '+(w?"vw":"vs")+'">'+(w?"مطلوب":"سليم")+'</span>'+
+        '<span class="rV '+(w?"vw":"vs")+'">'+(w?"مطلوب":"غير مطلوبة")+'</span>'+
       '</div>';
     }).join("");
   }
@@ -1022,16 +1034,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     countTo(el, +el.dataset.count);
   });
 
-  /* لا اختلاف منظر بالمؤشّر.
-     أي transform على أب يحتوي عنصرًا عليه backdrop-filter يجعل المتصفّح
-     يعيد أخذ عيّنة الخلفية بشكل خاطئ ويترك أثرًا ضبابيًا على الحواف يختفي
-     عند أول إعادة رسم. ولذلك أيضًا نمسح transform الدخول فور انتهائه. */
-  [].forEach.call(document.querySelectorAll(".plane"),function(p){
-    p.addEventListener("animationend",function(){
-      p.style.transform="none";
-      p.style.willChange="auto";
-    },{once:true});
-  });
+  /* لا حركة على اللوحات الزجاجية إطلاقًا — انظر تعليق «الدخول» في CSS. */
 
   /* إعادة الرسم عند تغيّر العرض فقط — الارتفاع لا يؤثّر، وبهذا لا تنشأ حلقة
      لأن الرسم نفسه لا يغيّر عرض العنصر. */
