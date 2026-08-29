@@ -28,8 +28,11 @@
   --near-a:.080; --near-ink:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+/* min-height لا height: الجسم يكبر مع المحتوى، فتغطّيه طبقة المشهد كاملةً
+   وهي مطلقة الموضع بدل ثابتة. */
+html,body{min-block-size:100%}
 body{
+  position:relative;
   background:#06100c;color:var(--ink);
   font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
   line-height:1.7;-webkit-font-smoothing:antialiased;
@@ -39,7 +42,10 @@ button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
 /* ── المشهد ───────────────────────────────────────── */
-.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+/* مطلقة لا ثابتة: الطبقات الثابتة تُركَّب في طبقة منفصلة ولا يُعاد رسمها
+   بشكل موثوق أثناء التمرير، فكان المشهد والتظليل يتأخّران حتى أول إعادة رسم
+   ويبدو أسفل الصفحة أفتح مما ينبغي. */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .lamp{position:absolute;border-radius:50%;filter:blur(110px)}
 .l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
 .l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
@@ -47,7 +53,7 @@ button{font:inherit;color:inherit}
 .l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
 .l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
 .vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
-.grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.035;
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
@@ -187,7 +193,10 @@ button{font:inherit;color:inherit}
 .ou{display:flex;align-items:center;gap:9px;padding:6px 14px;font-size:12.5px}
 .ou .av2{inline-size:22px;block-size:22px;border-radius:50%;display:grid;place-items:center;
   flex:none;font-size:10.5px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
-.ou .vi{margin-inline-start:auto;color:var(--clean);display:grid;place-items:center}
+.ou .ouName{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ثابتة عمدًا — النبضة الوحيدة في الشاشة هي عدّاد الجلسات الصوتية في الأعلى */
+.ou .vdot{margin-inline-start:auto;inline-size:8px;block-size:8px;border-radius:50%;
+  background:var(--clean);flex:none;box-shadow:0 0 7px -1px rgba(61,220,151,.6)}
 .opFoot{padding:9px 14px 11px;border-block-start:1px solid var(--line-2);
   font-size:10.5px;color:var(--ink-4);line-height:1.7}
 
@@ -944,17 +953,19 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   });
 
   /* ── قائمة المتصلين الآن ─────────────────────────── */
-  var IC_MIC = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 3v10"/><path d="M8.5 6.5v3"/><path d="M15.5 6.5v3"/><path d="M5 16.5a7 7 0 0 0 14 0"/></svg>';
   (function(){
     var btn=document.getElementById("onlineBtn"),
         panel=document.getElementById("onlinePanel"),
         groups=document.getElementById("onlineGroups"),
         close=document.getElementById("onlineClose");
 
+    /* نقطة خضراء ثابتة — بلا نبض — على من لديه جلسة صوتية مفتوحة */
     function person(o){
       return '<div class="ou"><span class="av2" aria-hidden="true">'+o.name.charAt(0)+'</span>'+
-             '<span>'+o.name+'</span>'+
-             (o.voice?'<span class="vi" title="">'+IC_MIC+'</span>':'')+'</div>';
+             '<span class="ouName">'+o.name+'</span>'+
+             (o.voice
+               ? '<span class="vdot" role="img" aria-label="جلسة صوتية مفتوحة"></span>'
+               : '')+'</div>';
     }
     var withVoice = ONLINE.filter(function(o){ return o.voice; }),
         plain     = ONLINE.filter(function(o){ return !o.voice; });
