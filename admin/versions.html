@@ -84,7 +84,8 @@ input{font:inherit;color:inherit}
 .seg button:hover{color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
 .seg.segSm button{padding:4px 10px;font-size:11.5px}
-.segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
+/* عنوان حقل، لا زخرفة: ink-3 (5.6:1) لا ink-4 (3.2:1). */
+.segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
@@ -154,6 +155,9 @@ input{font:inherit;color:inherit}
 .snap{position:absolute;inset-block-start:13px;inset-inline-end:16px;
   font-size:9.5px;color:var(--ink-3);border:1px solid var(--line-2);
   padding:1px 6px;border-radius:999px}
+/* الشارة مرفوعة من المجرى، فالعنوان بجوارها يجب أن يحجز مكانها صراحةً —
+   بلا هذا الحجز يمرّ نصّ العنوان تحتها ويتراكب الحرفان. */
+.snap + .figL{padding-inline-end:72px}
 .figBtn{border:0;border-inline-start:1px solid var(--line-2);background:transparent;
   cursor:pointer;text-align:start;display:block;inline-size:100%;
   transition:background .16s var(--ease)}
@@ -191,7 +195,7 @@ input{font:inherit;color:inherit}
   font-size:10.5px;color:var(--ink-3);line-height:1.7}
 
 /* ── مصادر البيانات ──────────────────────────────── */
-.src{display:none;font-size:10.5px;color:var(--ink-4);line-height:1.7;
+.src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
   padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
   direction:rtl}
 .src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
@@ -213,6 +217,10 @@ input{font:inherit;color:inherit}
   .ledger{grid-template-columns:repeat(2,minmax(0,1fr))}
   .fig{border-inline-start:1px solid var(--line-2)}
   .fig:nth-child(2n+1){border-inline-start:0}
+  /* في خانة بعرض نصف الشاشة لا يبقى مكان لحجز 72px: الشارة تنزل إلى المجرى
+     فوق العنوان بدل أن تضغطه في عمود ضيّق. */
+  .snap{position:static;display:inline-block;margin-block-end:4px}
+  .snap + .figL{padding-inline-end:0}
 }
 @media(max-width:620px){
   .stage{padding:16px 14px 24px}
@@ -231,11 +239,102 @@ input{font:inherit;color:inherit}
 .paneBody{padding:14px 18px 16px;font-size:12.5px;color:var(--ink-2);line-height:1.85}
 .paneSub{font-size:11.5px;color:var(--ink-3);padding:10px 18px 0}
 
+/* ══ التصفية — النمط المعتمد ══════════════════════════
+   منقول من prototype/admin/filters.html (النمط ب): شريط المناظير، ثم سطر
+   الأدوات، ثم لوحة التصفية المطويّة، ثم الشريط السياقي، ثم الجدول.
+   لا شيء هنا أُعيد اختراعه. */
+
+/* شريط المناظير — تبويبات لا أزرار مجزّأة */
+.views{display:flex;gap:2px;padding:0 18px;border-block-end:1px solid var(--line-2);
+  overflow-x:auto;scrollbar-width:none}
+.views::-webkit-scrollbar{display:none}
+.view{border:0;background:transparent;cursor:pointer;padding:11px 13px 9px;
+  font-size:12.5px;color:var(--ink-3);white-space:nowrap;position:relative;
+  border-block-end:2px solid transparent;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.view:hover{color:var(--ink-2)}
+.view[aria-selected="true"]{color:var(--ink);border-block-end-color:var(--accent)}
+/* العدّاد رقم غربي معزول: بلا العزل يلتصق بالتسمية العربية فينقلب موضعه. */
+/* عدّاد التبويب معلومة تُقرأ لا زينة: ink-3 (5.6:1 على اللوحة) لا ink-4 (3.2:1). */
+.view .n{font-size:11px;color:var(--ink-3);margin-inline-start:5px;display:inline-block;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate}
+.view[aria-selected="true"] .n{color:var(--ink-2)}
+
+/* سطر الأدوات */
+.tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 18px;
+  border-block-end:1px solid var(--line-2)}
+.srch{position:relative;flex:1;min-inline-size:180px;max-inline-size:300px}
+.srch input{inline-size:100%;background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);border-radius:9px;
+  padding:7px 32px 7px 12px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.srch input::placeholder{color:var(--ink-3)}
+/* بلا transform — الأيقونة تُركَّز بـ calc على ارتفاعها الثابت 13px. */
+.srch svg{position:absolute;inset-inline-start:11px;inset-block-start:calc(50% - 6.5px);
+  color:var(--ink-3);pointer-events:none}
+.ctl{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+  border-radius:9px;padding:7px 12px;font-size:12.5px;color:var(--ink-2);
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease)}
+.ctl:hover{background:rgba(255,255,255,.09);color:var(--ink)}
+.ctl[aria-expanded="true"]{background:rgba(255,255,255,.11);color:var(--ink);
+  border-color:rgba(255,255,255,.2)}
+/* display:inline-flex يتغلّب على [hidden] في ورقة المتصفّح — يجب تعطيله صراحةً. */
+.ctl[hidden]{display:none}
+.ctl .cnt{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+  min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
+  padding-inline:4px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.ctl .cnt[hidden]{display:none}
+.chev{flex:none;color:var(--ink-3)}
+
+/* لوحة التصفية — مطويّة افتراضيًا */
+.panel{border-block-end:1px solid var(--line-2);background:rgba(255,255,255,.03);
+  padding:13px 18px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:14px}
+.panel[hidden]{display:none}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fgL{font-size:11px;color:var(--ink-3)}
+.opts{display:flex;gap:5px;flex-wrap:wrap}
+.opt{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-3);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.opt:hover{color:var(--ink-2)}
+.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
+  border-color:rgba(110,196,155,.45)}
+
+/* الشريط السياقي — hidden بلا تحديد، لا معطّلًا */
+.ctxbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:10px 18px;border-block-end:1px solid var(--line-2);
+  background:rgba(110,196,155,.075)}
+.ctxbar[hidden]{display:none}
+.ctxbar .c{font-size:12.5px;font-weight:600;direction:rtl;unicode-bidi:isolate}
+.ctxbar .c b{display:inline-block;font-weight:600;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.ctxbar .note{font-size:11px;color:var(--ink-3)}
+.ctxbar .sp{margin-inline-start:auto;display:flex;gap:7px;flex-wrap:wrap}
+.abtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35)}
+.abtn.danger:hover{background:rgba(255,107,107,.14)}
+
+/* مربّع التحديد */
+.cb{inline-size:15px;block-size:15px;border-radius:4px;cursor:pointer;padding:0;
+  border:1.5px solid var(--ink-3);background:transparent;display:grid;place-items:center;
+  transition:border-color .15s var(--ease),background .15s var(--ease)}
+.cb:hover:not(:disabled){border-color:var(--ink-2)}
+.cb[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
+.cb[aria-checked="mixed"]{background:rgba(110,196,155,.4);border-color:var(--accent)}
+.cb svg{opacity:0;color:#06100c}
+.cb[aria-checked="true"] svg{opacity:1}
+.cb:disabled{opacity:.35;cursor:not-allowed}
+
 /* ── جدول الإصدارات ──────────────────────────────── */
 /* أعمدة صريحة لا flex: عمود «الأحدث» محجوز دائمًا حتى حين يكون فارغًا،
    وإلا تزحزح عمود التاريخ والحكم بين صف وآخر. */
 .vhead,.vrow{display:grid;
-  grid-template-columns:104px 52px 152px 84px minmax(0,1fr) 46px;
+  grid-template-columns:26px 104px 52px 152px 84px minmax(0,1fr) 46px;
   align-items:center;gap:11px;padding:10px 18px}
 .vhead{padding-block:8px;font-size:10.5px;color:var(--ink-3);
   border-block-end:1px solid var(--line-2)}
@@ -283,13 +382,14 @@ input{font:inherit;color:inherit}
    عمود في الجدول. */
 @media(max-width:760px){
   .vhead{display:none}
-  .vrow{grid-template-columns:104px 52px minmax(0,1fr) 46px;row-gap:8px}
-  .cVer    {grid-area:1/1/2/2}
-  .cLatest {grid-area:1/2/2/3}
-  .cState  {grid-area:1/3/2/4;justify-self:end}
-  .cSw     {grid-area:1/4/2/5}
-  .cDate   {grid-area:2/1/3/5}
-  .cVerdict{grid-area:3/1/4/5;justify-content:flex-start}
+  .vrow{grid-template-columns:20px 104px 52px minmax(0,1fr) 46px;row-gap:8px;gap:9px}
+  .cSel    {grid-area:1/1/2/2}
+  .cVer    {grid-area:1/2/2/3}
+  .cLatest {grid-area:1/3/2/4}
+  .cState  {grid-area:1/4/2/5;justify-self:end}
+  .cSw     {grid-area:1/5/2/6}
+  .cDate   {grid-area:2/1/3/6}
+  .cVerdict{grid-area:3/1/4/6;justify-content:flex-start}
   .vWhat   {white-space:normal;overflow:visible;line-height:1.75}
 }
 
@@ -320,9 +420,6 @@ input{font:inherit;color:inherit}
 
 /* ── محاكي القرار ────────────────────────────────── */
 .simIn{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 18px 4px}
-/* segLbl في الشريط العلوي يعنون مقسّمًا مجزّأً بجواره؛ هنا يعنون حقل إدخال،
-   وعنوان الحقل لا يجوز أن ينزل تحت 4.5:1. */
-.simIn .segLbl{color:var(--ink-3)}
 .simField{flex:1;min-inline-size:160px;position:relative}
 .simField input{inline-size:100%;background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:7px 11px;
@@ -330,7 +427,7 @@ input{font:inherit;color:inherit}
   font-variant-numeric:tabular-nums;
   transition:border-color .16s var(--ease)}
 .simField input:hover{border-color:rgba(255,255,255,.2)}
-.simField input::placeholder{color:var(--ink-4)}
+.simField input::placeholder{color:var(--ink-3)}
 .simPick{display:flex;gap:6px;flex-wrap:wrap;padding:9px 18px 2px}
 .pick{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);
   border-radius:999px;padding:3px 11px;font-size:11px;color:var(--ink-3);cursor:pointer;
@@ -406,7 +503,7 @@ input{font:inherit;color:inherit}
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;direction:ltr;unicode-bidi:isolate}
 .errD{font-size:11.5px;color:var(--ink-3);line-height:1.85;margin-block-start:3px}
 
-.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-4);font-size:11.5px;
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-3);font-size:11.5px;
   display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
 
 @media (prefers-reduced-motion: reduce){
@@ -534,14 +631,50 @@ input{font:inherit;color:inherit}
         <div class="pane">
           <div class="paneHead">
             <span class="paneTitle">الإصدارات المتاحة</span>
-            <span class="paneNote" id="tableNote">7 إصدارات · أحدث إصدار: 1.4.0+9</span>
-            <div class="seg segSm" role="group" aria-label="تصفية الإصدارات" id="filterSeg">
-              <button type="button" data-f="all" aria-pressed="true">الكل</button>
-              <button type="button" data-f="allowed" aria-pressed="false">المسموحة</button>
-              <button type="button" data-f="blocked" aria-pressed="false">المستبعدة</button>
-            </div>
+            <!-- الرقم معزول في bdi حتى قبل أول رسم: بلا العزل ينقلب «1.4.0+9»
+                 داخل الجملة العربية. الرسم يعيد بناء هذا السطر بنفس العزل. -->
+            <span class="paneNote" id="tableNote">7 إصدارات · أحدث إصدار:
+              <bdi dir="ltr">1.4.0+9</bdi></span>
           </div>
-          <div class="vhead" aria-hidden="true">
+
+          <!-- شريط المناظير — بُعد واحد: حكم قائمة السماح. العدّادات تُحسب من
+               VERSIONS عند كل رسم، ولا يُكتب أيّها في الـ markup. -->
+          <div class="views" id="vviews" role="tablist"
+               aria-label="مناظير الإصدارات"></div>
+
+          <!-- سطر الأدوات -->
+          <div class="tools">
+            <label class="srch">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="search" id="vsearch" placeholder="بحث برقم الإصدار"
+                     aria-label="بحث برقم الإصدار" autocomplete="off" spellcheck="false">
+            </label>
+            <button class="ctl" type="button" id="vtog" aria-expanded="false"
+                    aria-controls="vpanel">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+              تصفية <span class="cnt" id="vcnt" hidden>0</span>
+              <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                   stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <button class="ctl" type="button" id="vclear" hidden>مسح التصفية والبحث</button>
+          </div>
+
+          <!-- لوحة التصفية — مطويّة افتراضيًا، وتُعاد ضبطها عند اختيار منظور -->
+          <div class="panel" id="vpanel" hidden></div>
+
+          <!-- شريط الإجراءات السياقي — لا يُرسم إطلاقًا بلا تحديد -->
+          <div class="ctxbar" id="vctx" hidden></div>
+          <div id="bulkConfirm"></div>
+
+          <!-- لوحة التبويبات: التبويب يعلن aria-controls عليها، وهي تعلن التبويب
+               النشط بـ aria-labelledby — وإلا كان role="tab" ادّعاءً بلا هدف. -->
+          <div id="vtabPanel" role="tabpanel" aria-labelledby="vview-all">
+          <div class="vhead">
+            <span><button class="cb" type="button" id="selAll" role="checkbox"
+                    aria-checked="false" aria-label="تحديد كل الإصدارات المعروضة"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l6 6L20 6"/></svg></button></span>
             <span>الإصدار</span>
             <span></span>
             <span>تاريخ الإضافة</span>
@@ -550,6 +683,7 @@ input{font:inherit;color:inherit}
             <span>السماح</span>
           </div>
           <div id="vrows"></div>
+          </div><!-- /vtabPanel -->
           <div class="paneSub">
             تشغيل المفتاح يسري فورًا. إطفاؤه يطلب تأكيدًا، لأنه يوقف أجهزة في الميدان.
           </div>
@@ -565,7 +699,16 @@ input{font:inherit;color:inherit}
             لكل إصدار، وهو محسوب هنا بنسخة حرفية من <code>AppVersionPolicy.decide</code>.
             <span class="nw">غير موجود:</span> لا يوجد مسار لقراءة سجل التدقيق، فلا يمكن عرض
             «من غيّر هذا ومتى» رغم أن الكتابة تحدث فعلًا
-            (<code>app_version.allowed</code> / <code>app_version.blocked</code>).
+            (<code>app_version.allowed</code> / <code>app_version.blocked</code>).<br>
+            المناظير الثلاثة بُعد واحد هو حقل <code>allowed</code> في كل عنصر من
+            <code>items</code>، وعدّاداتها تُحسب في المتصفّح من نفس المصفوفة عند كل رسم —
+            لا يعيد المسار عدّادًا جاهزًا. لوحة التصفية بُعدان آخران: «ما يحدث لأجهزته»
+            محسوب هنا بنسخة <code>AppVersionPolicy.decide</code>، و«أجهزة سجّلت هذا الإصدار»
+            من <code>operators.appVersion</code> بنفس تحفّظ لوحة الأرقام أعلاه. البحث يطابق
+            نصّ <code>version</code> في الصفحة المحمَّلة فقط، بلا استعلام على الخادم.
+            <span class="nw">يحتاج بناءً:</span> الإجراء الجماعي لا يقابله مسار واحد —
+            ينفَّذ بـ <code>PATCH /v1/admin/app-versions/:version</code> لكل إصدار محدَّد
+            على حدة، فلا ذرّية للعملية ولا تراجع تلقائي عند فشل أحدها.
           </div>
         </div>
       </section>
@@ -598,6 +741,9 @@ input{font:inherit;color:inherit}
             <code>null</code> أي «تطبيق قديم»، لا «رقم غير صالح».
             المقارنة مع الأحدث تتم بـ <code>Intl.Collator('en',{numeric:true})</code>، وهي منسوخة
             هنا حرفيًا.
+            «كل طلب من التطبيق» في النتيجة أعلاه تعني كل ما تحت <code>/v1/</code> عدا
+            <code>/v1/admin/</code> و<code>/v1/app/version</code> و
+            <code>/v1/stress/voice</code>.
           </div>
         </div>
       </section>
@@ -644,9 +790,8 @@ input{font:inherit;color:inherit}
               <span class="errB">
                 <span class="errT">جهاز على إصدار مستبعد يحاول العمل</span>
                 <span class="errW">APP_UPDATE_REQUIRED · update:{version,downloadUrl,sha256,sizeBytes}</span>
-                <span class="errD">كل طلب على <code>/v1/</code> يُرفض — عدا مسارات
-                  <code>/v1/admin/</code> ومسار سؤال الإصدار <code>/v1/app/version</code>
-                  ومسار اختبار الضغط الصوتي <code>/v1/stress/voice</code>. أي محاولة فحص للوحة
+                <span class="errD">كل طلب من التطبيق يُرفض — عدا مسارات لوحة الإدارة
+                  ومسار سؤال الإصدار ومسار اختبار الضغط الصوتي. أي محاولة فحص للوحة
                   «ر ن ب 4582» من هذا الجهاز ترتدّ قبل أن تصل إلى قائمة المطلوبين.</span>
               </span>
             </div>
@@ -666,6 +811,9 @@ input{font:inherit;color:inherit}
             <code>type · title · status · code · retryable · reason</code>.
             نص الخطأ الذي تعرضه لوحة الإدارة يأتي من <code>title</code> كما هو — وهو
             <b>بالإنجليزية</b> في الخادم اليوم.
+            المسارات المستثناة من فحص الإصدار (المذكورة في صفّ <code>426</code> أعلاه):
+            <code>/v1/admin/</code> · <code>/v1/app/version</code> ·
+            <code>/v1/stress/voice</code> — وما عداها تحت <code>/v1/</code> يُرفض.
             <span class="nw">يحتاج بناءً:</span> ترجمة عربية لرسائل الأخطاء، أو خريطة
             <code>reason → نص عربي</code> في العميل.
           </div>
@@ -751,8 +899,7 @@ input{font:inherit;color:inherit}
                 <bdi dir="ltr">app_update_required</bdi>.</li>
               <li>أي طلب تالٍ من تلك الأجهزة يُرفض بـ <bdi dir="ltr">426</bdi> مع رابط أحدث
                 إصدار وبصمته.</li>
-              <li>لوحة الإدارة لا تتأثر — مسارات <bdi dir="ltr">/v1/admin/</bdi> مستثناة من
-                الفحص.</li>
+              <li>لوحة الإدارة لا تتأثر — مساراتها مستثناة من الفحص.</li>
               <li>التراجع فوري: إعادة تشغيل المفتاح تعيد الإصدار إلى قائمة السماح في نفس
                 اللحظة.</li>
             </ul>
@@ -764,6 +911,7 @@ input{font:inherit;color:inherit}
             حكمها <code>required-update</code>.
             <span class="nw">غير موجود:</span> لا يوجد عدّاد للجلسات التي أُغلقت بهذا السبب،
             فلا يمكن عرض «أُنهيت N جلسة» بعد التنفيذ دون بناء جديد.
+            «مسارات لوحة الإدارة» في السطر الرابع أعلاه هي <code>/v1/admin/</code>.
           </div>
         </div>
       </section>
@@ -780,13 +928,13 @@ input{font:inherit;color:inherit}
               <span class="relV" id="relVer">1.4.0+9</span></div>
             <div class="relRow"><span class="relK">الحجم</span>
               <span class="relV na">مخزَّن في <code>app_versions.sizeBytes</code> — لا يعيده
-                <code>GET /v1/admin/app-versions</code></span></div>
+                مسار الإدارة</span></div>
             <div class="relRow"><span class="relK">البصمة</span>
-              <span class="relV na">مخزَّنة في <code>app_versions.sha256</code> — لا يعيدها هذا
-                المسار</span></div>
+              <span class="relV na">مخزَّنة في <code>app_versions.sha256</code> — لا يعيدها
+                مسار الإدارة</span></div>
             <div class="relRow"><span class="relK">الرابط</span>
-              <span class="relV na">مخزَّن في <code>app_versions.downloadUrl</code> — لا يعيده هذا
-                المسار</span></div>
+              <span class="relV na">مخزَّن في <code>app_versions.downloadUrl</code> — لا يعيده
+                مسار الإدارة</span></div>
             <div class="relRow"><span class="relK">النشر</span>
               <span class="relV ar">عبر ترحيل قاعدة بيانات، لا من هذه الشاشة</span></div>
           </div>
@@ -854,13 +1002,21 @@ input{font:inherit;color:inherit}
 
   var state = {
     legacy:  false,        /* policy.allowLegacyClients */
-    filter:  "all",
-    pending: null,         /* { kind:'version', version } | { kind:'legacy' } */
+    view:    "all",        /* المنظور المختار — بُعد واحد: حقل allowed */
+    q:       "",           /* بحث برقم الإصدار */
+    f:       {},           /* لوحة التصفية: { kind, ops } */
+    panelOpen:false,       /* اللوحة مطويّة افتراضيًا */
+    sel:     {},           /* التحديد: version → true */
+    pending: null,         /* { kind:'version'|'legacy'|'bulk', … } */
     notice:  null,         /* { message, tone } */
     sim:     "1.2.1+5"
   };
 
   /* أيقونة التحذير — SVG سطري بـ currentColor، لا محرف إيموجي. */
+  var IC_CHECK = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" ' +
+    'aria-hidden="true"><path d="M4 12l6 6L20 6"/></svg>';
+
   var IC_WARN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
     'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ' +
     'aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9' +
@@ -909,6 +1065,32 @@ input{font:inherit;color:inherit}
     "optional-update": "يعمل، ويظهر له تنبيه تحديث لا يوقفه",
     "required-update": "يتوقف تمامًا حتى يثبّت أحدث إصدار"
   };
+
+  /* ══ المناظير — بُعد واحد لا أكثر ═════════════════════
+     البُعد هنا هو حقل allowed في سجل الإصدار (قائمة السماح)، وهو غير
+     decide().kind: الأول قرار المشرف، والثاني حكم السياسة على جهاز.
+     بقيّة الأبعاد تنزل إلى لوحة التصفية أدناه.                            */
+  var VIEWS = [
+    { id:"all",     label:"الكل",  test:function( ){ return true; } },
+    { id:"allowed", label:"مسموح", test:function(r){ return r.allowed; } },
+    { id:"blocked", label:"محظور", test:function(r){ return !r.allowed; } }
+  ];
+  function viewOf(id){
+    for(var i = 0; i < VIEWS.length; i++){ if(VIEWS[i].id === id) return VIEWS[i]; }
+    return VIEWS[0];
+  }
+
+  /* لوحة التصفية — تسميات الأحكام مأخوذة من KIND نفسها، فلا تنشأ مفردة
+     ثانية للحالة الواحدة. */
+  var PANEL = [
+    { k:"kind", label:"ما يحدث لأجهزته", opts:[
+        { v:"allowed",         t:KIND["allowed"].label },
+        { v:"optional-update", t:KIND["optional-update"].label },
+        { v:"required-update", t:KIND["required-update"].label } ] },
+    { k:"ops",  label:"أجهزة سجّلت هذا الإصدار", opts:[
+        { v:"has",  t:"عليها أجهزة" },
+        { v:"none", t:"بلا أجهزة" } ] }
+  ];
 
   /* ══ الأرقام العلوية ══════════════════════════════ */
   function renderLedger(){
@@ -987,15 +1169,107 @@ input{font:inherit;color:inherit}
     }).join("");
   }
 
-  /* ══ جدول الإصدارات ══════════════════════════════ */
-  function visibleRows(){
-    return VERSIONS.filter(function(r){
-      if(state.filter === "allowed") return r.allowed;
-      if(state.filter === "blocked") return !r.allowed;
-      return true;
-    });
+  /* ══ التصفية ═════════════════════════════════════ */
+  /* كل شيء عدا بُعد المنظور: البحث ولوحة التصفية. عدّادات التبويبات تُحسب من
+     هذه القائمة لا من VERSIONS كلها — وإلا أعلن التبويب «4» بينما الجدول تحته
+     يعرض صفًّا واحدًا بعد بحث فعّال. */
+  function baseMatch(r){
+    if(state.q && r.v.indexOf(state.q) === -1) return false;
+    if(state.f.kind && decide(r.v).kind !== state.f.kind) return false;
+    if(state.f.ops === "has"  && !r.ops) return false;
+    if(state.f.ops === "none" &&  r.ops) return false;
+    return true;
+  }
+  function baseRows(){ return VERSIONS.filter(baseMatch); }
+  function matchRow(r){ return viewOf(state.view).test(r) && baseMatch(r); }
+  function visibleRows(){ return VERSIONS.filter(matchRow); }
+  function activeFilters(){
+    var n = 0; for(var k in state.f){ if(state.f[k]) n++; } return n;
   }
 
+  /* التحديد لا يبقى على صف غادر الشاشة: وإلا صار «حُدِّد 3 من 2». */
+  function pruneSel(){
+    var vis = {};
+    visibleRows().forEach(function(r){ vis[r.v] = true; });
+    Object.keys(state.sel).forEach(function(v){ if(!vis[v]) delete state.sel[v]; });
+  }
+  function selected(){
+    return visibleRows().filter(function(r){ return state.sel[r.v]; });
+  }
+
+  /* ══ شريط المناظير — العدّاد محسوب من البيانات، لا مكتوب ══
+     tabindex متدحرج: التبويبات widget واحد في ترتيب Tab، والأسهم تتنقّل بينها —
+     وهذا ما يعنيه role="tab" لقارئ الشاشة. */
+  function renderViews(){
+    var base = baseRows();
+    document.getElementById("vviews").innerHTML = VIEWS.map(function(v){
+      var on = v.id === state.view,
+          n  = base.filter(v.test).length;
+      return '<button class="view" type="button" role="tab" id="vview-' + v.id + '" ' +
+        'data-v="' + v.id + '" aria-controls="vtabPanel" aria-selected="' + on + '" ' +
+        'tabindex="' + (on ? "0" : "-1") + '">' + v.label +
+        '<span class="n">' + fmt(n) + '</span></button>';
+    }).join("");
+    document.getElementById("vtabPanel")
+            .setAttribute("aria-labelledby", "vview-" + state.view);
+  }
+
+  /* ══ لوحة التصفية المطويّة ═══════════════════════ */
+  function renderPanel(){
+    var panel = document.getElementById("vpanel"),
+        tog   = document.getElementById("vtog"),
+        cnt   = document.getElementById("vcnt"),
+        n     = activeFilters();
+
+    panel.hidden = !state.panelOpen;
+    panel.innerHTML = PANEL.map(function(g){
+      return '<div class="fg"><span class="fgL">' + g.label + '</span><span class="opts">' +
+        '<button class="opt" type="button" data-k="' + g.k + '" data-v="" aria-pressed="' +
+          (!state.f[g.k]) + '">الكل</button>' +
+        g.opts.map(function(o){
+          return '<button class="opt" type="button" data-k="' + g.k + '" ' +
+                 'data-v="' + o.v + '" aria-pressed="' + (state.f[g.k] === o.v) + '">' +
+                 o.t + '</button>';
+        }).join("") + '</span></div>';
+    }).join("");
+
+    tog.setAttribute("aria-expanded", String(state.panelOpen));
+    cnt.hidden = n === 0;
+    cnt.textContent = fmt(n);
+    document.getElementById("vclear").hidden = (n === 0 && !state.q);
+  }
+
+  /* ══ الشريط السياقي — hidden بلا تحديد، لا معطّلًا ══ */
+  function renderCtx(){
+    var bar  = document.getElementById("vctx"),
+        host = document.getElementById("bulkConfirm"),
+        sel  = selected(),
+        list = visibleRows();
+
+    bar.hidden = sel.length === 0;
+    if(!sel.length){ bar.innerHTML = ""; host.innerHTML = ""; return; }
+
+    var toAllow = sel.filter(function(r){ return !r.allowed; }),
+        toBlock = sel.filter(function(r){ return r.allowed && r.v !== LATEST; }),
+        hasLatest = sel.some(function(r){ return r.v === LATEST; });
+
+    bar.innerHTML =
+      '<span class="c">حُدِّد <b>' + fmt(sel.length) + '</b> من <b>' + fmt(list.length) +
+        '</b></span>' +
+      (hasLatest ? '<span class="note">الأحدث لا يمكن استبعاده</span>' : '') +
+      '<span class="sp">' +
+        (toAllow.length
+          ? '<button class="abtn" type="button" data-bulk="allow">السماح للمحدَّد</button>' : '') +
+        (toBlock.length
+          ? '<button class="abtn danger" type="button" data-bulk="block">استبعاد المحدَّد</button>' : '') +
+        '<button class="abtn" type="button" data-bulk="clear">إلغاء التحديد</button>' +
+      '</span>';
+
+    host.innerHTML = (state.pending && state.pending.kind === "bulk")
+      ? bulkConfirmBlock(state.pending.versions) : "";
+  }
+
+  /* ══ جدول الإصدارات ══════════════════════════════ */
   function renderTable(){
     var host = document.getElementById("vrows"), rows = visibleRows();
 
@@ -1006,9 +1280,20 @@ input{font:inherit;color:inherit}
         : rows.length + " من " + VERSIONS.length + " إصدارات") +
       ' · أحدث إصدار: <bdi dir="ltr">' + esc(LATEST) + "</bdi>";
 
+    /* النفيان مختلفان: «لا نتائج مطابقة» ≠ «لا يوجد شيء».
+       والتلميح يسمّي السبب القائم فعلًا — نصيحة «امسح التصفية» بلا مرشّح فعّال
+       تُرسل القارئ يبحث عن زرّ غير موجود. */
     if(!rows.length){
-      host.innerHTML = '<div class="empty"><b>لا توجد سجلات مطابقة</b>' +
-        'كل الإصدارات في السجل على الحالة الأخرى — اضغط «الكل».</div>';
+      var why = [];
+      if(state.q) why.push("امسح حقل البحث");
+      if(activeFilters()) why.push("امسح التصفية");
+      if(state.view !== "all") why.push("جرّب منظور «الكل»");
+      host.innerHTML = VERSIONS.length
+        ? '<div class="empty"><b>لا توجد نتائج مطابقة</b>' +
+          'لا إصدار يجمع الشروط الحالية' +
+          (why.length ? ' — ' + esc(why.join(" أو ")) + '.' : '.') + '</div>'
+        : '<div class="empty"><b>لا توجد إصدارات في السجل</b>' +
+          'لم يُنشر أي إصدار عبر ترحيل قاعدة البيانات بعد.</div>';
       return;
     }
 
@@ -1027,8 +1312,14 @@ input{font:inherit;color:inherit}
         'aria-label="' + (r.allowed ? "استبعاد" : "السماح بالإصدار") + ' ' + esc(r.v) + '">' +
         '<span class="switch-track" aria-hidden="true"></span></button>';
 
+      var cb = '<button class="cb cSel" type="button" role="checkbox" ' +
+        'aria-checked="' + (state.sel[r.v] ? "true" : "false") + '" ' +
+        'data-sel="' + esc(r.v) + '" ' +
+        'aria-label="تحديد الإصدار ' + esc(r.v) + '">' + IC_CHECK + '</button>';
+
       var row = '<div class="vrow' + (latest ? " isLatest" : "") +
         (r.allowed ? "" : " blocked") + '">' +
+        cb +
         '<span class="cVer"><bdi dir="ltr">' + esc(r.v) + '</bdi></span>' +
         /* عمود «الأحدث» محجوز دائمًا حتى حين يكون فارغًا */
         (latest ? '<span class="cLatest">الأحدث</span>' : '<span class="cLatest" style="border-color:transparent"></span>') +
@@ -1069,6 +1360,43 @@ input{font:inherit;color:inherit}
         '<button class="btn" type="button" data-act="cancel">إلغاء</button>' +
       '</div>' +
     '</div>';
+  }
+
+  /* التأكيد الجماعي — نفس نصّ الصف الواحد، بصيغة الجمع. الأحدث مستبعَد من
+     القائمة أصلًا لأن الخادم يرفضه بـ 409 latest_version_required. */
+  function bulkConfirmBlock(versions){
+    var ops = 0;
+    VERSIONS.forEach(function(r){ if(versions.indexOf(r.v) > -1) ops += r.ops; });
+    var title = versions.length === 1
+      ? 'استبعاد الإصدار <bdi dir="ltr">' + esc(versions[0]) + '</bdi>؟'
+      : 'استبعاد <bdi dir="ltr">' + versions.length + '</bdi> إصدارات؟';
+
+    return '<div class="confirm" role="alertdialog" aria-label="استبعاد الإصدارات المحدَّدة">' +
+      '<div class="cfT"><span class="warn">' + IC_WARN + '</span><span>' + title + '</span></div>' +
+      '<div class="cfD">سيُطلب من مستخدمي هذه الإصدارات تثبيت أحدث إصدار، وستنتهي جلساتهم ' +
+        'الصوتية النشطة.</div>' +
+      '<ul class="cfList">' +
+        '<li>الإصدارات: <bdi dir="ltr">' + versions.map(esc).join(" · ") + '</bdi></li>' +
+        '<li>' + (ops
+          ? '<b style="color:var(--ink-2);font-weight:500">' + ops +
+            '</b> مشغّلين آخر إصدار سجّلوه هو أحدها.'
+          : 'لا يوجد مشغّل سجّل أيًّا منها مؤخّرًا.') + '</li>' +
+        '<li>كل طلب منهم يُرفض بـ <bdi dir="ltr">426</bdi> حتى يحدّثوا التطبيق.</li>' +
+        '<li>التراجع فوري بإعادة تشغيل مفاتيحها.</li>' +
+      '</ul>' +
+      '<div class="cfBtns">' +
+        '<button class="btn danger" type="button" data-bulkact="confirm">تأكيد الاستبعاد</button>' +
+        '<button class="btn" type="button" data-bulkact="cancel">إلغاء</button>' +
+      '</div></div>';
+  }
+
+  /* مربّع رأس الجدول: محدَّد كليًا / جزئيًا / فارغ */
+  function renderHeadSel(){
+    var btn = document.getElementById("selAll"),
+        list = visibleRows(), n = selected().length;
+    btn.disabled = list.length === 0;
+    btn.setAttribute("aria-checked",
+      (n && n === list.length) ? "true" : (n ? "mixed" : "false"));
   }
 
   /* ══ التطبيقات القديمة ═══════════════════════════ */
@@ -1172,9 +1500,8 @@ input{font:inherit;color:inherit}
 
     var wire;
     if(d.kind === "required-update"){
-      wire = 'الرد: <code>426 APP_UPDATE_REQUIRED</code> على كل مسار ' +
-        '<code>/v1/</code> عدا <code>/v1/admin/</code> و<code>/v1/app/version</code> ' +
-        'و<code>/v1/stress/voice</code>، مع كائن ' +
+      wire = 'الرد: <code>426 APP_UPDATE_REQUIRED</code> على كل طلب من التطبيق — عدا ' +
+        'مسارات لوحة الإدارة ومسار سؤال الإصدار ومسار اختبار الضغط الصوتي، مع كائن ' +
         '<code>update</code> فيه <b>الرابط والبصمة والحجم</b>. ' +
         'وأي جلسة صوتية مفتوحة لهذا الجهاز تُغلق بالسبب ' +
         '<code>app_update_required</code>.';
@@ -1203,24 +1530,34 @@ input{font:inherit;color:inherit}
   }
 
   /* ══ إعادة الرسم ═════════════════════════════════ */
+  /* كل ما يتبع التصفية والتحديد يُعاد رسمه معًا: العدّاد في التبويب والعدّ في
+     الشريط السياقي ومربّع الرأس تقرأ كلّها من نفس نتيجة visibleRows. */
+  function renderList(){
+    pruneSel();
+    renderViews(); renderPanel(); renderTable(); renderHeadSel(); renderCtx();
+  }
   function rerender(){
-    renderLedger(); renderTable(); renderLegacy();
+    renderLedger(); renderList(); renderLegacy();
     renderImpact(); renderPicks(); renderSim(); renderNotice();
   }
 
   /* ══ التغييرات ═══════════════════════════════════
      السماح يسري فورًا بلا تأكيد، والاستبعاد يمرّ بتأكيد —
      وهو نفس سلوك VersionsPage.tsx حرفيًا.                                */
-  function applyVersion(version, allowed){
-    VERSIONS.forEach(function(r){ if(r.v === version) r.allowed = allowed; });
+  function applyVersions(versions, allowed){
+    VERSIONS.forEach(function(r){ if(versions.indexOf(r.v) > -1) r.allowed = allowed; });
     state.pending = null;
     state.notice = {
-      message: allowed ? "تم السماح بالإصدار " + version + "."
-                       : "تم استبعاد الإصدار " + version + ".",
+      message: versions.length === 1
+        ? (allowed ? "تم السماح بالإصدار " + versions[0] + "."
+                   : "تم استبعاد الإصدار " + versions[0] + ".")
+        : (allowed ? "تم السماح بـ " + versions.length + " إصدارات."
+                   : "تم استبعاد " + versions.length + " إصدارات."),
       tone: "success"
     };
     rerender();
   }
+  function applyVersion(version, allowed){ applyVersions([version], allowed); }
   function applyLegacy(allowed){
     state.legacy = allowed;
     state.pending = null;
@@ -1248,16 +1585,34 @@ input{font:inherit;color:inherit}
     var btn = (host || document).querySelector(".confirm .btn.danger");
     if(btn) btn.focus();
   }
+  function focusView(){
+    var tab = document.querySelector('#vviews .view[aria-selected="true"]');
+    if(tab) tab.focus();
+  }
   function focusSwitch(version){
     var el = findSwitch(version);
     if(el && !el.disabled){ el.focus(); return; }
     /* اختفى الصف بفعل التصفية — التركيز يبقى داخل نفس اللوحة. */
-    var seg = document.querySelector('#filterSeg button[aria-pressed="true"]');
-    if(seg) seg.focus();
+    focusView();
+  }
+  /* بعد إجراء جماعي: الشريط السياقي قد يختفي كليًا، فالتركيز يعود إلى المنظور. */
+  function focusCtx(){
+    var b = document.querySelector('#vctx [data-bulk="block"], #vctx [data-bulk="clear"]');
+    if(b) b.focus(); else focusView();
   }
 
   /* ══ التفاعلات ═══════════════════════════════════ */
   document.getElementById("vrows").addEventListener("click", function(e){
+    var cb = e.target.closest(".cb");
+    if(cb){
+      var key = cb.dataset.sel;
+      if(state.sel[key]) delete state.sel[key]; else state.sel[key] = true;
+      if(state.pending && state.pending.kind === "bulk") state.pending = null;
+      renderList();
+      var back = document.querySelector('#vrows .cb[data-sel="' + key + '"]');
+      if(back) back.focus();
+      return;
+    }
     var sw = e.target.closest(".switch");
     if(sw && !sw.disabled){
       var version = sw.dataset.ver,
@@ -1265,7 +1620,7 @@ input{font:inherit;color:inherit}
       if(!nowOn){ applyVersion(version, true); focusSwitch(version); return; }
       state.pending = { kind:"version", version:version };
       state.notice = null;
-      renderTable();
+      renderList();
       focusConfirm();
       return;
     }
@@ -1273,7 +1628,7 @@ input{font:inherit;color:inherit}
     if(!act || !state.pending || state.pending.kind !== "version") return;
     var target = state.pending.version;
     if(act.dataset.act === "cancel"){
-      state.pending = null; renderTable(); focusSwitch(target); return;
+      state.pending = null; renderList(); focusSwitch(target); return;
     }
     applyVersion(target, false);
     focusSwitch(target);
@@ -1300,17 +1655,108 @@ input{font:inherit;color:inherit}
     var p = state.pending;
     state.pending = null;
     if(p.kind === "legacy"){ renderLegacy(); legacySw.focus(); }
-    else { renderTable(); focusSwitch(p.version); }
+    else if(p.kind === "bulk"){ renderList(); focusCtx(); }
+    else { renderList(); focusSwitch(p.version); }
   });
 
-  document.getElementById("filterSeg").addEventListener("click", function(e){
-    var b = e.target.closest("button"); if(!b) return;
-    [].forEach.call(this.querySelectorAll("button"), function(x){
-      x.setAttribute("aria-pressed", String(x === b));
-    });
-    state.filter = b.dataset.f;
+  /* ══ المناظير ═══════════════════════════════════
+     اختيار منظور: يعيد ضبط لوحة التصفية ويطويها، ويمسح التحديد الحالي،
+     ويلغي أي تأكيد مفتوح.                                                */
+  function pickView(id){
+    state.view = id;
+    state.f = {};
+    state.panelOpen = false;
+    state.sel = {};
     state.pending = null;
-    renderTable();
+    renderList();
+    focusView();
+  }
+  document.getElementById("vviews").addEventListener("click", function(e){
+    var b = e.target.closest(".view"); if(!b) return;
+    pickView(b.dataset.v);
+  });
+  /* الاتجاه معكوس: في RTL السهم الأيسر يمضي إلى التبويب التالي بصريًا. */
+  document.getElementById("vviews").addEventListener("keydown", function(e){
+    var ids = VIEWS.map(function(v){ return v.id; }),
+        i   = ids.indexOf(state.view), n = ids.length, to = null;
+    if(e.key === "ArrowLeft")       to = (i + 1) % n;
+    else if(e.key === "ArrowRight") to = (i - 1 + n) % n;
+    else if(e.key === "Home")       to = 0;
+    else if(e.key === "End")        to = n - 1;
+    else return;
+    e.preventDefault();
+    pickView(ids[to]);
+  });
+
+  /* ══ لوحة التصفية ═══════════════════════════════ */
+  document.getElementById("vtog").addEventListener("click", function(){
+    state.panelOpen = !state.panelOpen;
+    renderPanel();
+  });
+  document.getElementById("vpanel").addEventListener("click", function(e){
+    var b = e.target.closest(".opt"); if(!b) return;
+    var k = b.dataset.k;
+    if(b.dataset.v) state.f[k] = b.dataset.v; else delete state.f[k];
+    if(state.pending && state.pending.kind === "bulk") state.pending = null;
+    renderList();
+    var back = document.querySelector('#vpanel .opt[data-k="' + k + '"][data-v="' +
+                                      b.dataset.v + '"]');
+    if(back) back.focus();
+  });
+  document.getElementById("vclear").addEventListener("click", function(){
+    state.f = {};
+    state.q = "";
+    document.getElementById("vsearch").value = "";
+    if(state.pending && state.pending.kind === "bulk") state.pending = null;
+    renderList();
+    focusView();
+  });
+  document.getElementById("vsearch").addEventListener("input", function(){
+    state.q = this.value.trim();
+    if(state.pending && state.pending.kind === "bulk") state.pending = null;
+    renderList();
+  });
+
+  /* ══ التحديد الجماعي ════════════════════════════ */
+  document.getElementById("selAll").addEventListener("click", function(){
+    var list = visibleRows(), n = selected().length;
+    state.sel = {};
+    if(n !== list.length){ list.forEach(function(r){ state.sel[r.v] = true; }); }
+    if(state.pending && state.pending.kind === "bulk") state.pending = null;
+    renderList();
+    this.focus();
+  });
+  document.getElementById("vctx").addEventListener("click", function(e){
+    var b = e.target.closest("[data-bulk]"); if(!b) return;
+    var sel = selected();
+    if(b.dataset.bulk === "clear"){
+      state.sel = {}; state.pending = null; renderList(); focusView(); return;
+    }
+    if(b.dataset.bulk === "allow"){
+      applyVersions(sel.filter(function(r){ return !r.allowed; })
+                       .map(function(r){ return r.v; }), true);
+      focusCtx();
+      return;
+    }
+    /* الاستبعاد يمرّ بتأكيد — والأحدث خارج القائمة لأن الخادم يرفضه بـ 409. */
+    state.pending = {
+      kind: "bulk",
+      versions: sel.filter(function(r){ return r.allowed && r.v !== LATEST; })
+                   .map(function(r){ return r.v; })
+    };
+    state.notice = null;
+    renderCtx();
+    focusConfirm(document.getElementById("bulkConfirm"));
+  });
+  document.getElementById("bulkConfirm").addEventListener("click", function(e){
+    var act = e.target.closest("[data-bulkact]"); if(!act) return;
+    if(!state.pending || state.pending.kind !== "bulk") return;
+    var versions = state.pending.versions;
+    if(act.dataset.bulkact === "cancel"){
+      state.pending = null; renderCtx(); focusCtx(); return;
+    }
+    applyVersions(versions, false);
+    focusCtx();
   });
 
   document.getElementById("simVer").addEventListener("input", function(){

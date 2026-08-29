@@ -30,10 +30,14 @@
   --ease:cubic-bezier(.22,.61,.36,1);
   --far-a:.050; --mid-a:.058; --near-a:.080;
   /* --ink-4 هو أخفت تدرّج في العقد، لكنه يقيس 3.0:1 فوق اللوحة المركَّبة (~#151d19)
-     فلا يصلح لنصّ يُقرأ. --ink-dim أخفت تدرّج نصّي يمرّ 4.5:1 (يقيس 4.7:1)،
-     وهو ما تستعمله كل النصوص الثانوية هنا. --ink-4 يبقى معرّفًا كما في العقد
-     ولا يحمل نصًّا. */
-  --ink-dim:#7d8983;
+     فلا يصلح لنصّ يُقرأ. --ink-dim أخفت تدرّج نصّي يمرّ 4.5:1، وهو ما تستعمله كل
+     النصوص الثانوية هنا. --ink-4 يبقى معرّفًا كما في العقد ولا يحمل نصًّا.
+     القيمة مضبوطة على أفتح سطح يحمل هذا اللون لا على اللوحة العارية: النصوص
+     الثانوية تقع داخل صناديق شفّافة متداخلة (.panel فوق .mid، و.step و.cnt فوق
+     .near) فتُركَّب خلفياتها إلى ~#202824 لا #151d19، وعندها كانت #7d8983 تهبط
+     إلى 4.2:1. #838f89 يقيس 5.4:1 على اللوحة و4.5:1 على أفتح تلك الصناديق،
+     ويبقى أخفت من --ink-3 فيحفظ الترتيب البصري. */
+  --ink-dim:#838f89;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-block-size:100%}
@@ -273,27 +277,82 @@ input.input::placeholder{color:var(--ink-dim)}
 }
 
 /* ── جدول اللوحات ────────────────────────────────── */
-.tabs{display:flex;gap:2px;padding:12px 18px 0;flex-wrap:wrap}
-.tabs button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
-  color:var(--ink-3);padding:7px 13px;border-radius:9px 9px 0 0;
+/* شريط المناظير · سطر الأدوات · لوحة التصفية المطويّة · الشريط السياقي —
+   منقولة من النمط «ب» المعتمد في prototype/admin/filters.html (§11).
+   الأصناف هنا .fbtn و .fbadge لا .ctl و .cnt، لأن هذين الاسمين مأخوذان
+   في هذه الصفحة لعمود لوحة الاستيراد ولبطاقات أرقام المعاينة. */
+.views{display:flex;gap:2px;padding:0 18px;border-block-end:1px solid var(--line-2);
+  overflow-x:auto;scrollbar-width:none}
+.views::-webkit-scrollbar{display:none}
+.view{border:0;background:transparent;cursor:pointer;padding:11px 13px 9px;
+  font-size:12.5px;color:var(--ink-3);white-space:nowrap;
   border-block-end:2px solid transparent;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
-.tabs button:hover{color:var(--ink-2)}
-.tabs button[aria-selected="true"]{color:var(--ink);border-block-end-color:var(--accent)}
-.tabs .c{font-size:10.5px;color:var(--ink-dim);margin-inline-start:6px;
+.view:hover{color:var(--ink-2)}
+.view[aria-selected="true"]{color:var(--ink);border-block-end-color:var(--accent)}
+.view .n{font-size:11px;color:var(--ink-dim);margin-inline-start:6px;display:inline-block;
   font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
-.toolbar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:12px 18px 12px;
+
+.tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px 18px;
   border-block-end:1px solid var(--line-2)}
-.toolbar .search{flex:1 1 240px}
-.selBar{display:none;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 18px 0;
-  padding:9px 14px;border-radius:11px;
-  background:rgba(110,196,155,.07);border:1px solid rgba(110,196,155,.22);
-  font-size:12px;color:var(--ink-2)}
-.selBar.on{display:flex}
-.selBar b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
-.selBar .grow{flex:1;min-inline-size:80px}
-.linkBtn{border:0;background:transparent;color:var(--accent);cursor:pointer;
-  font-size:11.5px;text-decoration:underline;text-underline-offset:3px;padding:2px}
+.srch{position:relative;flex:1 1 200px;max-inline-size:300px}
+.srch input{inline-size:100%;background:rgba(255,255,255,.045);color:var(--ink);
+  border:1px solid rgba(255,255,255,.09);border-radius:9px;
+  padding:7px 32px 7px 12px;font-size:12.5px;
+  transition:border-color .16s var(--ease)}
+.srch input:hover{border-color:rgba(255,255,255,.16)}
+.srch input::placeholder{color:var(--ink-3)}
+/* أيقونة البحث تُركَّز رأسيًا بهامش سالب لا بـ transform: §0 يمنع الـ transform
+   داخل اللوحة الزجاجية. الأيقونة 13px فالإزاحة نصفها. */
+.srch svg{position:absolute;inset-inline-start:10px;inset-block-start:50%;
+  margin-block-start:-6.5px;color:var(--ink-3);pointer-events:none}
+.fbtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+  border-radius:9px;padding:7px 12px;font-size:12.5px;color:var(--ink-2);
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease)}
+.fbtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.fbtn[aria-expanded="true"]{background:rgba(255,255,255,.11);color:var(--ink);
+  border-color:rgba(255,255,255,.2)}
+.fbadge{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+  min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
+  padding-inline:4px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.fbadge[hidden]{display:none}
+.chev{flex:none;color:var(--ink-3)}
+
+.panel{border-block-end:1px solid var(--line-2);background:rgba(255,255,255,.03);
+  padding:14px 18px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:14px}
+.panel[hidden]{display:none}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fgL{font-size:11px;color:var(--ink-3)}
+.fgH{font-size:10.5px;color:var(--ink-dim);line-height:1.7}
+.opts{display:flex;gap:5px;flex-wrap:wrap}
+.opt{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-3);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.opt:hover{color:var(--ink-2)}
+.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
+  border-color:rgba(110,196,155,.45)}
+.opt .n{font-size:10.5px;color:var(--ink-dim);margin-inline-start:6px;display:inline-block;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+/* §11-4: لا يُرسم إطلاقًا بلا تحديد — hidden لا disabled */
+.ctxbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:10px 18px;border-block-end:1px solid var(--line-2);
+  background:rgba(110,196,155,.075)}
+.ctxbar[hidden]{display:none}
+/* «حُدِّد 25 من 48,392» عربي + رقمان: بلا عزل يتسرّب اتجاه ما حول الشريط إلى
+   الرقمين عند التفاف السطر فينقلبان. §5. */
+.ctxbar .c{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;
+  direction:rtl;unicode-bidi:isolate}
+.abtn .ltr{margin-inline-start:3px}
+.ctxbar .sp{margin-inline-start:auto;display:flex;gap:7px;flex-wrap:wrap}
+.abtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease),color .15s var(--ease)}
+.abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35)}
+.abtn.danger:hover{background:rgba(255,107,107,.14)}
 .confirm{margin:12px 18px 0;padding:11px 14px;border-radius:11px;
   border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);
   font-size:12px;color:#ffcccc;display:none;gap:12px;align-items:center;flex-wrap:wrap}
@@ -483,9 +542,9 @@ input.input::placeholder{color:var(--ink-dim)}
         </div>
       </div>
       <div class="src">
-        عدد كل تبويب هو حقل <code>total</code> من
+        عدد كل تصنيف هو حقل <code>total</code> من
         <code>GET /v1/admin/wanted-plates?status=…&amp;page=1&amp;pageSize=25</code> —
-        الواجهة الحالية تطلب تبويبًا واحدًا فقط في كل مرة، فعرض الثلاثة معًا هنا يعني
+        الواجهة الحالية تطلب تصنيفًا واحدًا فقط في كل مرة، فعرض الثلاثة معًا هنا يعني
         ثلاثة طلبات. <span class="nw">يحتاج بناءً:</span> مسار واحد يعيد الأعداد الثلاثة معًا.
         «الجهات في السجل» طول المصفوفة من <code>GET /v1/admin/wanted-plates/organizations</code>.
         «آخر استبدال» من <code>GET /v1/admin/wanted-plates/latest-update</code> — وهو
@@ -499,7 +558,7 @@ input.input::placeholder{color:var(--ink-dim)}
   </section>
 
   <!-- ═══ الاستيراد — الطبقة الأمامية ═══ -->
-  <section class="near imp" id="importSec" aria-labelledby="impTitle">
+  <section class="near imp" id="importSec" aria-labelledby="impTitle" hidden>
     <div class="pane">
       <div class="impHead">
         <div class="t">
@@ -564,35 +623,37 @@ input.input::placeholder{color:var(--ink-dim)}
       <div class="pane">
         <div class="paneHead">
           <span class="paneTitle" id="listTitle">سجل اللوحات المطلوبة</span>
-          <span class="paneNote">يعرض كل صف مخزن مع تصنيفه، بينما يشارك تبويب الفعّالة وحده في البحث الميداني.</span>
+          <span class="paneNote">يعرض كل صف مخزَّن مع تصنيفه، وتصنيف «الفعّالة» وحده يشارك في البحث الميداني.</span>
         </div>
 
-        <!-- التبويبات: نفس نمط WantedPlatesPage.tsx — tabindex متنقّل،
-             aria-controls على لوحة واحدة، وأسهم اليمين/اليسار معكوسة لـ RTL. -->
-        <div class="tabs" role="tablist" aria-label="تصنيف اللوحات" id="tabs">
-          <button type="button" role="tab" id="tab-active" aria-controls="wantedPanel" data-t="active" aria-selected="true" tabindex="0">الفعّالة<span class="c" id="tcActive">48,392</span></button>
-          <button type="button" role="tab" id="tab-forbidden_letters" aria-controls="wantedPanel" data-t="forbidden_letters" aria-selected="false" tabindex="-1">الحروف المحظورة<span class="c" id="tcForb">2</span></button>
-          <button type="button" role="tab" id="tab-invalid_format" aria-controls="wantedPanel" data-t="invalid_format" aria-selected="false" tabindex="-1">الصيغة غير الصالحة<span class="c" id="tcInv">1</span></button>
-        </div>
+        <!-- شريط المناظير (§11): بُعد واحد فقط — الجهة الطالبة. يُبنى من
+             الجهات الموجودة فعلًا في السجل، وكل عدّاد محسوب عند الرسم من أعداد
+             الصفحة نفسها لا مكتوبًا في الـ markup. tabindex متنقّل و
+             aria-controls على لوحة واحدة، وأسهم اليمين/اليسار معكوسة لـ RTL
+             كما في WantedPlatesPage.tsx.
+             التصنيف (فعّالة · حروف محظورة · صيغة غير صالحة) بُعد ثانٍ، فمكانه
+             لوحة التصفية المطويّة لا شريط المناظير. -->
+        <div class="views" role="tablist" aria-label="مناظير حسب الجهة الطالبة" id="views"></div>
 
-        <div id="wantedPanel" role="tabpanel" aria-labelledby="tab-active">
-        <div class="toolbar">
-          <label class="search">
-            <span class="field">البحث في التبويب الحالي</span>
-            <input class="input" id="q" type="search" placeholder="لوحة أو جهة" autocomplete="off">
+        <div id="wantedPanel" role="tabpanel" aria-labelledby="view-0">
+        <div class="tools">
+          <label class="srch">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input id="q" type="search" placeholder="بحث بلوحة أو جهة" aria-label="بحث بلوحة أو جهة" autocomplete="off">
           </label>
-          <button class="btn" type="button" id="bulkBtn" disabled>إجراءات التحديد</button>
-          <button class="btn" type="button" id="impToggle" aria-expanded="true" aria-controls="importSec">إخفاء لوحة الاستيراد</button>
+          <button class="fbtn" type="button" id="filtTog" aria-expanded="false" aria-controls="filtPanel">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+            تصفية <span class="fbadge" id="filtCount" hidden>0</span>
+            <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <button class="fbtn" type="button" id="impToggle" aria-expanded="false" aria-controls="importSec">استبدال البيانات من Excel</button>
         </div>
 
-        <div class="selBar" id="selBar" role="status">
-          <span class="grow">تم تحديد <b id="selCount">0</b> سجل</span>
-          <button class="linkBtn" type="button" id="selAllFilter">تحديد كل نتائج التبويب</button>
-          <button class="linkBtn" type="button" id="selClear">إلغاء التحديد</button>
-          <button class="btn danger sm" type="button" id="delBtn">حذف المحدد</button>
-        </div>
+        <div class="panel" id="filtPanel" hidden></div>
 
-        <!-- خطوة تأكيد صريحة تسمّي العاقبة (كم سجلًا · من أي تبويب · لا تراجع).
+        <div class="ctxbar" id="ctxBar" role="status" hidden></div>
+
+        <!-- خطوة تأكيد صريحة تسمّي العاقبة (كم سجلًا · من أي تصنيف وأي جهة · لا تراجع).
              role="alert" لا "alertdialog": الشريط ليس نافذة ولا يحبس التركيز،
              وادّعاء دور النافذة بلا حبس تركيز عيب في حدّ ذاته. -->
         <div class="confirm" id="confirmBar" role="alert">
@@ -609,19 +670,33 @@ input.input::placeholder{color:var(--ink-dim)}
         </div>
 
         <div class="src">
+          <b>شريط المناظير</b> بُعده «الجهة الطالبة»، وقائمته هي نفسها القيم المميّزة من
+          <code>GET /v1/admin/wanted-plates/organizations</code> مرتّبةً بعدد صفوفها تنازليًا.
+          عدّاد كل منظور محسوب في المتصفّح عند الرسم من أعداد هذه الصفحة نفسها.
+          <span class="nw">يحتاج بناءً:</span> لا مسار يعيد عدد اللوحات لكل جهة اليوم — يلزم
+          <code>$group</code> على <code>organization</code> في <code>wanted_plates</code>
+          مقسّمًا بـ <code>matchStatus</code>، ويلزم كذلك بارامتر <code>organization</code>
+          في مسار القائمة؛ اليوم تُصفّى الجهة عبر <code>q</code> وحده لأنه يطابق اللوحة أو الجهة.
+          <b>التصنيف</b> (<code>status</code>) بُعد ثانٍ فمكانه لوحة التصفية لا شريط المناظير،
+          ولا خيار «الكل» فيه لأن كل صف يحمل تصنيفًا واحدًا وأعمدة الجدول تختلف بينها.
+          <b>رقم الشاسيه: موجود / غير مذكور</b> تصفية على <code>chassisNumber</code> تُطبَّق هنا
+          في المتصفّح — <span class="nw">يحتاج بناءً:</span> لا بارامتر لها في المسار.
           <code>GET /v1/admin/wanted-plates?q=&amp;status=&amp;page=&amp;pageSize=25</code> —
           حجم الصفحة مثبّت على <code>25</code> في
           <code>WantedPlatesPage.tsx</code>، والبحث مؤجَّل <code>350ms</code> ويطابق اللوحة أو الجهة.
           الأعمدة من <code>WantedPlate</code>: <code>letters</code> · <code>numbers</code> ·
           <code>organization</code> · <code>vehicleType</code> · <code>chassisNumber</code> ·
-          <code>forbiddenLetters[]</code>، وفي تبويب الصيغة غير الصالحة
+          <code>forbiddenLetters[]</code>، وفي تصنيف الصيغة غير الصالحة
           <code>originalPlate</code> و <code>invalidReason:'plate_format'</code>.
           <code>vehicleType</code> و <code>chassisNumber</code> اختياريان فعلًا
           (<code>string | null</code>) ويُعرضان «—» عند الغياب، ولذلك عمودهما محجوز دائمًا.
           الحذف: <code>POST /v1/admin/wanted-plates/bulk-delete</code> بجسم
           <code>{selection:{mode:'ids', ids, status}}</code> أو
           <code>{selection:{mode:'filter', status, q, excludedIds}}</code> ويعيد
-          <code>{matched, modified}</code>؛ وهو يحذف من التبويب الحالي فقط.
+          <code>{matched, modified}</code>؛ وهو يحذف من التصنيف الحالي فقط.
+          <span class="nw">حدّ قائم:</span> <code>mode:'filter'</code> لا يحمل جهةً مستقلة، فحذف
+          «كل نتائج المنظور» لجهة بعينها يمرّ عبر <code>q</code> باسم الجهة، ولا يمكن جمعه مع
+          بحث حرّ في الوقت نفسه.
           <span class="nw">فارق عن الواقع:</span> التأكيد هنا شريط داخل الصفحة، بينما الواجهة
           الحقيقية تستخدم <code>ConfirmDialog</code> كنافذة — تجنّبنا <code>position:fixed</code>
           الممنوع في نظام التصميم.
@@ -634,12 +709,13 @@ input.input::placeholder{color:var(--ink-dim)}
       <section class="far" aria-labelledby="orgTitle">
         <div class="pane">
           <div class="paneHead"><span class="paneTitle" id="orgTitle">الجهات في السجل</span></div>
-          <div class="paneSub">اضغط جهة لتصفية الجدول عليها — البحث نفسه يطابق الجهة.</div>
+          <div class="paneSub">اضغط جهة لتبديل منظور الجدول إليها، واضغطها ثانيةً للعودة إلى «الكل».</div>
           <div class="orgList" id="orgList"></div>
           <div class="src">
             <code>GET /v1/admin/wanted-plates/organizations</code> يعيد
             <code>string[]</code> فقط — أسماء بلا أعداد.
-            <span class="nw">يحتاج بناءً:</span> عدد اللوحات لكل جهة في السجل الحيّ غير متاح؛
+            <span class="nw">يحتاج بناءً:</span> عدد اللوحات لكل جهة في السجل الحيّ غير متاح —
+            وعدّادات شريط المناظير في الجدول محسوبة من أعداد العرض التوضيحي وتنتظر التجميعة نفسها؛
             التوزيع حسب الأولوية موجود داخل معاينة الاستيراد وحدها
             (<code>counts.organizationPriorities</code>) ولا يُحسب للسجل الحالي.
             رتبة الأولوية تُحسب في <code>wantedPlateOrganizationPriority()</code> بمطابقة
@@ -678,7 +754,7 @@ input.input::placeholder{color:var(--ink-dim)}
 
 <footer class="foot">
   <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
-  <span>لا يعرض النظام عدد اللوحات لكل جهة في السجل الحيّ ولا الصفوف المرفوضة قبل التأكيد — لا مسار يعيدهما اليوم</span>
+  <span>عدد اللوحات لكل جهة والصفوف المرفوضة قبل التأكيد لا يعيدهما أي مسار اليوم — ما يظهر منهما هنا من بيانات العرض التوضيحي وحدها</span>
   <button class="btn sm" type="button" id="resetDemo">إعادة ضبط العرض التوضيحي</button>
 </footer>
 
@@ -770,11 +846,6 @@ input.input::placeholder{color:var(--ink-dim)}
   }
 
   function sumOf(map){ var t=0; ORGS.forEach(function(o){ t+=map[o]||0; }); return t; }
-  function statusTotal(st){
-    if(st==="active") return sumOf(LIVE.active);
-    if(st==="forbidden_letters") return sumOf(LIVE.forbidden);
-    return sumOf(LIVE.invalid);
-  }
 
   /* ══ الملفات التجريبية ══════════════════════════════
      كل ملف يحمل صفوفه الفعّالة موزّعة على الجهات، ومرفوضاته كذلك،
@@ -831,10 +902,16 @@ input.input::placeholder{color:var(--ink-dim)}
   /* ══ حالة الصفحة ══════════════════════════════════ */
   function freshState(){
     return {
+      /* view = المنظور المحفوظ (الجهة الطالبة) — بُعد شريط التبويبات.
+         tab  = التصنيف (matchStatus) — بُعد ثانٍ، مكانه لوحة التصفية.
+         chs  = وجود رقم الشاسيه من عدمه — مرشّح ثانٍ في اللوحة نفسها. */
+      view:"all", chs:"",
       tab:"active", q:"", page:1,
       sel:{ mode:"ids", ids:[] },
       confirming:false, notice:null,
-      importOpen:true,
+      /* مطويّة افتراضيًا: الاستيراد مهمّة دورية، والقائمة تحتها تُقرأ يوميًا.
+         بقاؤها مفتوحة كان يدفع أول صف بيانات إلى 757px. */
+      importOpen:false,
       imp:{ step:"select", scenario:"clean", scope:"", op:null, msg:null, busy:null }
     };
   }
@@ -847,6 +924,7 @@ input.input::placeholder{color:var(--ink-dim)}
     state = freshState();
     if(prepTimer){ clearTimeout(prepTimer); prepTimer=null; }
     el("q").value="";
+    closePanel();
     renderAll();
   }
 
@@ -861,18 +939,61 @@ input.input::placeholder{color:var(--ink-dim)}
   }
   function rowsFor(){
     var q = state.q.trim();
-    return sample.filter(function(r){ return r.status===state.tab && matches(r,q); });
+    return sample.filter(function(r){
+      if(r.status!==state.tab) return false;
+      if(state.view!=="all" && r.organization!==state.view) return false;
+      if(state.chs==="has"  && !r.chassisNumber) return false;
+      if(state.chs==="none" &&  r.chassisNumber) return false;
+      return matches(r,q);
+    });
   }
   var PAGE_SIZE = 25;
+
+  /* ══ المناظير — بُعد واحد: الجهة الطالبة ═══════════
+     كل عدّاد يُحسب هنا عند الرسم من خرائط الأعداد الحيّة في الصفحة (نفس مصدر
+     أرقام الدفتر أعلى الصفحة)، ولا يُكتب رقم واحد في الـ markup. */
+  var ORG_SHORT = {};
+  ORG_SHORT[ORG1]="العربي"; ORG_SHORT[ORG2]="*العربي"; ORG_SHORT[ORG3]="**العربي";
+  function orgLabel(o){ return ORG_SHORT[o] || o; }
+  function statusMap(st){
+    return st==="active" ? LIVE.active
+         : (st==="forbidden_letters" ? LIVE.forbidden : LIVE.invalid);
+  }
+  function orgTotal(o){
+    return (LIVE.active[o]||0)+(LIVE.forbidden[o]||0)+(LIVE.invalid[o]||0);
+  }
+  /* عدّاد المنظور = صفوف التصنيف الحالي داخل تلك الجهة */
+  function countOf(st, v){
+    var m = statusMap(st);
+    return v==="all" ? sumOf(m) : (m[v]||0);
+  }
+  function viewCount(v){ return countOf(state.tab, v); }
+  /* «الكل» ثم أعلى الجهات بعدد الصفوف المخزَّنة. الترتيب بالإجمالي لا بعدّاد
+     التصنيف الحالي حتى لا يتقافز الشريط كلما تغيّر مرشّح في اللوحة.
+     المنظور المختار يبقى في القائمة دائمًا ولو خرج من الأعلى. */
+  var TOP_VIEWS = 6, VIEWS_CACHE = [];
+  function viewList(){
+    var orgs = livingOrgs().slice().sort(function(a,b){ return orgTotal(b)-orgTotal(a); });
+    var top = orgs.slice(0, TOP_VIEWS);
+    if(state.view!=="all" && orgs.indexOf(state.view)>=0 && top.indexOf(state.view)<0)
+      top.push(state.view);
+    return [{ id:"all", label:"الكل", full:"كل الجهات الطالبة" }].concat(
+      top.map(function(o){ return { id:o, label:orgLabel(o), full:o }; }));
+  }
+  function viewIndex(){
+    for(var i=0;i<VIEWS_CACHE.length;i++) if(VIEWS_CACHE[i].id===state.view) return i;
+    return 0;
+  }
 
   function isSelected(id){
     return state.sel.mode==="filter" ? true : state.sel.ids.indexOf(id)>=0;
   }
-  /* حجم النتيجة المعروضة: بلا بحث هو حجم التبويب كاملاً كما يعيده الباك إند،
-     ومع بحث لا نعرف الحجم الحقيقي للنتيجة (العيّنة نافذة على المجموعة)،
-     فنصرّح بذلك بدل ادّعاء رقم. */
+  /* حجم النتيجة المعروضة: بلا بحث ولا مرشّح محلّي هو حجم المنظور كاملًا كما
+     يعيده الباك إند، ومع أحدهما لا نعرف الحجم الحقيقي للنتيجة (العيّنة نافذة
+     على المجموعة)، فنصرّح بذلك بدل ادّعاء رقم. */
+  function localFilter(){ return !!(state.q.trim() || state.chs); }
   function viewTotal(){
-    return state.q.trim() ? rowsFor().length : statusTotal(state.tab);
+    return localFilter() ? rowsFor().length : viewCount(state.view);
   }
   function selectionCount(){
     return state.sel.mode==="filter" ? viewTotal() : state.sel.ids.length;
@@ -919,10 +1040,13 @@ input.input::placeholder{color:var(--ink-dim)}
   function renderBody(){
     var rows = pageRows(), host = el("tableBody");
     if(!rows.length){
+      /* §11-7: النفيان مختلفان — «لا نتائج مطابقة» عند وجود منظور أو تصفية،
+         و«لا سجلات» حين يكون التصنيف كلّه فارغًا فعلًا. */
+      var narrowed = localFilter() || state.view!=="all";
       host.innerHTML = '<div class="empty"><b>'+
-        (state.q ? "لا توجد نتائج مطابقة" : "لا توجد سجلات في "+TAB_LABEL[state.tab])+'</b>'+
-        (state.q ? "غيّر عبارة البحث أو امسحها لعرض كل الصفوف."
-                 : "ارفع ملف Excel لتحديث هذا التصنيف.")+'</div>';
+        (narrowed ? "لا توجد نتائج مطابقة" : "لا توجد سجلات في تصنيف "+TAB_LABEL[state.tab])+'</b>'+
+        (narrowed ? "جرّب منظور «الكل» أو وسّع لوحة التصفية أو امسح حقل البحث."
+                  : "ارفع ملف Excel لتحديث هذا التصنيف.")+'</div>';
       return;
     }
     host.innerHTML = rows.map(function(r){
@@ -951,9 +1075,9 @@ input.input::placeholder{color:var(--ink-dim)}
     var start = rows.length ? (state.page-1)*PAGE_SIZE+1 : 0,
         end   = Math.min(state.page*PAGE_SIZE, rows.length);
     var out = '<span class="n">عرض <span class="rng">'+fmt(start)+'–'+fmt(end)+'</span> من '+fmt(rows.length)+
-      (state.q.trim()
+      (localFilter()
         ? ' نتيجة في العيّنة التوضيحية'
-        : ' صفًا في العيّنة · حجم التبويب الحقيقي '+fmt(statusTotal(state.tab)))+'</span>';
+        : ' صفًا في العيّنة · حجم المنظور الحقيقي '+fmt(viewCount(state.view)))+'</span>';
     out += '<button class="pgBtn" type="button" data-p="'+(state.page-1)+'"'+
            (state.page<=1?" disabled":"")+' aria-label="الصفحة السابقة">السابق</button>';
     for(var p=1;p<=pages;p++){
@@ -966,16 +1090,25 @@ input.input::placeholder{color:var(--ink-dim)}
   }
 
   function renderSelection(){
-    var n = selectionCount();
-    el("selBar").classList.toggle("on", n>0);
-    el("selCount").textContent = fmt(n);
-    el("bulkBtn").disabled = rowsFor().length===0;
-    el("selAllFilter").hidden = state.sel.mode==="filter";
-    el("selAllFilter").textContent = "تحديد كل نتائج التبويب ("+fmt(viewTotal())+")";
+    var n = selectionCount(), ctx = el("ctxBar");
+    /* §11-4: الشريط السياقي لا يُرسم إطلاقًا بلا تحديد — hidden لا disabled */
+    ctx.hidden = n===0;
+    if(n){
+      ctx.innerHTML =
+        '<span class="c">حُدِّد '+fmt(n)+' من '+fmt(viewTotal())+'</span>'+
+        '<span class="sp">'+
+          (state.sel.mode==="filter" ? ''
+            : '<button class="abtn" type="button" data-act="all">تحديد كل نتائج المنظور '+
+              '<span class="ltr">('+fmt(viewTotal())+')</span></button>')+
+          '<button class="abtn" type="button" data-act="clear">إلغاء التحديد</button>'+
+          '<button class="abtn danger" type="button" data-act="del">حذف المحدد</button>'+
+        '</span>';
+    } else ctx.innerHTML = "";
     el("confirmBar").classList.toggle("on", state.confirming);
     if(state.confirming){
       el("confirmText").textContent =
-        "سيتم حذف "+fmt(n)+" سجل من تبويب "+TAB_LABEL[state.tab]+" فقط.";
+        "سيتم حذف "+fmt(n)+" سجل من تصنيف "+TAB_LABEL[state.tab]+
+        (state.view==="all" ? " في كل الجهات." : " في جهة "+state.view+" وحدها.");
     }
     var nt = el("listNotice");
     if(state.notice){
@@ -987,25 +1120,52 @@ input.input::placeholder{color:var(--ink-dim)}
     } else nt.style.display="none";
   }
 
-  function renderTabs(){
-    [].forEach.call(el("tabs").querySelectorAll("button"),function(b){
-      var on = b.dataset.t===state.tab;
-      b.setAttribute("aria-selected", String(on));
-      /* tabindex متنقّل: Tab يدخل مجموعة التبويبات مرّة واحدة ثم الأسهم تتنقّل */
-      b.tabIndex = on ? 0 : -1;
-    });
-    el("wantedPanel").setAttribute("aria-labelledby","tab-"+state.tab);
-    el("tcActive").textContent = fmt(statusTotal("active"));
-    el("tcForb").textContent   = fmt(statusTotal("forbidden_letters"));
-    el("tcInv").textContent    = fmt(statusTotal("invalid_format"));
+  function renderViews(){
+    VIEWS_CACHE = viewList();
+    el("views").innerHTML = VIEWS_CACHE.map(function(v,i){
+      var on = v.id===state.view;
+      return '<button class="view" type="button" role="tab" id="view-'+i+'" '+
+        'aria-controls="wantedPanel" data-v="'+v.id+'" aria-selected="'+on+'" '+
+        /* tabindex متنقّل: Tab يدخل الشريط مرّة واحدة ثم الأسهم تتنقّل */
+        'tabindex="'+(on?0:-1)+'" title="'+v.full+'">'+v.label+
+        '<span class="n">'+fmt(viewCount(v.id))+'</span></button>';
+    }).join("");
+    el("wantedPanel").setAttribute("aria-labelledby","view-"+viewIndex());
+  }
+
+  /* عدد المرشّحات الفعّالة = ما خرج عن الافتراضي (التصنيف «الفعّالة» + شاسيه «الكل») */
+  function activeFilters(){
+    return (state.tab==="active" ? 0 : 1) + (state.chs ? 1 : 0);
+  }
+  var CHS_OPTS = [["","الكل"],["has","موجود"],["none","غير مذكور"]];
+  function renderPanel(){
+    el("filtPanel").innerHTML =
+      '<div class="fg"><span class="fgL">التصنيف</span><span class="opts">'+
+        STATUS_ORDER.map(function(s){
+          return '<button class="opt" type="button" data-g="tab" data-v="'+s+'" '+
+                 'aria-pressed="'+(state.tab===s)+'">'+TAB_LABEL[s]+
+                 '<span class="n">'+fmt(countOf(s, state.view))+'</span></button>';
+        }).join("")+
+      '</span><span class="fgH">لا خيار «الكل» هنا: كل صف يحمل تصنيفًا واحدًا، '+
+        'وأعمدة الجدول تختلف بين التصنيفات.</span></div>'+
+      '<div class="fg"><span class="fgL">رقم الشاسيه</span><span class="opts">'+
+        CHS_OPTS.map(function(o){
+          return '<button class="opt" type="button" data-g="chs" data-v="'+o[0]+'" '+
+                 'aria-pressed="'+(state.chs===o[0])+'">'+o[1]+'</button>';
+        }).join("")+
+      '</span><span class="fgH">الحقل اختياري فعلًا ويُعرض «—» عند غيابه.</span></div>';
+    var n = activeFilters(), c = el("filtCount");
+    c.hidden = n===0; c.textContent = fmt(n);
   }
 
   function renderList(){
+    /* جهة اختفت من السجل بعد استيراد لا يبقى لها منظور */
+    if(state.view!=="all" && livingOrgs().indexOf(state.view)<0) state.view="all";
     /* قصّ رقم الصفحة قبل أي رسم، وإلا رُسم رأس وجسم فارغان ثم صُحِّح الترقيم بعدهما */
     var pages = Math.max(1, Math.ceil(rowsFor().length/PAGE_SIZE));
     if(state.page>pages) state.page=pages;
     if(state.page<1) state.page=1;
-    renderTabs(); renderHead(); renderBody(); renderPager(); renderSelection();
+    renderViews(); renderPanel(); renderHead(); renderBody(); renderPager(); renderSelection();
   }
 
   /* ══ الأرقام العلوية ══════════════════════════════ */
@@ -1034,7 +1194,7 @@ input.input::placeholder{color:var(--ink-dim)}
     el("orgList").innerHTML = live.length ? live.map(function(o){
       var p = priorityOf(o);
       return '<button class="orgBtn" type="button" data-org="'+o+'" aria-pressed="'+
-        (state.q===o)+'">'+
+        (state.view===o)+'">'+
         '<span class="nm">'+o+'</span>'+
         '<span class="pr'+(p===1?" p1":"")+'">أولوية '+p+'</span></button>';
     }).join("")
@@ -1182,7 +1342,8 @@ input.input::placeholder{color:var(--ink-dim)}
             (I.scope?"جهة واحدة":"كل السجل")+'</dd></div>'+
         '</div>'+
         '<div class="actions"><span class="expiry grow">'+
-          'المرفوضات صارت الآن ظاهرة في تبويبَي «الحروف المحظورة» و«الصيغة غير الصالحة» بالأسفل.'+
+          'المرفوضات صارت الآن ظاهرة في السجل بالأسفل: افتح «تصفية» واختر تصنيف '+
+          '«الحروف المحظورة» أو «الصيغة غير الصالحة».'+
         '</span><button class="btn" type="button" id="againBtn">استيراد ملف آخر</button></div>';
     }
 
@@ -1309,29 +1470,65 @@ input.input::placeholder{color:var(--ink-dim)}
   }
 
   /* ══ التفاعلات ════════════════════════════════════ */
-  var TAB_ORDER = ["active","forbidden_letters","invalid_format"];
-  function selectTab(t){
-    state.tab = t; state.page=1; state.sel={mode:"ids",ids:[]};
-    state.confirming=false; state.notice=null;
-    renderList();
+  var STATUS_ORDER = ["active","forbidden_letters","invalid_format"];
+
+  function closePanel(){
+    el("filtPanel").hidden = true;
+    el("filtTog").setAttribute("aria-expanded","false");
   }
-  el("tabs").addEventListener("click", function(e){
-    var b = e.target.closest("button"); if(!b) return;
-    selectTab(b.dataset.t);
+  /* §11-3: اختيار منظور يُعيد ضبط لوحة التصفية، ويمحو التحديد الحالي
+     لأن معرّفات الصفوف المحدَّدة تخصّ نطاقًا لم يعد معروضًا. */
+  function selectView(v){
+    state.view = v;
+    state.tab = "active"; state.chs = "";
+    state.page = 1; state.sel = {mode:"ids", ids:[]};
+    state.confirming = false; state.notice = null;
+    closePanel();
+    renderList(); renderOrgs();
+  }
+  el("views").addEventListener("click", function(e){
+    var b = e.target.closest("button[role=tab]"); if(!b) return;
+    selectView(b.dataset.v);
   });
   /* لوحة المفاتيح كما في WantedPlatesPage.tsx: في RTL يتقدّم السهم الأيسر
      ويتراجع الأيمن، لأن التبويب التالي يقع بصريًا إلى اليسار. */
-  el("tabs").addEventListener("keydown", function(e){
+  el("views").addEventListener("keydown", function(e){
     var b = e.target.closest("button[role=tab]"); if(!b) return;
-    var i = TAB_ORDER.indexOf(b.dataset.t), n = TAB_ORDER.length, next;
+    var i = +b.id.slice(5), n = VIEWS_CACHE.length, next;
     if(e.key==="ArrowLeft")  next = (i+1)%n;
     if(e.key==="ArrowRight") next = (i-1+n)%n;
     if(e.key==="Home")       next = 0;
     if(e.key==="End")        next = n-1;
     if(next===undefined) return;
     e.preventDefault();
-    selectTab(TAB_ORDER[next]);
-    el("tab-"+TAB_ORDER[next]).focus();
+    selectView(VIEWS_CACHE[next].id);
+    var btn = el("view-"+viewIndex());
+    if(btn) btn.focus();
+  });
+
+  el("filtTog").addEventListener("click", function(){
+    var open = el("filtPanel").hidden;
+    el("filtPanel").hidden = !open;
+    this.setAttribute("aria-expanded", String(open));
+  });
+  /* Escape يطوي اللوحة ويعيد التركيز إلى زرّها. بلا هذا يبقى التركيز داخل لوحة
+     مفتوحة لا سبيل لإغلاقها إلا بالعودة إلى الزر بالفأرة. */
+  el("filtPanel").addEventListener("keydown", function(e){
+    if(e.key!=="Escape") return;
+    closePanel(); el("filtTog").focus();
+  });
+  el("filtPanel").addEventListener("click", function(e){
+    var b = e.target.closest(".opt"); if(!b) return;
+    if(b.dataset.g==="tab"){
+      if(state.tab===b.dataset.v) return;
+      state.tab = b.dataset.v;
+    } else {
+      if(state.chs===b.dataset.v) return;
+      state.chs = b.dataset.v;
+    }
+    state.page=1; state.sel={mode:"ids",ids:[]};
+    state.confirming=false; state.notice=null;
+    renderList();
   });
 
   el("q").addEventListener("input", function(){
@@ -1362,35 +1559,36 @@ input.input::placeholder{color:var(--ink-dim)}
     el("tableHead").scrollIntoView({block:"nearest"});
   });
 
-  el("selAllFilter").addEventListener("click", function(){
-    state.sel = { mode:"filter", ids:[] };
-    renderList();
-  });
-  el("selClear").addEventListener("click", function(){
-    state.sel = { mode:"ids", ids:[] }; state.confirming=false;
-    renderList();
+  /* الشريط السياقي يُعاد بناؤه مع كل رسم، فأزراره موصولة بالتفويض لا فرادى */
+  el("ctxBar").addEventListener("click", function(e){
+    var b = e.target.closest("[data-act]"); if(!b) return;
+    if(b.dataset.act==="all"){ state.sel={mode:"filter",ids:[]}; renderList(); return; }
+    if(b.dataset.act==="clear"){
+      state.sel={mode:"ids",ids:[]}; state.confirming=false; renderList();
+      /* الشريط السياقي يختفي مع آخر تحديد، والزرّ المضغوط معه — فلو تُرك
+         التركيز حيث كان لسقط إلى <body> وعاد Tab من أول الصفحة. */
+      var box = el("selAllPage"); if(box) box.focus();
+      return;
+    }
+    openConfirm();
   });
   /* عند فتح شريط التأكيد ينتقل التركيز إلى «إلغاء» لا إلى «حذف السجلات»:
      الزر الآمن هو الافتراضي، والزر المدمّر يحتاج خطوة إضافية واعية. */
   function openConfirm(){ state.confirming=true; renderSelection(); el("confirmNo").focus(); }
-  el("delBtn").addEventListener("click", openConfirm);
-  el("bulkBtn").addEventListener("click", function(){
-    if(selectionCount()>0){ openConfirm(); return; }
-    state.confirming=false;
-    state.notice={ text:"لم يتم تحديد سجلات.", tone:"danger" };
-    renderSelection();
-  });
   el("confirmNo").addEventListener("click", function(){
-    state.confirming=false; renderSelection(); el("delBtn").focus();
+    state.confirming=false; renderSelection();
+    var back = el("ctxBar").querySelector('[data-act="del"]');
+    if(back) back.focus();
   });
   el("confirmYes").addEventListener("click", function(){
     var rows = rowsFor(), n = selectionCount(), tab = state.tab, q = state.q.trim();
     var live = tab==="active" ? LIVE.active
              : (tab==="forbidden_letters" ? LIVE.forbidden : LIVE.invalid);
     var kill;
-    if(state.sel.mode==="filter" && !q){
-      /* mode:'filter' بلا بحث يحذف التبويب كله في الباك إند */
-      ORGS.forEach(function(o){ live[o]=0; });
+    if(state.sel.mode==="filter" && !q && !state.chs){
+      /* mode:'filter' بلا بحث ولا مرشّح محلّي يحذف المنظور كله في الباك إند:
+         كل الجهات في منظور «الكل»، وجهة واحدة في منظور جهة. */
+      (state.view==="all" ? ORGS : [state.view]).forEach(function(o){ live[o]=0; });
       kill = rows.map(function(r){ return r.id; });
     } else {
       kill = state.sel.mode==="filter" ? rows.map(function(r){ return r.id; })
@@ -1405,18 +1603,17 @@ input.input::placeholder{color:var(--ink-dim)}
     state.confirming=false;
     state.notice={ text:"تم حذف "+fmt(n)+" سجل.", tone:"success" };
     renderAll();
-    /* الزرّ الذي ضُغط اختفى مع شريط التحديد، فلا يُترك التركيز على <body> */
-    var back = el("noticeX") || el("bulkBtn");
+    /* الزرّ الذي ضُغط اختفى مع الشريط السياقي، فلا يُترك التركيز على <body> */
+    var back = el("noticeX") || el("filtTog");
     if(back) back.focus();
   });
 
+  /* قائمة الجهات الجانبية تقود المنظور نفسه، فلا يوجد مسلكان متنافسان
+     للتصفية بالجهة (كانت تكتب اسم الجهة في حقل البحث). */
   el("orgList").addEventListener("click", function(e){
     var b = e.target.closest(".orgBtn"); if(!b) return;
     var o = b.dataset.org;
-    state.q = (state.q===o) ? "" : o;
-    el("q").value = state.q;
-    state.page=1; state.sel={mode:"ids",ids:[]};
-    renderList(); renderOrgs();
+    selectView(state.view===o ? "all" : o);
   });
 
   el("impToggle").addEventListener("click", function(){
@@ -1466,8 +1663,14 @@ input.input::placeholder{color:var(--ink-dim)}
   sample = buildSample();
   state = freshState();
   renderAll();
+  /* الرقم المكتوب في الـ markup هو الحالة الظاهرة قبل تشغيل أي سكربت (§9)،
+     لكن هدف العدّاد يُقرأ من الرقم الذي رسمته renderLedger() من البيانات —
+     وإلا بقي في الترميز رقمٌ ثابت قد ينفصل عن الحساب فيعود العدّاد إليه. */
   [].forEach.call(document.querySelectorAll("[data-count]"), function(elm){
-    countTo(elm, +elm.dataset.count);
+    var target = Number(String(elm.textContent).replace(/,/g,""));
+    if(!isFinite(target)) target = +elm.dataset.count;
+    elm.dataset.count = target;
+    countTo(elm, target);
   });
 })();
 </script>

@@ -78,7 +78,8 @@ button,input,select{font:inherit;color:inherit}
   transition:color .16s var(--ease),background .16s var(--ease)}
 .seg button:hover{color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
-.seg.segSm button{padding:4px 10px;font-size:11.5px}
+/* .seg.segSm سقط مع شريط تصفية الدور القديم: صار الدور مناظيرَ تبويبات (§11)،
+   ولم يبقَ في الصفحة مقسّم مجزّأ سوى «معاينة بدور» في الشريط العلوي. */
 /* --ink-4 يبقى للرسوميات فقط (أيقونة البحث، حلقة الاختيار) حيث يكفي 3:1.
    كل ما يُقرأ رُفع إلى --ink-3. */
 .segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
@@ -143,6 +144,9 @@ button,input,select{font:inherit;color:inherit}
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
   direction:ltr;unicode-bidi:isolate;text-align:start}
 .figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px;display:flex;gap:7px;align-items:baseline}
+/* «من 31 مشغّلاً» و«آخر استيراد: أمس 09:14» شوطان مختلطان (عربية + أرقام):
+   عزل صريح وإلا زحفت النقطتان والفاصلة إلى الطرف الخطأ من الرقم (§5). */
+.figM span{direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
 .fig.hero .figV{color:var(--ink)}
 .fig.warn .figV{color:var(--unread)}
 /* لا شارة «لحظي» هنا: في هذا النظام «لحظي» محجوزة لحضور المشغّلين
@@ -193,11 +197,96 @@ button,input,select{font:inherit;color:inherit}
 /* النائب هنا هو التسمية المرئية الوحيدة للحقل، فلا يصلح عند 3.1:1. */
 .find input::placeholder{color:var(--ink-3)}
 
+/* ── المناظير وسطر الأدوات — النمط المعتمد (§11) ──── */
+/* منقولة من prototype/admin/filters.html (النمط ب): .views/.view ثم .tools ثم
+   .ctxbar ثم الجدول. الفارق الوحيد عن المرجع أن عدّاد المنظور هنا --ink-3 لا
+   --ink-4: القاعدة في هذا الملف أن كل ما يُقرأ يبقى فوق 4.5:1. */
+.views{display:flex;gap:2px;padding:0 18px;overflow-x:auto;scrollbar-width:none;
+  border-block-end:1px solid var(--line-2)}
+.views::-webkit-scrollbar{display:none}
+.view{border:0;background:transparent;cursor:pointer;padding:11px 13px 9px;
+  font-size:12.5px;color:var(--ink-3);white-space:nowrap;
+  border-block-end:2px solid transparent;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.view:hover{color:var(--ink-2)}
+.view[aria-selected="true"]{color:var(--ink);border-block-end-color:var(--accent)}
+.view .n{font-size:11px;color:var(--ink-3);margin-inline-start:5px;display:inline-block;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate}
+.view[aria-selected="true"] .n{color:var(--ink-2)}
+.tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 18px;
+  border-block-end:1px solid var(--line-2)}
+.tools .find{flex:none}
+
+/* زرّ لوحة التصفية + شارة عدد المرشّحات الفعّالة (§11-3).
+   ارتفاعه (29px) دون ارتفاع حقل البحث (35px) فلا يزيد سطر الأدوات شيئًا،
+   واللوحة نفسها hidden فلا تدخل في المسافة قبل أول صف. */
+/* --ink-2 لا --ink-3: خلفية الزرّ (.04 أبيض) فوق لوحة .near (.08) ترفع الأرضية،
+   فيهبط --ink-3 إلى 4.49:1 — تحت العتبة بشعرة. القاعدة في هذا الملف أن كل ما
+   يُقرأ يبقى فوق 4.5:1، فالنصّ --ink-2 (8.1:1) والشيفرون وحده --ink-3. */
+.ctl{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  padding:5px 11px;border-radius:9px;font-size:12.5px;color:var(--ink-2);
+  transition:color .16s var(--ease),border-color .16s var(--ease),background .16s var(--ease)}
+.ctl:hover{color:var(--ink);border-color:rgba(255,255,255,.17)}
+.ctl[aria-expanded="true"]{color:var(--ink);border-color:rgba(110,196,155,.4);
+  background:rgba(110,196,155,.10)}
+.ctl .cnt{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+  min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
+  padding-inline:4px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.ctl .chev{flex:none;color:var(--ink-3);transition:transform .16s var(--ease)}
+/* الحركة على المحتوى غير الزجاجي فقط — .chev ليس لوحة (§0). */
+.ctl[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.panel{padding:13px 18px;border-block-end:1px solid var(--line-2);
+  background:rgba(255,255,255,.03);display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:13px;
+  align-items:start}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fgL{font-size:11px;color:var(--ink-3)}
+.opts{display:flex;gap:5px;flex-wrap:wrap}
+/* نفس السبب: أرضية اللوحة (.03) + أرضية الزرّ (.04) فوق .near تُنزل --ink-3
+   إلى 4.12:1. هذه أسماء مرشّحات تُقرأ، لا زخرفة. */
+.opt{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.opt:hover{color:var(--ink)}
+.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
+  border-color:rgba(110,196,155,.45)}
+.panelEnd{display:flex;align-items:flex-end;justify-content:flex-end}
+.panelEnd .abtn{padding:4px 11px;font-size:11.5px}
+
+/* شريط الإجراءات السياقي — hidden بلا تحديد، لا disabled */
+.ctxbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 18px;
+  border-block-end:1px solid var(--line-2);background:rgba(110,196,155,.075)}
+.ctxbar .c{font-size:12.5px;font-weight:600;
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.ctxbar .sp{margin-inline-start:auto;display:flex;gap:7px;flex-wrap:wrap}
+.abtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+/* --wanted قانون منتج ولا يُستبدل (§3/§11-4)، والمشكلة في الأرضية لا في اللون:
+   أبيض .05 فوق شريط سياقي مخضرّ فوق لوحة .near يعطي 4.33:1 لـ #ff6b6b — تحت
+   العتبة. الأرضية هنا داكنة بدل فاتحة (5.6:1)، والتمرير يزيدها عمقًا لا ضوءًا
+   (6.1:1) ويشدّ الحدّ الأحمر بدلًا من إغراق الخلفية به. */
+.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35);
+  background:rgba(0,0,0,.2)}
+.abtn.danger:hover{background:rgba(0,0,0,.34);border-color:rgba(255,107,107,.62)}
+
+/* مربّع تحديد الصف */
+.cb{inline-size:15px;block-size:15px;border-radius:4px;cursor:pointer;padding:0;
+  border:1.5px solid var(--ink-3);background:transparent;display:grid;place-items:center;
+  transition:border-color .15s var(--ease),background .15s var(--ease)}
+.cb[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
+.cb svg{display:block;opacity:0;color:#06100c}
+.cb[aria-checked="true"] svg{opacity:1}
+.cb[disabled]{opacity:.34;cursor:not-allowed}
+
 /* ── صفوف الجدول ─────────────────────────────────── */
 /* أعمدة صريحة لا flex: عمود «حسابك» اختياري وفارغ في معظم الصفوف،
    ومع flex كانت أزرار الإجراءات تتزحزح بين صف وآخر. العمود محجوز دائمًا. */
 .rowH,.row{display:grid;
-  grid-template-columns:32px minmax(0,1fr) 132px 148px 66px 188px;
+  grid-template-columns:26px 32px minmax(0,1fr) 132px 148px 66px 188px;
   align-items:center;gap:11px;padding:9px 18px;
   border-block-end:1px solid var(--line-2)}
 .rowH{padding-block:8px;font-size:10.5px;color:var(--ink-3);
@@ -237,13 +326,14 @@ button,input,select{font:inherit;color:inherit}
   /* العمود الثالث 110px لا 66px: «مطلوب عند الدخول» كان ينكسر سطرين.
      عرض ثابت لا auto — كل صفّ شبكة مستقلّة، و auto كان يعطي كل صفّ عرضًا
      مختلفًا بحسب نصّه فتفقد الأعمدة اصطفافها بين الصفوف. */
-  .row{grid-template-columns:32px minmax(0,1fr) 110px;row-gap:8px}
-  .av2  {grid-area:1/1/2/2}
-  .uName{grid-area:1/2/2/3}
-  .selfTag{grid-area:1/3/2/4;text-align:end}
-  .chip {grid-area:2/1/3/3;justify-self:start}
-  .pwd  {grid-area:2/3/3/4;text-align:end}
-  .acts {grid-area:3/1/4/4;justify-content:flex-start}
+  .row{grid-template-columns:26px 32px minmax(0,1fr) 110px;row-gap:8px}
+  .cb   {grid-area:1/1/2/2}
+  .av2  {grid-area:1/2/2/3}
+  .uName{grid-area:1/3/2/4}
+  .selfTag{grid-area:1/4/2/5;text-align:end}
+  .chip {grid-area:2/1/3/4;justify-self:start}
+  .pwd  {grid-area:2/4/3/5;text-align:end}
+  .acts {grid-area:3/1/4/5;justify-content:flex-start}
 }
 .empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
 .empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
@@ -367,6 +457,9 @@ button,input,select{font:inherit;color:inherit}
 .sDisabled{color:var(--unread)} .sExpired{color:var(--wanted)} .sDeleted{color:var(--wanted)}
 .wOpen{padding:11px 18px 13px;border-block-end:1px solid var(--line-2);
   background:rgba(0,0,0,.16);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+/* الأعداد داخل السطر العربي («مقبولة 396 · حروف ممنوعة 9») — عزل، وإلا
+   التصقت الفواصل «·» المحايدة بالطرف الخطأ من الرقم. */
+.wOpen b{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
 .plate{display:inline-block;font-weight:600;color:var(--ink);
   direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums;
   font-feature-settings:"tnum" 1;margin-inline-end:12px}
@@ -572,28 +665,45 @@ button,input,select{font:inherit;color:inherit}
           <div class="pane">
             <div class="paneHead">
               <span class="paneTitle">حسابات الإدارة</span>
-              <div class="seg segSm" role="group" aria-label="تصفية حسب الدور" id="filterSeg">
-                <button type="button" data-f="all" aria-pressed="true">الكل</button>
-                <button type="button" data-f="admin" aria-pressed="false">مديرو النظام</button>
-                <button type="button" data-f="mod" aria-pressed="false">مشرفو عمليات</button>
-              </div>
-              <span class="barGrow"></span>
+              <span class="paneNote">المنظور يختار الدور · البحث على اسم المستخدم · «تصفية» لحالة كلمة المرور</span>
+            </div>
+
+            <!-- شريط المناظير — بُعد واحد (الدور)، والعدّادات تُحقن من ACCOUNTS -->
+            <div class="views" id="views" role="tablist" aria-label="مناظير الدور"></div>
+
+            <div class="tools">
               <label class="find">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
                 <input type="search" id="findInput" placeholder="اسم المستخدم" aria-label="بحث باسم المستخدم">
               </label>
+              <!-- لوحة التصفية مطويّة افتراضيًا، والزرّ يحمل عدد المرشّحات الفعّالة
+                   شارةً (§11-3). البُعد الوحيد الباقي بعد الدور (مناظير) والاسم (بحث)
+                   هو mustChangePassword — حقل حقيقي يعيده المسار، لا مرشّح مخترَع. -->
+              <button class="ctl" type="button" id="fTgl" aria-expanded="false" aria-controls="panel">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18"/><path d="M6 12h12"/><path d="M10 19h4"/></svg>
+                <span>تصفية</span>
+                <span class="cnt" id="fCnt" hidden>0</span>
+                <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
             </div>
 
-            <div class="rowH" aria-hidden="true">
-              <span></span>
-              <span>اسم المستخدم</span>
-              <span>الدور</span>
-              <span>تغيير كلمة المرور</span>
-              <span></span>
-              <span style="text-align:end">الإجراء</span>
-            </div>
+            <div class="panel" id="panel" hidden></div>
 
-            <div id="rows"></div>
+            <div class="ctxbar" id="ctxbar" hidden></div>
+
+            <div id="tabPanel" role="tabpanel" aria-labelledby="view-all">
+              <div class="rowH" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span>اسم المستخدم</span>
+                <span>الدور</span>
+                <span>تغيير كلمة المرور</span>
+                <span></span>
+                <span style="text-align:end">الإجراء</span>
+              </div>
+
+              <div id="rows"></div>
+            </div>
 
             <div class="tableFoot">
               <span id="rowsCount">6 حسابات</span>
@@ -609,10 +719,24 @@ button,input,select{font:inherit;color:inherit}
               الترتيب من الخادم على <code>usernameNormalized</code> تصاعديًا.
               <span class="nw">لا ترقيم:</span> <code>accounts.list()</code> يعيد كل
               المستندات دفعةً واحدة بلا <code>page</code> ولا <code>pageSize</code>.
+              <b>المناظير الثلاثة</b> بُعد واحد هو <code>role</code>، وعدّاد كل منظور
+              طولُ تصفيةِ المصفوفة نفسها في المتصفّح عند كل رسم — لا رقم من الخادم:
+              المسار لا يعيد إجماليات ولا يقبل <code>role</code> ولا بحثًا نصّيًا،
+              والبحث هنا على <code>username</code> في المتصفّح كذلك. والعدّاد محسوب
+              <b>بعد</b> تطبيق البحث ولوحة التصفية وقبل تطبيق المنظور نفسه، فيظلّ
+              مجموع «مديرون» و«مشرفون» مساويًا لـ«الكل» في كل حال.
+              <b>لوحة التصفية</b> بُعدها <code>mustChangePassword</code> وحده — وهو
+              حقل حقيقي من الحقول الأربعة، لا مرشّح مخترَع؛ وهو خارج التبويبات لأن
+              التبويب بُعد واحد (§11). تصفية هذه اللوحة تجري في المتصفّح كذلك.
               <b>الأزرار:</b> «كلمة المرور» →
               <code>POST /v1/admin/admins/:id/password</code> · «حذف» →
               <code>DELETE /v1/admin/admins/:id</code>. كلاهما <code>disabled</code>
               على حسابك في الكود الحقيقي.
+              <b>الحذف الجماعي</b> في الشريط السياقي ليس مسارًا جديدًا: هو
+              <code>DELETE /v1/admin/admins/:id</code> مكرَّرًا لكل معرّف محدَّد
+              بالترتيب، بنفس حارسَي <code>admin_self_delete</code> و
+              <code>final_admin</code>، ويقف عند أول <code>CONFLICT</code>. ولهذا
+              حسابك غير قابل للتحديد أصلًا.
               <span class="nw">يحتاج بناءً:</span> «تغيير الدور» و«تعطيل الحساب»
               (المعلَّمان بنقطة برتقالية) <b>لا مسار لهما إطلاقًا</b> —
               عمليات <code>AdminAccountRepository</code> الثماني هي
@@ -623,6 +747,10 @@ button,input,select{font:inherit;color:inherit}
               <b>وليس فيها تعديل دور</b>، ولا يوجد حقل حالة على
               <code>admin_accounts</code>. أقرب موجود اليوم: الحذف (يمحو
               الجلسات) وإعادة تعيين كلمة المرور (تمحو الجلسات وتفرض تغييرًا).
+              المسارات المقترحة لهما — وهي المسارات التي يشير إليها الحواران ولا
+              تُطبَع في الواجهة نفسها (§11-5) — هي
+              <code>PATCH /v1/admin/admins/:id</code> بجسم <code>{ role }</code>
+              و<code>POST /v1/admin/admins/:id/status</code>.
               <span class="nw">ملاحظة تنفيذ:</span> رسائل الخطأ تصل من الخادم
               بالإنجليزية في الحقل <code>title</code> وتُعرض كما هي في اللوحة الحالية
               (<code>lib/api.ts</code>) — معروضة هنا كما تصل، مع شرح عربي تحتها.
@@ -805,8 +933,8 @@ button,input,select{font:inherit;color:inherit}
                 <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>حذف آخر مدير نظام متبقٍّ —
                   <code>CONFLICT · final_admin</code>، بقفل حذف على مستوى قاعدة البيانات</span></li>
                 <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>تغيير كلمة مرور حسابك من هنا —
-                  <code>CONFLICT · admin_self_password_reset</code>، لها مسار
-                  <code>/auth/password</code> يطلب كلمتك الحالية</span></li>
+                  <code>CONFLICT · admin_self_password_reset</code>، ولها مسارها الخاص
+                  الذي يطلب كلمتك الحالية</span></li>
                 <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>كلمة مرور أقصر من 12 محرفًا —
                   <code>INVALID_INPUT</code></span></li>
                 <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>اسم مستخدم مكرّر —
@@ -820,7 +948,9 @@ button,input,select{font:inherit;color:inherit}
               </ul>
             </div>
             <div class="src">
-              الأولى والثالثة من <code>admin-account-administration.ts</code>،
+              الأولى والثالثة من <code>admin-account-administration.ts</code>؛ ومسار
+              تغيير كلمة مرورك أنت المشار إليه في الثالثة هو
+              <code>/v1/admin/auth/password</code> (يطلب الكلمة الحالية)،
               والثانية من <code>deleteGuarded</code> في
               <code>admin-auth-mongo-repository.ts</code> (يعدّ مستندات
               <code>role:'admin'</code> داخل قفل قبل الحذف).
@@ -977,7 +1107,9 @@ button,input,select{font:inherit;color:inherit}
 
   var state = {
     view:"admin",            /* admin | mod — معاينة الدور */
-    filter:"all",            /* all | admin | mod */
+    filter:"all",            /* المنظور النشط: all | admin | mod */
+    f:{ must:"" },           /* لوحة التصفية: "" | due | done */
+    sel:{},                  /* id → true للصفوف المحدَّدة */
     q:"",
     wiz:null,                /* {step, username, role, password} */
     watchOpen:null
@@ -992,6 +1124,7 @@ button,input,select{font:inherit;color:inherit}
   var IC_KEY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 8.3-8.3"/><path d="m17 6 2.5 2.5"/><path d="m14.5 8.5 2.5 2.5"/></svg>';
   var IC_ROLE= '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5.5c0 4 3 7.6 7 9.5 4-1.9 7-5.5 7-9.5V6z"/><path d="m9.2 12 2 2 3.6-3.8"/></svg>';
   var IC_BAN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg>';
+  var IC_TICK= '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l6 6L20 6"/></svg>';
   var IC_DEL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16"/><path d="M9.5 6.5V4.8h5v1.7"/><path d="M6.5 6.5 7.4 20h9.2l.9-13.5"/><path d="M10.3 10v6"/><path d="M13.7 10v6"/></svg>';
 
   /* ══ الإشعار — نفس نغمتَي Notice.tsx ══════════════ */
@@ -1029,26 +1162,151 @@ button,input,select{font:inherit;color:inherit}
     $("mPend").textContent = pend ? "يُطلب عند أول دخول" : "لا شيء معلّق";
   }
 
+  /* ══ المناظير — بُعد واحد: الدور ══════════════════
+     كل عدّاد يُحسب من ACCOUNTS عند كل رسم، فلا رقم مكتوب في الوسم يمكن أن
+     يتخلّف عن الإنشاء أو الحذف. */
+  var VIEWS = [
+    { id:"all",   label:"الكل",   role:null    },
+    { id:"admin", label:"مديرون", role:"admin" },
+    { id:"mod",   label:"مشرفون", role:"mod"   }
+  ];
+  /* العدّاد محسوب من نفس القائمة التي يراها الجدول بعد البحث ولوحة التصفية،
+     وقبل تطبيق المنظور — وإلا أعلن التبويب «4» بينما الجدول يعرض صفًّا واحدًا. */
+  function viewCount(v){
+    return baseList().filter(function(a){ return !v.role || a.role===v.role; }).length;
+  }
+  function drawViews(){
+    $("views").innerHTML = VIEWS.map(function(v){
+      var on = state.filter===v.id;
+      /* tabindex متدحرج: التبويبات widget واحد في ترتيب Tab، والأسهم تتنقّل
+         بينها — وهذا ما يعنيه role="tab" لقارئ الشاشة. */
+      return '<button class="view" type="button" role="tab" id="view-'+v.id+'" '+
+        'data-v="'+v.id+'" aria-controls="tabPanel" aria-selected="'+on+'" '+
+        'tabindex="'+(on?"0":"-1")+'">'+v.label+
+        '<span class="n">'+fmt(viewCount(v))+'</span></button>';
+    }).join("");
+    $("tabPanel").setAttribute("aria-labelledby","view-"+state.filter);
+  }
+  function pickView(id){
+    state.filter = id;
+    /* اختيار منظور يُلغي التحديد القائم — الإجراء الجماعي لا يعبر بين منظورين —
+       ويُعيد ضبط لوحة التصفية (§11-3). */
+    state.sel = {};
+    state.f = { must:"" };
+    drawPanel(); drawViews(); drawRows();
+  }
+  $("views").addEventListener("click", function(e){
+    var b = e.target.closest(".view"); if(!b) return;
+    pickView(b.dataset.v);
+  });
+  $("views").addEventListener("keydown", function(e){
+    var ids = VIEWS.map(function(v){ return v.id; }),
+        i = ids.indexOf(state.filter), n = ids.length, to = null;
+    /* الاتجاه معكوس: في RTL السهم الأيسر يمضي إلى التبويب التالي بصريًا. */
+    if(e.key==="ArrowLeft")       to = (i+1)%n;
+    else if(e.key==="ArrowRight") to = (i-1+n)%n;
+    else if(e.key==="Home")       to = 0;
+    else if(e.key==="End")        to = n-1;
+    else return;
+    e.preventDefault();
+    pickView(ids[to]);
+    var el = $("view-"+ids[to]); if(el) el.focus();
+  });
+
+  /* ══ لوحة التصفية — مطويّة افتراضيًا (§11-3) ══════
+     بُعد واحد: mustChangePassword. حقل حقيقي من الحقول الأربعة التي يعيدها
+     المسار، وليس في التبويبات لأن التبويب بُعد واحد لا اثنان. */
+  var FILTERS = [
+    { k:"must", label:"تغيير كلمة المرور", opts:[
+      { v:"",     t:"الكل" },
+      { v:"due",  t:"مطلوب عند الدخول" },
+      { v:"done", t:"مكتمل" }
+    ]}
+  ];
+  function activeFilters(){
+    var n = 0; for(var k in state.f){ if(state.f[k]) n++; } return n;
+  }
+  function drawPanel(){
+    var n = activeFilters();
+    $("panel").innerHTML = FILTERS.map(function(f){
+      return '<div class="fg"><span class="fgL" id="fgL-'+f.k+'">'+f.label+'</span>'+
+        '<span class="opts" role="group" aria-labelledby="fgL-'+f.k+'">'+
+        f.opts.map(function(o){
+          return '<button class="opt" type="button" data-f="'+f.k+'" data-v="'+o.v+'" '+
+            'aria-pressed="'+(state.f[f.k]===o.v)+'">'+o.t+'</button>';
+        }).join("")+'</span></div>';
+    }).join("") + (n
+      ? '<div class="panelEnd"><button class="abtn" type="button" data-clearf="1">'+
+        'مسح المرشّحات</button></div>'
+      : "");
+    var c = $("fCnt");
+    c.hidden = n===0;
+    c.textContent = n;
+  }
+  $("fTgl").addEventListener("click", function(){
+    var open = $("panel").hidden;
+    $("panel").hidden = !open;
+    this.setAttribute("aria-expanded", String(open));
+  });
+  $("panel").addEventListener("click", function(e){
+    if(e.target.closest("[data-clearf]")){
+      state.f = { must:"" };
+      drawPanel(); drawViews(); drawRows();
+      return;
+    }
+    var b = e.target.closest(".opt"); if(!b) return;
+    state.f[b.dataset.f] = b.dataset.v;
+    drawPanel(); drawViews(); drawRows();
+  });
+
   /* ══ جدول الحسابات ═══════════════════════════════ */
-  function visible(){
+  /* كل ما عدا المنظور: البحث + لوحة التصفية. عليه تُحسب عدّادات المناظير. */
+  function baseList(){
     var q = state.q.trim().toLowerCase();
     return ACCOUNTS.filter(function(a){
-      if(state.filter!=="all" && a.role!==state.filter) return false;
       if(q && a.username.toLowerCase().indexOf(q)===-1) return false;
+      if(state.f.must==="due"  && !a.must) return false;
+      if(state.f.must==="done" &&  a.must) return false;
       return true;
     });
+  }
+  function visible(){
+    return baseList().filter(function(a){
+      return state.filter==="all" || a.role===state.filter;
+    });
+  }
+  function narrowed(){
+    return state.filter!=="all" || Boolean(state.q.trim()) || activeFilters()>0;
   }
   function drawRows(){
     var list = visible(), host = $("rows");
 
+    /* التحديد لا يتجاوز المعروض، وإلا كذب سطر «حُدِّد n من m». */
+    var keep = {};
+    list.forEach(function(a){ if(state.sel[a.id]) keep[a.id] = true; });
+    state.sel = keep;
+
     if(!list.length){
-      host.innerHTML = '<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
-        'جرّب «الكل» أو امسح نصّ البحث — القائمة كلها '+ACCOUNTS.length+' حسابات.</div>';
+      /* النفيان مختلفان (§11-7): «لا مطابق» ليست «لا يوجد شيء». */
+      host.innerHTML = narrowed()
+        ? '<div class="empty"><b>لا توجد نتائج مطابقة</b>'+
+          'لا حساب يجمع بين هذا المنظور وما في البحث ولوحة التصفية — جرّب منظور «الكل» '+
+          'أو امسح البحث أو المرشّحات. القائمة كلها '+ACCOUNTS.length+' حسابات.</div>'
+        : '<div class="empty"><b>لا توجد حسابات إدارة</b>'+
+          'أنشئ حسابًا من لوحة «إنشاء حساب» في العمود الجانبي.</div>';
     } else {
       host.innerHTML = list.map(function(a){
         var self = a.id===ME,
-            adm  = a.role==="admin";
+            adm  = a.role==="admin",
+            on   = Boolean(state.sel[a.id]);
         return '<div class="row'+(self?" isSelf":"")+'">'+
+          /* حسابك غير قابل للتحديد: الإجراء الجماعي الوحيد هو الحذف، والخادم
+             يرفضه دائمًا على الحساب العامل (admin_self_delete). عرض مربّع
+             يقود حتمًا إلى رفض أسوأ من منعه. */
+          '<button class="cb" type="button" role="checkbox" data-sel="'+a.id+'" '+
+            'aria-checked="'+on+'" '+(self?'disabled ':'')+
+            'aria-label="'+esc(self ? "لا يمكن تحديد حسابك — الخادم يرفض حذفه"
+                                    : "تحديد "+a.username)+'">'+IC_TICK+'</button>'+
           '<span class="av2" aria-hidden="true">'+esc(a.username.charAt(0).toUpperCase())+'</span>'+
           '<span class="uName">'+esc(a.username)+'</span>'+
           '<span class="chip '+(adm?"cAdmin":"cMod")+'">'+(adm?"مدير النظام":"مشرف عمليات")+'</span>'+
@@ -1065,12 +1323,28 @@ button,input,select{font:inherit;color:inherit}
       }).join("");
     }
 
+    /* شريط الإجراءات السياقي — لا يُرسم إطلاقًا بلا تحديد (hidden لا disabled) */
+    var picked = Object.keys(state.sel), ctx = $("ctxbar");
+    ctx.hidden = picked.length === 0;
+    if(!picked.length){
+      /* «لا يُرسم إطلاقًا» حرفيًا: hidden يخفيه، وتفريغه يمنع بقاء «حُدِّد 3 من 6»
+         قديمًا في الشجرة حتى التحديد التالي. */
+      ctx.innerHTML = "";
+    } else {
+      ctx.innerHTML =
+        '<span class="c">حُدِّد '+picked.length+' من '+list.length+'</span>'+
+        '<span class="sp">'+
+          '<button class="abtn danger" type="button" data-bulk="del">حذف المحدَّد</button>'+
+          '<button class="abtn" type="button" data-bulk="clear">إلغاء التحديد</button>'+
+        '</span>';
+    }
+
     $("rowsCount").textContent = list.length===ACCOUNTS.length
       ? ACCOUNTS.length+" حسابات"
       : list.length+" من "+ACCOUNTS.length+" حسابات";
-    $("rowsNote").textContent = state.filter==="all" && !state.q
-      ? "القائمة كاملة — بلا ترقيم صفحات"
-      : "تصفية في المتصفّح — المسار لا يقبل بحثًا";
+    $("rowsNote").textContent = narrowed()
+      ? "تصفية في المتصفّح — الخادم لا يقبل بحثًا ولا تصفية"
+      : "القائمة كاملة — بلا ترقيم صفحات";
   }
   function btn(kind, a, icon, label, disabled, proposed){
     /* النقطة البرتقالية وحدها كانت تحمل معنى «مقترح، بلا مسار» — وهي بصرية
@@ -1123,12 +1397,78 @@ button,input,select{font:inherit;color:inherit}
 
   /* ══ الإجراءات على صفّ ═══════════════════════════ */
   $("rows").addEventListener("click", function(e){
+    var c = e.target.closest("button[data-sel]");
+    if(c){
+      if(c.disabled) return;
+      if(state.sel[c.dataset.sel]) delete state.sel[c.dataset.sel];
+      else state.sel[c.dataset.sel] = true;
+      drawRows();
+      return;
+    }
     var b = e.target.closest("button[data-act]");
     if(!b || b.disabled) return;
     var a = ACCOUNTS.filter(function(x){ return x.id===b.dataset.id; })[0];
     if(!a) return;
     ({ pwd:askReset, role:askRole, off:askDisable, del:askDelete })[b.dataset.act](a);
   });
+
+  /* ══ الإجراء الجماعي — من الشريط السياقي وحده ══════
+     لا مسار حذف جماعي في routes/admin.ts: هذا نداء DELETE لكل معرّف على حدة،
+     بنفس حارسَي الحذف المفرد، ويتوقّف عند أول رفض كما يفعل تنفيذ متسلسل. */
+  $("ctxbar").addEventListener("click", function(e){
+    var b = e.target.closest("[data-bulk]"); if(!b) return;
+    if(b.dataset.bulk === "clear"){ state.sel = {}; return drawRows(); }
+    askBulkDelete();
+  });
+
+  function askBulkDelete(){
+    var picked = ACCOUNTS.filter(function(a){ return state.sel[a.id]; });
+    if(!picked.length) return;
+    var admins = ACCOUNTS.filter(function(x){ return x.role==="admin"; }).length,
+        going  = picked.filter(function(x){ return x.role==="admin"; }).length,
+        drains = admins - going <= 0;
+    openDialog({
+      title:"حذف "+picked.length+" من حسابات الإدارة",
+      danger:true,
+      confirmLabel:"حذف المحدَّد",
+      typeToConfirm:"حذف",
+      body:
+        "<p>لا يوجد حذف جماعي على الخادم — سيُرسَل طلب حذف مستقلّ لكل حساب على حدة، "+
+        "بالترتيب، بنفس حارسَي الحذف المفرد، ويتوقّف التنفيذ عند أول رفض.</p>"+
+        "<ul>"+picked.map(function(a){
+          return "<li><b class='u'>"+esc(a.username)+"</b> — "+
+            (a.role==="admin"?"مدير النظام":"مشرف عمليات")+"</li>";
+        }).join("")+"</ul>"+
+        "<p style='margin-block-start:9px'>لكلٍّ منها: حذف المستند نهائيًا من "+
+        "<code>admin_accounts</code> · إنهاء جلساته فورًا · كتابة "+
+        "<code>admin.deleted</code> في سجل التدقيق. لا تراجع ولا سلّة محذوفات."+
+        (drains ? " <b>وهذا يستنفد مديري النظام</b> — الخادم سيرفض الأخير." : "")+"</p>",
+      onConfirm:function(){
+        var done = 0, stop = null;
+        for(var i=0;i<picked.length;i++){
+          var a = picked[i];
+          if(a.id===ME){
+            stop = { a:a, t:"Cannot delete current admin", c:"admin_self_delete" }; break;
+          }
+          if(a.role==="admin" &&
+             ACCOUNTS.filter(function(x){ return x.role==="admin"; }).length<=1){
+            stop = { a:a, t:"Cannot delete final admin", c:"final_admin" }; break;
+          }
+          ACCOUNTS = ACCOUNTS.filter(function(x){ return x.id!==a.id; });
+          done++;
+        }
+        state.sel = {};
+        rerender(true);
+        if(stop){
+          return notice("<b>"+stop.t+"</b> — <code>CONFLICT · "+stop.c+"</code><br>"+
+            "توقّف التنفيذ عند <span class='u'>"+esc(stop.a.username)+"</span> "+
+            (done ? "بعد حذف "+done+" حسابًا." : "قبل حذف أي حساب."),"danger");
+        }
+        notice("تم حذف "+done+" من حسابات الإدارة. <span style='color:var(--ink-3)'>"+
+          "أُنهيت جلساتها · دُوّن <code>admin.deleted</code> لكل واحد منها</span>","success");
+      }
+    });
+  }
 
   /* حذف — تأكيد بالكتابة، ثم الحارسان الحقيقيان */
   function askDelete(a){
@@ -1244,12 +1584,11 @@ button,input,select{font:inherit;color:inherit}
           "<b>غير منفَّذ في الواجهة الخلفية.</b> لا يوجد مسار لتعديل الدور: "+
           "عمليات <code>AdminAccountRepository</code> الكتابية هي "+
           "<code>create</code> و <code>updatePassword</code> و <code>resetPassword</code> و "+
-          "<code>deleteGuarded</code> — ولا واحدة منها تمسّ <code>role</code>، و "+
-          "<code>routes/admin.ts</code> لا يسجّل أي "+
-          "<code>PATCH</code> على <code>/admins/:id</code>. الدور يُحدَّد مرة واحدة عند "+
-          "الإنشاء.<br>"+
-          "المطلوب لبنائه: <code>PATCH /v1/admin/admins/:id</code> بجسم "+
-          "<code>{ role }</code>، مع حارس «لا تُنزِل آخر مدير» مطابق لمنطق "+
+          "<code>deleteGuarded</code> — ولا واحدة منها تمسّ <code>role</code>، ولا "+
+          "يسجّل <code>routes/admin.ts</code> أي عملية تعديل على حساب قائم. الدور "+
+          "يُحدَّد مرة واحدة عند الإنشاء.<br>"+
+          "المطلوب لبنائه: مسار تعديل دور جديد (اسمه في «مصادر البيانات» أسفل جدول "+
+          "الحسابات)، مع حارس «لا تُنزِل آخر مدير» مطابق لمنطق "+
           "<code>deleteGuarded</code>، وإنهاء جلسات الحساب بعد التغيير، وحدث تدقيق "+
           "<code>admin.role.changed</code>."+
         "</div>"+
@@ -1276,8 +1615,8 @@ button,input,select{font:inherit;color:inherit}
           "حالة <code>disabled</code> موجودة للمشغّلين فقط "+
           "(<code>OperatorStatus</code>) لا للمشرفين.<br>"+
           "المطلوب لبنائه: حقل <code>status</code> على المستند، وترحيل، وفحصه في "+
-          "<code>authenticate</code>، ومسار <code>POST /v1/admin/admins/:id/status</code>، "+
-          "وحارس «لا تعطّل آخر مدير»."+
+          "<code>authenticate</code>، ومسار تغيير حالة جديد (اسمه في «مصادر البيانات» "+
+          "أسفل جدول الحسابات)، وحارس «لا تعطّل آخر مدير»."+
         "</div>"+
         "<p style='margin-block-start:10px;color:var(--ink-3);font-size:11.5px'>"+
         "الأقرب المتاح اليوم: <b>الحذف</b> (نهائي، ويمحو الجلسات) أو "+
@@ -1351,7 +1690,8 @@ button,input,select{font:inherit;color:inherit}
       var isAdmin = w.role==="admin";
       body.innerHTML =
         '<div class="review">'+
-          'عند التأكيد يُرسَل <span class="k">POST /v1/admin/admins</span> وينتج عنه:'+
+          /* لا مسار API في الواجهة المرئية (§11-5) — مكانه «مصادر البيانات». */
+          'عند التأكيد يُرسَل طلب إنشاء الحساب إلى الخادم، وينتج عنه:'+
           '<ul>'+
             '<li>حساب باسم <b class="u">'+esc(w.username.trim())+'</b> بدور '+
               (isAdmin?'<b>مدير النظام</b>':'<b>مشرف عمليات</b>')+'.</li>'+
@@ -1469,9 +1809,11 @@ button,input,select{font:inherit;color:inherit}
       apply(b);
     });
   }
-  segment("filterSeg", function(b){ state.filter = b.dataset.f; drawRows(); });
+  /* تصفية الدور لم تعد مقسّمًا مجزّأً — صارت مناظير تبويبات فوق سطر الأدوات (§11)،
+     وبقيّة الأبعاد في لوحة التصفية المطويّة. البحث هنا لأن مكانه سطر الأدوات.
+     drawViews معه: البحث يغيّر عدّادات المناظير، وعدّاد لا يتبع الجدول كذب. */
   $("findInput").addEventListener("input", function(){
-    state.q = this.value; drawRows();
+    state.q = this.value; drawViews(); drawRows();
   });
 
   /* ══ معاينة الدور — تبديل الشاشة كلها ════════════ */
@@ -1491,9 +1833,10 @@ button,input,select{font:inherit;color:inherit}
     document.documentElement.setAttribute("data-src", on ? "1" : "0");
   });
 
-  function rerender(animate){ drawRows(); paintLedger(animate); }
+  /* drawViews داخل rerender: العدّادات تتبع الإنشاء والحذف فورًا. */
+  function rerender(animate){ drawViews(); drawRows(); paintLedger(animate); }
 
-  drawRows(); drawWatch(); paintLedger(true); drawWizard();
+  drawPanel(); drawViews(); drawRows(); drawWatch(); paintLedger(true); drawWizard();
 })();
 </script>
 </body>

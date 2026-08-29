@@ -45,7 +45,7 @@ body{
 }
 button,input,select{font:inherit;color:inherit}
 /* عناصر الشريط والحقول تحمل display صريحًا، فبدون هذا السطر لا تُخفي
-   السمة hidden أزرار «العودة» و«إضافة مستخدم» ولا حقول التصفية في الأرشيف. */
+   السمة hidden أزرار «إضافة مستخدم» و«تصفية» و«مسح التصفية» في الأرشيف. */
 [hidden]{display:none !important}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
@@ -81,16 +81,6 @@ button,input,select{font:inherit;color:inherit}
   transition:color .16s var(--ease),background .16s var(--ease)}
 .nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
 .nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
-
-.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
-  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
-.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
-  color:var(--ink-3);padding:6px 13px;border-radius:7px;
-  transition:color .16s var(--ease),background .16s var(--ease)}
-.seg button:hover{color:var(--ink-2)}
-.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
-.seg.segSm button{padding:4px 10px;font-size:11.5px}
-.segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
@@ -145,8 +135,8 @@ button,input,select{font:inherit;color:inherit}
 .headText{flex:1;min-inline-size:220px}
 .h1{font-size:20px;font-weight:600;line-height:1.5}
 .h1sub{font-size:12px;color:var(--ink-3);margin-block-start:2px}
-.route{font-size:10.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-block-start:4px}
+/* لا يُطبع مسار الـ API ولا الـ query string في واجهة الصفحة (§11 قاعدة 5).
+   الطلب الجاري معروض داخل «مصادر البيانات» وحدها. */
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
   border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);
@@ -168,31 +158,136 @@ button,input,select{font:inherit;color:inherit}
   stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ico.lg{inline-size:14px;block-size:14px}
 
-/* ── شريط الأدوات ────────────────────────────────── */
+/* ── التصفية — النمط المعتمد §11 ──────────────────────
+   الترتيب الملزم: شريط المناظير ← سطر الأدوات ← لوحة التصفية المطويّة
+   ← شريط الإجراءات السياقي ← الجدول. منقول من prototype/admin/filters.html
+   (النمط ب). المناظير بُعد واحد فقط هو حالة المستخدم؛ الاشتراك والنشاط
+   بُعدان آخران فلا يجوز خلطهما في التبويبات — مكانهما اللوحة المطويّة. */
 .toolSec{position:relative;z-index:50}
-.tools{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
-  padding:0 20px 15px;border-block-end:1px solid var(--line-2)}
+
+/* شريط المناظير — تبويبات لا أزرار */
+.views{display:flex;align-items:center;gap:2px;padding:0 20px;
+  border-block-end:1px solid var(--line-2);overflow-x:auto;scrollbar-width:none}
+.views::-webkit-scrollbar{display:none}
+.view{border:0;background:transparent;cursor:pointer;padding:11px 13px 9px;
+  font-size:12.5px;color:var(--ink-3);white-space:nowrap;
+  border-block-end:2px solid transparent;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.view:hover{color:var(--ink-2)}
+.view[aria-selected="true"]{color:var(--ink);border-block-end-color:var(--accent)}
+/* العدّاد مختلط مع نصّ عربي فيلزمه عزل ثنائي الاتجاه وأرقام جدولية.
+   ink-3 لا ink-4: هذا رقم بيانات يقرأه المستخدم ليقرّر أيّ منظور يفتح
+   (§11 قاعدة 2)، و ink-4 يعطي 3.1:1 على اللوحة المركَّبة (~#151d19) —
+   دون 4.5:1. ink-3 يعطي 5.4:1، والمنظور النشط يرتفع إلى ink-2. */
+.view .n{font-size:11px;color:var(--ink-3);margin-inline-start:5px;display:inline-block;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate}
+.view[aria-selected="true"] .n{color:var(--ink-2)}
+/* الأرشيف مسار مستقل، ففاصل رفيع قبله يقول ذلك بلا كلام */
+.viewSep{inline-size:1px;block-size:16px;flex:none;margin-inline:7px;background:var(--line)}
+
+/* سطر الأدوات — الحشو العمودي 10px لا 12px: هو وترويسة الأعمدة كانا يرفعان
+   أول صف بيانات إلى 147px، فوق سقف §11 البالغ 142px. ارتفاع الأزرار نفسه
+   لم يُمسّ (37px) فمساحة اللمس باقية. */
+.tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:10px 20px;border-block-end:1px solid var(--line-2)}
+.srch{position:relative;display:block;flex:1;min-inline-size:180px;max-inline-size:300px}
+.srch input{inline-size:100%;background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.10);border-radius:9px;color:var(--ink);
+  padding:7px 32px 7px 12px;font-size:12.5px;
+  transition:border-color .16s var(--ease)}
+.srch input:hover{border-color:rgba(255,255,255,.18)}
+.srch input::placeholder{color:var(--ink-3)}
+/* بلا transform: الأيقونة تُزاح بالهامش لأن المحيط لوحة زجاجية. */
+.srch .si{position:absolute;inset-inline-start:11px;inset-block-start:50%;
+  margin-block-start:-6px;inline-size:12px;block-size:12px;color:var(--ink-3);
+  stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+.ctl{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);
+  border-radius:9px;padding:7px 12px;font-size:12.5px;color:var(--ink-2);
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease)}
+.ctl:hover{background:rgba(255,255,255,.09);color:var(--ink)}
+.ctl[aria-expanded="true"],.ctl.on{background:rgba(255,255,255,.11);color:var(--ink);
+  border-color:rgba(255,255,255,.2)}
+.ctl .cnt{background:var(--accent);color:#06100c;font-weight:700;font-size:10px;
+  min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
+  padding-inline:4px;font-variant-numeric:tabular-nums}
+/* أي <svg> بلا width/height ولا مقاس في CSS يأخذ مقاس العنصر المستبدل
+   الافتراضي 300×150 فيمطّ الزرّ ومعه الشريط كلّه — المقاس هنا إلزامي. */
+.ctl .chev,.abtn .chev{flex:none;color:var(--ink-3);inline-size:11px;block-size:11px;
+  stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* لوحة التصفية — مطويّة افتراضيًا */
+.panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));
+  gap:14px;padding:13px 20px;background:rgba(255,255,255,.03);
+  border-block-end:1px solid var(--line-2)}
+.fg{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+.fgL{font-size:11px;color:var(--ink-3)}
+.opts{display:flex;gap:5px;flex-wrap:wrap}
+.opt{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-3);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.opt:hover{color:var(--ink-2)}
+.opt[aria-pressed="true"]{background:rgba(110,196,155,.16);color:var(--ink);
+  border-color:rgba(110,196,155,.45)}
+
+/* شريط الإجراءات السياقي — hidden بلا تحديد، لا disabled */
+.ctxbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 20px;border-block-end:1px solid var(--line-2);
+  background:rgba(110,196,155,.075)}
+/* «حُدِّد 12 من 27» — عربي + أرقام في سطر واحد */
+.ctxbar .c{font-size:12.5px;font-weight:600;direction:rtl;unicode-bidi:isolate}
+.ctxbar .cNote{font-size:11px;color:var(--ink-3);direction:rtl;unicode-bidi:isolate}
+.ctxbar .sp{margin-inline-start:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.abtn{display:inline-flex;align-items:center;gap:6px;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--ink-2);
+  direction:rtl;unicode-bidi:isolate;
+  transition:background .15s var(--ease),color .15s var(--ease)}
+.abtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.abtn[aria-expanded="true"]{background:rgba(255,255,255,.13);color:var(--ink);
+  border-color:rgba(255,255,255,.22)}
+.abtn.danger{color:var(--wanted);border-color:rgba(255,107,107,.35)}
+.abtn.danger:hover{background:rgba(255,107,107,.14)}
+.abtn.go{color:var(--accent);border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.10)}
+.abtn.go:hover{background:rgba(110,196,155,.17)}
+.abtn[disabled]{opacity:.42;cursor:not-allowed}
+.abtn[disabled]:hover{background:rgba(255,255,255,.05);color:var(--ink-2)}
+
+/* قائمة منسدلة معتمة — القسم الحاوي مرفوع بـ .toolSec{z-index:50} */
+.anchor{position:relative;display:inline-flex}
+.pop{position:absolute;z-index:200;inset-block-start:calc(100% + 6px);inset-inline-start:0;
+  min-inline-size:206px;border-radius:12px;overflow:hidden;text-align:start;
+  background:#101b16;border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 30px 60px -18px rgba(0,0,0,.9)}
+/* ink-3 لا ink-4: عنوان القسم داخل القائمة يشرح ما تفعله البنود تحته
+   («الحالة الجديدة»، «شهر واحد افتراضيًا») فهو نصّ يُقرأ. خلفية القائمة
+   معتمة #101b16، و ink-4 عليها 3.2:1 مقابل 5.5:1 لـ ink-3. */
+.popT{font-size:10.5px;color:var(--ink-3);padding:9px 13px 5px}
+.popI{display:flex;align-items:center;gap:9px;inline-size:100%;text-align:start;
+  border:0;background:transparent;cursor:pointer;padding:7px 13px;font-size:12.5px;
+  color:var(--ink-2);transition:background .14s var(--ease)}
+.popI:hover{background:rgba(255,255,255,.07);color:var(--ink)}
+.popForm{padding:4px 13px 12px;display:grid;gap:11px;min-inline-size:262px}
+.popDates{display:flex;gap:9px}
+.popAct{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.popErr{font-size:10.5px;color:var(--unread);direction:rtl;unicode-bidi:isolate}
+
 .field{display:flex;flex-direction:column;gap:5px;min-inline-size:0}
 .fieldL{font-size:11px;color:var(--ink-3)}
-.inp,.sel{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);
+.inp{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);
   border-radius:9px;padding:7px 11px;font-size:12.5px;color:var(--ink);
   inline-size:100%;transition:border-color .16s var(--ease)}
 .inp::placeholder{color:var(--ink-3)}
-.inp:hover,.sel:hover{border-color:rgba(255,255,255,.18)}
-/* السهم مرسوم عند الحافة اليسرى، وهي في هذا المستند (dir=rtl الثابت) نهايةُ
-   السطر. الحشو المحجوز له يجب أن يكون على الجهة نفسها: padding-inline-END
-   لا START — وإلا حُجزت المساحة عند بداية السطر ومرّ النص فوق السهم.
-   background-position بلا صيغة منطقية في CSS، فبقي physical مع هذا التعليق. */
-.sel{cursor:pointer;-webkit-appearance:none;appearance:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),
-                   linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
-  background-position:left 13px top 15px,left 8px top 15px;
-  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-inline-end:28px}
-.sel option{background:#101b16;color:var(--ink)}
-.fSearch{flex:1;min-inline-size:180px;max-inline-size:300px}
-.fSel{inline-size:158px}
+.inp:hover{border-color:rgba(255,255,255,.18)}
+.inp[aria-invalid="true"]{border-color:rgba(232,176,85,.55)}
+/* حقل تاريخ نصّي لا <input type="date">: الأصلي يعرض أرقامًا هندية وترتيب
+   شهر/يوم بحسب لغة المتصفّح (§4 و§11 قاعدة 8). هنا الترتيب يوم/شهر/سنة
+   ثابت والأرقام غربية دائمًا، والقيمة تُحوَّل إلى ISO قبل أي استعمال. */
+.dateI{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start;letter-spacing:normal}
+.dateF{inline-size:132px;flex:none}
 .toolsGrow{flex:1}
-.toolBtns{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
 
 /* ── دفتر الأرقام الصغير ─────────────────────────── */
 .figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:2px 0}
@@ -235,25 +330,6 @@ button,input,select{font:inherit;color:inherit}
 .hint{font-size:10.5px;color:var(--ink-3);direction:rtl;unicode-bidi:isolate}
 .formPanel[hidden]{display:none}
 
-/* ── شريط التحديد ────────────────────────────────── */
-.bulk{display:none;padding:12px 20px;border-block-end:1px solid var(--line-2);
-  background:rgba(110,196,155,.05)}
-.bulk.on{display:block}
-.bulkTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-/* «تم تحديد 12 مستخدم» و«تحديد كل النتائج (27)» — عربي + أرقام. */
-.bulkCount{font-size:12.5px;font-weight:600;direction:rtl;unicode-bidi:isolate}
-.bulkAll{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
-  padding:4px 11px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
-  direction:rtl;unicode-bidi:isolate;
-  transition:background .15s var(--ease)}
-.bulkAll:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.bulkRow{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;margin-block-start:11px}
-.bulkSubHead{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);
-  inline-size:100%;padding-block-start:9px;margin-block-start:4px;
-  border-block-start:1px solid var(--line-2)}
-.bulkSubHead span{color:var(--ink-3);font-size:11px}
-.dateF{inline-size:152px}
-
 /* ── الجدول ──────────────────────────────────────── */
 /* أعمدة صريحة لا flex: عمود التحديد وعمود الإجراء اختياريان بحسب الوضع
    (قائمة / أرشيف) ومحجوزان دائمًا حتى حين يكونان فارغين، فتبقى الأعمدة
@@ -265,7 +341,10 @@ button,input,select{font:inherit;color:inherit}
   border-block-end:1px solid var(--line-2);font-size:12.5px;
   transition:background .14s var(--ease)}
 .row:last-child{border-block-end:0}
-.rowHead{font-size:11px;color:var(--ink-3);padding-block:8px;
+/* حشو الترويسة 6px لا 9px الموروث من .row: الترويسة سطر تسمية لا سطر بيانات،
+   وأزرار الفرز داخلها تحمل حشوها الخاص، فالثلاث بكسلات كانت تُدفع كاملةً
+   إلى الرقم الذي يقيسه §11. */
+.rowHead{font-size:11px;color:var(--ink-3);padding-block:6px;
   border-block-end:1px solid var(--line);background:rgba(255,255,255,.02)}
 .rowBody:hover{background:rgba(255,255,255,.045)}
 .rowBody.sel{background:rgba(110,196,155,.09)}
@@ -405,15 +484,18 @@ button,input,select{font:inherit;color:inherit}
   .cLast{grid-area:4/3/5/4}
   .cOn  {grid-area:5/2/6/4}
   .cDo  {grid-area:6/2/7/4}
-  .fSearch{max-inline-size:none}
-  .fSel{inline-size:100%}
-  .field.fSel,.field.fSearch{flex:1 1 100%}
+  .srch{max-inline-size:none;flex:1 1 100%}
+  /* القائمة المنسدلة تُثبَّت عند بداية السطر حتى لا تُقطع خارج الشاشة */
+  .pop{inset-inline-start:auto;inset-inline-end:0}
 }
 @media(max-width:620px){
   .stage{padding:16px 14px 24px}
   .bar{padding:12px 14px}
   .figV{font-size:22px}
-  .head,.tools,.bulk,.formPanel{padding-inline:14px}
+  .head,.tools,.views,.panel,.ctxbar,.formPanel{padding-inline:14px}
+  .popForm{min-inline-size:0}
+  .popDates{flex-wrap:wrap}
+  .dateF{inline-size:118px}
   .row{padding-inline:14px}
 }
 
@@ -514,65 +596,43 @@ button,input,select{font:inherit;color:inherit}
       <div class="head">
         <div class="headText">
           <div class="h1" id="pageTitle">المستخدمون</div>
-          <div class="h1sub">إدارة حسابات مستخدمي تطبيق الفحص، حالاتهم، وأجهزة العمل المرتبطة.</div>
-          <div class="route" id="pageRoute">/operators?status=active</div>
+          <div class="h1sub" id="pageSub">إدارة حسابات مستخدمي تطبيق الفحص، حالاتهم، وأجهزة العمل المرتبطة.</div>
         </div>
-        <div class="seg" role="group" aria-label="العرض" id="viewSeg">
-          <button type="button" data-v="list" aria-pressed="true">المستخدمون</button>
-          <button type="button" data-v="archive" aria-pressed="false">الأرشيف</button>
-        </div>
-        <!-- سهم يمين مضمّن — نفس ArrowRight في OperatorsPage.tsx، لا محرف «←». -->
-        <button class="btn" type="button" id="backBtn" hidden>
-          <svg class="ico lg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M5 12h14M13 6l6 6-6 6"/>
+      </div>
+
+      <!-- المناظير: بُعد واحد فقط هو حالة المستخدم، وآخرها الأرشيف (مسار مستقل).
+           العدّادات تُحسب من مصفوفة الصفحة عند كل رسم، ولا تُكتب يدويًا. -->
+      <div class="views" id="views" role="tablist" aria-label="مناظير المستخدمين"></div>
+
+      <div class="tools">
+        <label class="srch">
+          <svg class="si" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
           </svg>
-          العودة إلى المستخدمين
+          <input id="fq" type="search" placeholder="بحث باسم المستخدم"
+                 aria-label="بحث باسم المستخدم" autocomplete="off">
+        </label>
+        <button class="ctl" type="button" id="filterTgl" aria-expanded="false" aria-controls="panel">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 5h18M6 12h12M10 19h4"/>
+          </svg>
+          تصفية <span class="cnt" id="filterCnt" hidden>0</span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+        <button class="ctl" type="button" id="clearBtn">مسح التصفية</button>
+        <span class="toolsGrow"></span>
+        <button class="btn primary" type="button" id="createBtn" aria-expanded="false">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          إضافة مستخدم
         </button>
       </div>
 
-      <div class="tools">
-        <label class="field fSearch">
-          <span class="fieldL">البحث</span>
-          <input class="inp" id="fq" type="search" placeholder="اسم المستخدم" autocomplete="off">
-        </label>
-        <label class="field fSel" id="fStatusWrap">
-          <span class="fieldL">حالة المستخدم</span>
-          <select class="sel" id="fStatus">
-            <option value="">جميع الحالات</option>
-            <option value="active" selected>مفعّل</option>
-            <option value="disabled">موقوف</option>
-            <option value="expired">منتهي</option>
-          </select>
-        </label>
-        <label class="field fSel" id="fSubWrap">
-          <span class="fieldL">حالة الاشتراك</span>
-          <select class="sel" id="fSub">
-            <option value="">كل الاشتراكات</option>
-            <option value="active">ساري</option>
-            <option value="suspended">معلّق</option>
-            <option value="expired">منتهي</option>
-            <option value="none">بدون اشتراك</option>
-          </select>
-        </label>
-        <label class="field fSel" id="fActiveWrap">
-          <span class="fieldL">النشاط</span>
-          <select class="sel" id="fActive">
-            <option value="">الكل</option>
-            <option value="true">نشط اليوم</option>
-            <option value="false">غير نشط اليوم</option>
-          </select>
-        </label>
-        <span class="toolsGrow"></span>
-        <div class="toolBtns">
-          <button class="btn" type="button" id="clearBtn">مسح التصفية</button>
-          <button class="btn primary" type="button" id="createBtn" aria-expanded="false">
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            إضافة مستخدم
-          </button>
-        </div>
-      </div>
+      <!-- لوحة التصفية: البُعدان الآخران فقط — الاشتراك والنشاط اليوم -->
+      <div class="panel" id="panel" hidden></div>
 
       <form class="formPanel" id="createForm" autocomplete="off" hidden>
         <label class="field">
@@ -590,42 +650,9 @@ button,input,select{font:inherit;color:inherit}
         </div>
       </form>
 
-      <!-- شريط إجراءات التحديد -->
-      <div class="bulk" id="bulk">
-        <div class="bulkTop">
-          <span class="bulkCount" id="bulkCount">لم يتم تحديد مستخدمين</span>
-          <button class="bulkAll" type="button" id="bulkAll">تحديد كل النتائج</button>
-          <button class="bulkAll" type="button" id="bulkNone">إلغاء التحديد</button>
-        </div>
-        <div class="bulkRow">
-          <label class="field fSel">
-            <span class="fieldL">تغيير حالة المستخدمين المحددين</span>
-            <select class="sel" id="bulkStatus">
-              <option value="">تغيير الحالة…</option>
-              <option value="active">تفعيل</option>
-              <option value="disabled">إيقاف</option>
-              <option value="expired">تعيين منتهي</option>
-            </select>
-          </label>
-          <button class="btn" type="button" id="bulkDevice">إعادة ربط الجهاز</button>
-          <button class="btn danger" type="button" id="bulkRemove">حذف</button>
-        </div>
-        <div class="bulkSubHead">
-          <strong>إدارة الاشتراك</strong><span>شهر واحد افتراضيًا</span>
-        </div>
-        <div class="bulkRow">
-          <label class="field dateF">
-            <span class="fieldL">بداية الاشتراك</span>
-            <input class="inp" id="subStart" type="date" value="2026-08-29">
-          </label>
-          <label class="field dateF">
-            <span class="fieldL">نهاية الاشتراك</span>
-            <input class="inp" id="subEnd" type="date" value="2026-09-29">
-          </label>
-          <button class="btn primary" type="button" id="subStartBtn">بدء الاشتراك</button>
-          <button class="btn" type="button" id="subSuspendBtn">تعليق الاشتراك</button>
-        </div>
-      </div>
+      <!-- شريط الإجراءات السياقي — يُبنى من JS ولا يُرسم إطلاقًا بلا تحديد.
+           حقلا تاريخ الاشتراك يعيشان داخل إجراء «إدارة الاشتراك» لا في صفّ دائم. -->
+      <div class="ctxbar" id="ctx" hidden></div>
 
       <div class="tbl" id="tbl"></div>
       <div class="pg" id="pg"></div>
@@ -643,6 +670,19 @@ button,input,select{font:inherit;color:inherit}
         الجدول هنا جديدة على الواجهة ولا تحتاج أي عمل في الخادم.
         كذلك عوامل التصفية الثلاثة موجودة فعلًا لكنها في التطبيق داخل نافذة
         «عوامل التصفية» (<code>MobileActionsDialog</code>) لا في شريط مكشوف.<br>
+        <b>المناظير:</b> شريط التبويبات بُعد واحد هو <code>status</code>: «الكل» بلا معامل
+        حالة، و«مفعّل / موقوف / منتهي» ترسل <code>status=active|disabled|expired</code> —
+        وهي <b>حالة الحساب</b>. مرشّحا اللوحة المطويّة بُعدان آخران:
+        <code>subscription</code> و <code>active</code>؛ وقيمة <code>expired</code> فيه
+        تعني انتهاء <b>الاشتراك</b> لا انتهاء الحساب، وهما حقلان مختلفان بالاسم نفسه.
+        العدّاد بجانب كل منظور محسوب من نفس مصفوفة الصفحة عند كل رسم — في التطبيق يقابله
+        <code>total</code> لكل تصفية، وهو <span class="nw">يحتاج بناءً في الخادم:</span>
+        نداء تجميعي واحد يعيد عدد كل حالة بدل خمسة نداءات.<br>
+        <b>منظور «الأرشيف» مسار آخر لا تصفية:</b> <code>/operators/archive</code> ينادي
+        القائمة نفسها بـ <code>status=deleted&amp;includeDeleted=true</code>، ولذلك يأتي
+        بعد فاصل في آخر الشريط.<br>
+        <b>الطلب الجاري لهذه الشاشة:</b> <code id="srcRoute"></code>
+        — يُعرض هنا وحده؛ لا يُطبع <code>query string</code> في واجهة الصفحة.<br>
         <b>حقول الصف</b> من <code>Operator</code> في <code>lib/types.ts</code>:
         <code>username</code> · <code>status</code> · <code>subscription.status</code> ·
         <code>deviceBound</code> · <code>deviceModel</code> ·
@@ -854,8 +894,33 @@ button,input,select{font:inherit;color:inherit}
     selection:{ mode:"ids", ids:[] },
     anchor:null,
     showCreate:false,
+    showPanel:false,
+    pop:null,                    /* "status" أو "sub" أو null */
+    subStart:TODAY, subEnd:"",   /* ISO داخليًا، وتُعرض يوم/شهر/سنة */
     pending:null
   };
+
+  /* ══ المناظير — بُعد واحد فقط: حالة المستخدم ═════════════════
+     status و subscription بُعدان مختلفان يتشاركان القيمة "expired":
+     «منتهي» في التبويبات حالةُ الحساب، و«منتهي» داخل لوحة التصفية انتهاءُ
+     الاشتراك. التبويب لا يمسّ subscription إطلاقًا.
+     «الأرشيف» ليس قيمة في نفس البُعد بل مسار مستقل، فيأتي آخرًا بعد فاصل. */
+  var VIEWS = [
+    { id:"all",      label:"الكل",    status:"",         archive:false },
+    { id:"active",   label:"مفعّل",   status:"active",   archive:false },
+    { id:"disabled", label:"موقوف",   status:"disabled", archive:false },
+    { id:"expired",  label:"منتهي",   status:"expired",  archive:false },
+    { id:"archive",  label:"الأرشيف", status:"deleted",  archive:true  }
+  ];
+
+  /* البُعدان الآخران — لوحة التصفية المطويّة، لا التبويبات */
+  var PANEL_FIELDS = [
+    { k:"subscription", label:"حالة الاشتراك", opts:[
+        ["","كل الاشتراكات"],["active","ساري"],["suspended","معلّق"],
+        ["expired","منتهي"],["none","بدون اشتراك"]] },
+    { k:"active", label:"النشاط اليوم", opts:[
+        ["","الكل"],["true","نشط اليوم"],["false","غير نشط اليوم"]] }
+  ];
 
   var $ = function(id){ return document.getElementById(id); };
   var fmt = function(n){ return n.toLocaleString("en-US"); };
@@ -958,9 +1023,19 @@ button,input,select{font:inherit;color:inherit}
            esc(label)+caret+'</button></div>';
   }
 
-  function renderHead(){
+  /* مربّع تحديد الصفحة كاملةً في ترويسة العمود.
+     الشريط السياقي لا يُرسم بلا تحديد، فلولا هذا المربّع لما بقي طريق
+     لبدء تحديد جماعي — ومنه ينتقل المستخدم إلى «تحديد كل النتائج». */
+  function renderHead(pageIds){
+    var sel = pageIds.filter(isSelected).length;
+    var allOnPage = pageIds.length>0 && sel===pageIds.length;
     return '<div class="row rowHead" role="row">'+
-      '<div class="cChk" role="columnheader"><span class="vh">التحديد</span></div>'+
+      '<div class="cChk" role="columnheader">'+
+        (state.archive
+          ? '<span class="vh">التحديد</span>'
+          : '<input class="chk" type="checkbox" id="chkAll" '+(allOnPage?"checked":"")+
+            ' aria-label="تحديد كل المستخدمين في هذه الصفحة">')+
+      '</div>'+
       headCell("cUser","اسم المستخدم","username")+
       headCell("cStat","حالة المستخدم","status")+
       headCell("cSub","الاشتراك")+
@@ -1050,11 +1125,18 @@ button,input,select{font:inherit;color:inherit}
       /* role="row" بلا جدولٍ حاوٍ لا معنى له. الغلاف يحمل role="table"
          فتتكوّن الشجرة: table ← row ← columnheader/cell. الحالة الفارغة
          تبقى خارج هذا الغلاف لأنها ليست صفًا. */
+      var pageIds = items.map(function(o){ return o.id; });
       host.innerHTML =
         '<div class="tblIn" role="table" aria-label="'+
         (state.archive ? "المستخدمون المحذوفون" : "المستخدمون")+'" '+
         'aria-rowcount="'+(total+1)+'">'+
-        renderHead()+items.map(renderRow).join("")+'</div>';
+        renderHead(pageIds)+items.map(renderRow).join("")+'</div>';
+      /* الحالة الوسطى (بعض الصفحة محدّد) خاصية DOM لا سمة HTML */
+      var chkAll = $("chkAll");
+      if(chkAll){
+        var sel = pageIds.filter(isSelected).length;
+        chkAll.indeterminate = sel>0 && sel<pageIds.length;
+      }
     }
     return { total:total, pages:pages, items:items };
   }
@@ -1106,57 +1188,176 @@ button,input,select{font:inherit;color:inherit}
     $("pg").style.display = total ? "flex" : "none";
   }
 
-  /* ══ شريط التحديد ═════════════════════════════════════════════ */
-  function renderBulk(total){
-    var bulk = $("bulk");
-    if(state.archive){ bulk.classList.remove("on"); return; }
-    bulk.classList.add("on");
-    var n = selectionCount(total);
-    $("bulkCount").textContent = n
-      ? (state.selection.mode==="filter"
-          ? "تم تحديد كل النتائج المطابقة — "+fmt(n)+" مستخدم"
-          : "تم تحديد "+fmt(n)+" مستخدم")
-      : "لم يتم تحديد مستخدمين";
-    $("bulkAll").textContent = n===total && total>0 ? "إلغاء تحديد الكل" : "تحديد كل النتائج ("+fmt(total)+")";
-    $("bulkAll").disabled = total===0;
-    $("bulkNone").hidden = n===0;
-    $("bulkStatus").disabled = !n;
-    $("bulkDevice").disabled = !n;
-    $("bulkRemove").disabled = !n;
-    var datesValid = /^\d{4}-\d{2}-\d{2}$/.test($("subStart").value) && $("subEnd").value > $("subStart").value;
-    $("subStartBtn").disabled = !n || !datesValid;
-    $("subSuspendBtn").disabled = !n;
+  /* ══ التواريخ — نصّ لا <input type="date"> ════════════════════
+     الحقل الأصلي يعرض أرقامًا هندية وترتيب شهر/يوم بحسب لغة المتصفّح،
+     وهو ما تمنعه §4 و§11. هنا الإدخال نصّي بترتيب يوم/شهر/سنة ثابت،
+     والأرقام الهندية المكتوبة تُحوَّل إلى غربية فورًا، والقيمة تُخزَّن
+     في الحالة بصيغة ISO لأن كل ما يليها (الحوار والتنفيذ) يتوقّعها. */
+  function normDigits(s){
+    return String(s)
+      .replace(/[٠-٩]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0x0660+48); })
+      .replace(/[۰-۹]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0x06F0+48); });
+  }
+  function toISO(dmy){
+    var m = /^\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4})\s*$/.exec(normDigits(dmy||""));
+    if(!m) return "";
+    var d=+m[1], mo=+m[2], y=+m[3];
+    var dt = new Date(Date.UTC(y,mo-1,d));
+    if(dt.getUTCFullYear()!==y || dt.getUTCMonth()!==mo-1 || dt.getUTCDate()!==d) return "";
+    return String(y).padStart(4,"0")+"-"+String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+  }
+  function toDMY(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");
+    return m ? m[3]+"/"+m[2]+"/"+m[1] : "";
+  }
+  function datesOk(){ return !!state.subStart && !!state.subEnd && state.subEnd > state.subStart; }
+
+  /* ══ المناظير — عدّاد كل منظور محسوب من مصفوفة الصفحة ═════════
+     العدّاد يحترم البحث الجاري وحده: البحث بُعد مستمرّ لا يُصفَّر عند
+     تبديل المنظور، بينما مرشّحا اللوحة يُصفَّران، فلو دخلا في العدّ لكذب
+     الرقم على ما سيراه المستخدم بعد الضغط. */
+  function viewCount(v){
+    return OPERATORS.filter(function(o){
+      if(state.q && o.username.indexOf(state.q)<0) return false;
+      if(v.archive) return o.status==="deleted";
+      if(o.status==="deleted") return false;
+      return v.status ? o.status===v.status : true;
+    }).length;
+  }
+  function currentViewId(){
+    if(state.archive) return "archive";
+    for(var i=0;i<VIEWS.length;i++)
+      if(!VIEWS[i].archive && VIEWS[i].status===state.status) return VIEWS[i].id;
+    return "all";
+  }
+  function renderViews(){
+    var cur = currentViewId();
+    $("views").innerHTML = VIEWS.map(function(v){
+      return (v.archive ? '<span class="viewSep" aria-hidden="true"></span>' : "")+
+        '<button class="view" type="button" role="tab" data-v="'+v.id+'" '+
+        'aria-selected="'+(v.id===cur)+'" tabindex="'+(v.id===cur?"0":"-1")+'">'+
+        esc(v.label)+'<span class="n">'+fmt(viewCount(v))+'</span></button>';
+    }).join("");
+  }
+
+  /* ══ لوحة التصفية — البُعدان الآخران فقط ═════════════════════ */
+  function panelCount(){
+    return (state.subscription ? 1 : 0) + (state.active!=="" ? 1 : 0);
+  }
+  function renderPanel(){
+    $("panel").innerHTML = PANEL_FIELDS.map(function(f){
+      return '<div class="fg"><span class="fgL">'+esc(f.label)+'</span><span class="opts">'+
+        f.opts.map(function(o){
+          return '<button class="opt" type="button" data-f="'+f.k+'" data-v="'+o[0]+'" '+
+                 'aria-pressed="'+(String(state[f.k])===o[0])+'">'+esc(o[1])+'</button>';
+        }).join("")+'</span></div>';
+    }).join("");
+  }
+
+  /* ══ شريط الإجراءات السياقي — hidden بلا تحديد ════════════════ */
+  var CHEVD = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+
+              '<path d="M6 9l6 6 6-6"/></svg>';
+  function dateField(id, label, iso){
+    return '<label class="field dateF"><span class="fieldL">'+esc(label)+'</span>'+
+      '<input class="inp dateI" id="'+id+'" dir="ltr" inputmode="numeric" autocomplete="off" '+
+      'placeholder="31/12/2026" aria-label="'+esc(label+" بالشكل يوم/شهر/سنة")+'" '+
+      'aria-invalid="'+(iso?"false":"true")+'" value="'+esc(toDMY(iso))+'"></label>';
+  }
+  function renderCtx(total){
+    var ctx = $("ctx");
+    var n = state.archive ? 0 : selectionCount(total);
+    if(!n){ ctx.hidden = true; ctx.innerHTML = ""; state.pop = null; return; }
+    ctx.hidden = false;
+    var allPicked = n===total && total>0;
+    ctx.innerHTML =
+      '<span class="c">حُدِّد '+fmt(n)+' من '+fmt(total)+'</span>'+
+      (state.selection.mode==="filter"
+        ? '<span class="cNote">كل النتائج المطابقة للتصفية الحالية</span>' : "")+
+      '<span class="sp">'+
+        '<span class="anchor">'+
+          '<button class="abtn" type="button" data-pop="status" aria-haspopup="menu" '+
+            'aria-expanded="'+(state.pop==="status")+'">تغيير الحالة'+CHEVD+'</button>'+
+          '<div class="pop" role="menu" aria-label="الحالة الجديدة"'+
+            (state.pop==="status"?"":" hidden")+'>'+
+            '<div class="popT">الحالة الجديدة</div>'+
+            '<button class="popI" type="button" role="menuitem" data-status="active">تفعيل</button>'+
+            '<button class="popI" type="button" role="menuitem" data-status="disabled">إيقاف</button>'+
+            '<button class="popI" type="button" role="menuitem" data-status="expired">تعيين منتهي</button>'+
+          '</div>'+
+        '</span>'+
+        '<span class="anchor">'+
+          '<button class="abtn" type="button" data-pop="sub" aria-haspopup="dialog" '+
+            'aria-expanded="'+(state.pop==="sub")+'">إدارة الاشتراك'+CHEVD+'</button>'+
+          '<div class="pop" aria-label="إدارة الاشتراك"'+(state.pop==="sub"?"":" hidden")+'>'+
+            '<div class="popT">إدارة الاشتراك — شهر واحد افتراضيًا</div>'+
+            '<div class="popForm">'+
+              '<div class="popDates">'+
+                dateField("subStart","بداية الاشتراك",state.subStart)+
+                dateField("subEnd","نهاية الاشتراك",state.subEnd)+
+              '</div>'+
+              '<div class="popErr" id="subErr"'+(datesOk()?" hidden":"")+'>'+
+                'اكتب التاريخين بالشكل يوم/شهر/سنة، وليكن تاريخ النهاية بعد البداية.'+
+              '</div>'+
+              '<div class="popAct">'+
+                '<button class="abtn" type="button" id="subSuspendBtn">تعليق الاشتراك</button>'+
+                '<button class="abtn go" type="button" id="subStartBtn"'+
+                  (datesOk()?"":" disabled")+'>بدء الاشتراك</button>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</span>'+
+        '<button class="abtn" type="button" id="ctxDevice">إعادة ربط الجهاز</button>'+
+        '<button class="abtn danger" type="button" id="ctxRemove">حذف</button>'+
+        (allPicked ? "" :
+          '<button class="abtn" type="button" id="ctxAll">تحديد كل النتائج ('+fmt(total)+')</button>')+
+        '<button class="abtn" type="button" id="ctxNone">إلغاء التحديد</button>'+
+      '</span>';
   }
 
   /* ══ الرسم الكامل ═════════════════════════════════════════════ */
   function render(){
-    /* الوضع: قائمة أم أرشيف */
+    /* الوضع: قائمة أم أرشيف — والأرشيف منظور في نفس الشريط لا مفتاح فوقه */
     $("pageTitle").textContent = state.archive ? "أرشيف المستخدمين" : "المستخدمون";
-    $("pageRoute").textContent = state.archive
-      ? "/operators/archive"
-      : "/operators?" + [
-          "status="+state.status, state.q?("q="+state.q):"",
-          state.subscription?("subscription="+state.subscription):"",
-          state.active!==""?("active="+state.active):"",
-          "sort="+state.sort, "direction="+state.direction,
-          "page="+state.page
-        ].filter(Boolean).join("&");
-    $("backBtn").hidden = !state.archive;
-    $("fStatusWrap").hidden = state.archive;
-    $("fSubWrap").hidden = state.archive;
-    $("fActiveWrap").hidden = state.archive;
+    $("pageSub").textContent = state.archive
+      ? "المستخدمون المحذوفون — الدخول ممنوع وسجلّ الفحص محفوظ، والاستعادة تعيد الحساب مفعّلًا."
+      : "إدارة حسابات مستخدمي تطبيق الفحص، حالاتهم، وأجهزة العمل المرتبطة.";
+
+    renderViews();
+
+    /* لوحة التصفية ومفتاحها لا معنى لهما في الأرشيف: مرشّحا الاشتراك
+       والنشاط مطفآن هناك أصلًا، فيبقى البحث وحده. */
+    if(state.archive){ state.showPanel = false; state.subscription = ""; state.active = ""; }
+    var fc = panelCount();
+    $("filterTgl").hidden = state.archive;
+    $("filterTgl").setAttribute("aria-expanded", String(state.showPanel));
+    $("filterTgl").classList.toggle("on", state.showPanel);
+    $("filterCnt").hidden = fc===0;
+    $("filterCnt").textContent = fc;
+    $("panel").hidden = !state.showPanel;
+    renderPanel();
+    /* «مسح التصفية» يظهر حين يوجد ما يُمسح فعلًا */
+    $("clearBtn").hidden = !state.q && fc===0;
     $("createBtn").hidden = state.archive;
-    $("clearBtn").hidden = state.archive;
     if(state.archive && state.showCreate){ state.showCreate=false; }
     $("createForm").hidden = !state.showCreate;
     $("createBtn").setAttribute("aria-expanded", String(state.showCreate));
-    [].forEach.call(document.querySelectorAll("#viewSeg button"),function(b){
-      b.setAttribute("aria-pressed", String((b.dataset.v==="archive")===state.archive));
-    });
 
     var out = renderTable();
     renderPagination(out.total, out.pages);
-    renderBulk(out.total);
+    renderCtx(out.total);
+
+    /* الطلب الجاري — مكانه سطر «مصادر البيانات» وحده، لا واجهة الصفحة */
+    var qs = [];
+    if(state.archive) qs.push("status=deleted","includeDeleted=true");
+    else if(state.status) qs.push("status="+state.status);
+    if(state.q) qs.push("q="+state.q);
+    if(!state.archive && state.subscription) qs.push("subscription="+state.subscription);
+    if(!state.archive && state.active!=="") qs.push("active="+state.active);
+    qs.push("sort="+state.sort, "direction="+state.direction,
+            "page="+state.page, "pageSize="+PAGE_SIZE);
+    $("srcRoute").textContent =
+      (state.archive ? "/operators/archive" : "/operators")+
+      " → GET /v1/admin/operators?"+qs.join("&");
 
     /* الأرقام الأربعة تُحسب من نفس المصفوفة في كل رسم.
        تركها ثابتة في الـ markup كان يجعلها تكذب بعد أول حذف أو تعليق اشتراك:
@@ -1216,8 +1417,8 @@ button,input,select{font:inherit;color:inherit}
 
     if(pending==="start-subscription"){
       title = "بدء اشتراك شهري"; ok = "بدء الاشتراك";
-      body = "سيبدأ الاشتراك في "+formatDateOnly($("subStart").value)+
-             " وينتهي في "+formatDateOnly($("subEnd").value)+
+      body = "سيبدأ الاشتراك في "+formatDateOnly(state.subStart)+
+             " وينتهي في "+formatDateOnly(state.subEnd)+
              ". سيتأثر "+fmt(count)+" مستخدم.";
     } else if(pending==="suspend-subscription"){
       title = "تعليق الاشتراك"; ok = "تعليق الاشتراك"; danger = true;
@@ -1280,7 +1481,7 @@ button,input,select{font:inherit;color:inherit}
     var list = affected(), n = list.length;
 
     if(pending==="start-subscription"){
-      var s = $("subStart").value, e = $("subEnd").value;
+      var s = state.subStart, e = state.subEnd;
       list.forEach(function(o){ o.sub = { status:"active", startDate:s, endDate:e }; });
       notify("تم تحديث اشتراك "+fmt(n)+" مستخدم بنجاح.","success");
     } else if(pending==="suspend-subscription"){
@@ -1331,32 +1532,60 @@ button,input,select{font:inherit;color:inherit}
     /* نفس تأخير 350ms في OperatorControls.tsx */
     searchTimer = setTimeout(function(){ updateParam("q", v); }, 350);
   });
-  $("fStatus").addEventListener("change", function(){ updateParam("status", this.value); });
-  $("fSub").addEventListener("change",    function(){ updateParam("subscription", this.value); });
-  $("fActive").addEventListener("change", function(){ updateParam("active", this.value); });
+  /* لوحة التصفية: البُعدان الآخران فقط */
+  $("panel").addEventListener("click", function(e){
+    var b = e.target.closest(".opt"); if(!b) return;
+    updateParam(b.dataset.f, b.dataset.v);
+  });
+  $("filterTgl").addEventListener("click", function(){
+    state.showPanel = !state.showPanel;
+    render();
+  });
   $("clearBtn").addEventListener("click", function(){
-    state.q=""; state.status="active"; state.subscription=""; state.active="";
+    /* يمسح البحث ولوحة التصفية، ولا يغيّر المنظور: المنظور اختيار صريح
+       من المستخدم في شريط التبويبات، لا مرشّح خفي. */
+    state.q=""; state.subscription=""; state.active="";
     state.page=1; clearSelection();
-    $("fq").value=""; $("fStatus").value="active"; $("fSub").value=""; $("fActive").value="";
+    $("fq").value="";
     render();
   });
 
-  /* 2) تبديل الوضع: /operators ↔ /operators/archive */
-  function setArchive(on){
-    if(state.archive===on) return;
-    state.archive = on;
-    state.page = 1; clearSelection();
-    /* المسار الحقيقي يفرض status=deleted و includeDeleted=true في الأرشيف */
+  /* 2) المناظير — بينها «الأرشيف» وهو المسار المستقل
+        /operators ↔ /operators/archive. اختيار منظور يُعيد ضبط لوحة
+        التصفية ويمسح التحديد (§11 قاعدة 3). */
+  function applyView(id){
+    var v = VIEWS.filter(function(x){ return x.id===id; })[0];
+    if(!v) return;
+    state.archive = v.archive;
+    state.status  = v.archive ? "" : v.status;
+    state.subscription = ""; state.active = "";
+    state.showPanel = false; state.pop = null;
+    state.page = 1;
+    clearSelection();
     render();
   }
-  $("viewSeg").addEventListener("click", function(e){
-    var b = e.target.closest("button"); if(!b) return;
-    setArchive(b.dataset.v==="archive");
+  $("views").addEventListener("click", function(e){
+    var b = e.target.closest(".view"); if(!b) return;
+    applyView(b.dataset.v);
   });
-  $("backBtn").addEventListener("click", function(){
-    setArchive(false);
-    state.status = "active"; $("fStatus").value = "active";
-    render();
+  /* تنقّل التبويبات بالأسهم. الشريط مرسوم بالعربية فالسهم الأيسر يتقدّم
+     إلى التبويب التالي بصريًا، والأيمن يرجع. */
+  $("views").addEventListener("keydown", function(e){
+    var keys = { ArrowLeft:1, ArrowRight:1, Home:1, End:1 };
+    if(!keys[e.key]) return;
+    var tabs = [].slice.call(this.querySelectorAll(".view"));
+    var i = tabs.indexOf(document.activeElement);
+    if(i<0) return;
+    e.preventDefault();
+    var j = e.key==="Home" ? 0
+          : e.key==="End"  ? tabs.length-1
+          : e.key==="ArrowLeft" ? i+1 : i-1;
+    if(j<0) j = tabs.length-1;
+    if(j>=tabs.length) j = 0;
+    var id = tabs[j].dataset.v;
+    applyView(id);
+    var el = $("views").querySelector('.view[data-v="'+id+'"]');
+    if(el) el.focus();
   });
 
   /* 3) الترقيم — خادمي في التطبيق، من الحالة هنا */
@@ -1394,37 +1623,99 @@ button,input,select{font:inherit;color:inherit}
     }
   });
 
-  /* 5) التحديد — مفرد ومدى بـ Shift وكل النتائج */
+  /* 5) التحديد — مفرد ومدى بـ Shift وكل الصفحة وكل النتائج */
+  function pageIds(){
+    return results().slice((state.page-1)*PAGE_SIZE, state.page*PAGE_SIZE)
+                    .map(function(o){ return o.id; });
+  }
   $("tbl").addEventListener("click", function(e){
+    var a = e.target.closest("#chkAll");
+    if(a){
+      var on = a.checked;
+      pageIds().forEach(function(id){ toggleSelection(id, on); });
+      state.anchor = null;
+      render();
+      return;
+    }
     var c = e.target.closest("[data-check]"); if(!c) return;
-    var ordered = results().slice((state.page-1)*PAGE_SIZE, state.page*PAGE_SIZE)
-                           .map(function(o){ return o.id; });
-    toggleOrdered(c.dataset.check, c.checked, e.shiftKey, ordered);
+    toggleOrdered(c.dataset.check, c.checked, e.shiftKey, pageIds());
     render();
   });
-  $("bulkAll").addEventListener("click", function(){
-    var total = results().length;
-    state.selection = selectionCount(total)===total
-      ? { mode:"ids", ids:[] }
-      : { mode:"filter", filter:currentFilter(), excludedIds:[] };
-    state.anchor = null;
-    render();
-  });
-  $("bulkNone").addEventListener("click", function(){ clearSelection(); render(); });
 
-  /* 6) الإجراءات الجماعية — تفتح الحوار (خطوة ثانية) */
-  $("bulkStatus").addEventListener("change", function(){
-    if(!this.value) return;
-    openDialog({ kind:"status", status:this.value });
-    this.value = "";
-  });
-  $("bulkDevice").addEventListener("click", function(){ openDialog({ kind:"reset-device" }); });
-  $("bulkRemove").addEventListener("click", function(){ openDialog({ kind:"remove" }); });
-  $("subStartBtn").addEventListener("click", function(){ openDialog("start-subscription"); });
-  $("subSuspendBtn").addEventListener("click", function(){ openDialog("suspend-subscription"); });
+  /* 6) شريط الإجراءات السياقي — كل أزراره تُبنى عند التحديد فقط،
+        فالربط بالتفويض على الحاوية لا على أزرار ثابتة. */
+  $("ctx").addEventListener("click", function(e){
+    /* بلا إيقاف الانتشار تصل الضغطة إلى مستمع الإغلاق العام أسفله،
+       فتُغلق القائمة في اللحظة نفسها التي فُتحت فيها (§11 قاعدة 6). */
+    if(e.target.closest(".pop") || e.target.closest("[data-pop]")) e.stopPropagation();
 
-  /* نهاية الاشتراك تتبع البداية: نهاية الشهر التقويمي — calendarMonthEnd */
-  function calendarMonthEnd(startDate){
+    var pb = e.target.closest("[data-pop]");
+    if(pb){
+      var k = pb.dataset.pop;
+      state.pop = state.pop===k ? null : k;
+      render();
+      var again = $("ctx").querySelector('[data-pop="'+k+'"]');
+      if(again) again.focus();
+      return;
+    }
+    var s = e.target.closest("[data-status]");
+    if(s){ state.pop = null; render(); openDialog({ kind:"status", status:s.dataset.status }); return; }
+    if(e.target.closest("#subStartBtn")){ state.pop=null; render(); openDialog("start-subscription"); return; }
+    if(e.target.closest("#subSuspendBtn")){ state.pop=null; render(); openDialog("suspend-subscription"); return; }
+    if(e.target.closest("#ctxDevice")){ state.pop=null; render(); openDialog({ kind:"reset-device" }); return; }
+    if(e.target.closest("#ctxRemove")){ state.pop=null; render(); openDialog({ kind:"remove" }); return; }
+    if(e.target.closest("#ctxAll")){
+      state.selection = { mode:"filter", filter:currentFilter(), excludedIds:[] };
+      state.anchor = null; render(); return;
+    }
+    if(e.target.closest("#ctxNone")){ clearSelection(); render(); return; }
+  });
+
+  /* حقلا التاريخ داخل «إدارة الاشتراك»: التحقّق موضعي بلا إعادة رسم
+     حتى لا تُهدم القائمة المفتوحة تحت أصابع المستخدم. */
+  $("ctx").addEventListener("input", function(e){
+    var t = e.target;
+    if(t.id!=="subStart" && t.id!=="subEnd") return;
+    var norm = normDigits(t.value);
+    if(norm!==t.value){
+      var p = t.selectionStart;
+      t.value = norm;
+      try{ t.setSelectionRange(p,p); }catch(_){}
+    }
+    var iso = toISO(t.value);
+    if(t.id==="subStart"){
+      state.subStart = iso;
+      /* نهاية الاشتراك تتبع البداية: بعدها بشهر واحد */
+      if(iso){
+        state.subEnd = oneMonthAfter(iso);
+        var end = $("subEnd");
+        if(end && document.activeElement!==end){
+          end.value = toDMY(state.subEnd);
+          end.setAttribute("aria-invalid", state.subEnd ? "false" : "true");
+        }
+      }
+    } else {
+      state.subEnd = iso;
+    }
+    t.setAttribute("aria-invalid", iso ? "false" : "true");
+    var ok = datesOk();
+    var err = $("subErr"); if(err) err.hidden = ok;
+    var go  = $("subStartBtn"); if(go) go.disabled = !ok;
+  });
+
+  /* إغلاق القوائم المنسدلة بالنقر خارجها أو بـ Escape */
+  addEventListener("click", function(){
+    if(state.pop){ state.pop = null; render(); }
+  });
+  addEventListener("keydown", function(e){
+    if(e.key==="Escape" && state.pop){ state.pop = null; render(); }
+  });
+
+  /* نهاية الاشتراك الافتراضية: نفس اليوم من الشهر التالي — وهو ما يعلنه
+     عنوان القائمة «شهر واحد افتراضيًا». وحين لا نظير لليوم في الشهر التالي
+     (31 يناير ← فبراير) يُقصّ إلى آخر يوم فيه. كان اسمها calendarMonthEnd
+     وهو يصف «آخر يوم في الشهر» — شيء آخر لا تفعله الدالة. */
+  function oneMonthAfter(startDate){
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
     if(!m) return "";
     var y = +m[1], mo = +m[2], d = +m[3];
@@ -1433,11 +1724,6 @@ button,input,select{font:inherit;color:inherit}
     return [String(ty).padStart(4,"0"), String(tm+1).padStart(2,"0"),
             String(Math.min(d,lastDay)).padStart(2,"0")].join("-");
   }
-  $("subStart").addEventListener("change", function(){
-    $("subEnd").value = calendarMonthEnd(this.value);
-    render();
-  });
-  $("subEnd").addEventListener("change", function(){ render(); });
 
   /* 7) إنشاء مستخدم — POST /v1/admin/operators */
   $("createBtn").addEventListener("click", function(){
@@ -1488,6 +1774,9 @@ button,input,select{font:inherit;color:inherit}
     }
     requestAnimationFrame(step);
   }
+
+  /* المدى الافتراضي للاشتراك: من اليوم إلى بعده بشهر واحد */
+  state.subEnd = oneMonthAfter(state.subStart);
 
   render();
   [].forEach.call(document.querySelectorAll("[data-count]"), function(el){
