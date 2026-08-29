@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-depth="all">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إصدارات التطبيق — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   إصدارات التطبيق — /versions
+   هذه الشاشة تقرّر ما إذا كانت أجهزة الميدان تستطيع العمل أصلًا.
+   كل حكم معروض هنا محسوب بنفس منطق AppVersionPolicy.decide في الخادم:
+     allowed · optional-update · required-update · unavailable
+   المشهد والمادة والشريط والصفوف منقولة من الشاشة المرجعية overview.html
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --unread:#e8b055;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  --far-a:.050;  --far-ink:1;
+  --mid-a:.058;  --mid-ink:1;
+  --near-a:.080; --near-ink:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* min-height لا height: الجسم يكبر مع المحتوى فتغطّيه طبقة المشهد كاملةً
+   وهي مطلقة الموضع بدل ثابتة. */
+html,body{min-block-size:100%}
+body{
+  position:relative;
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button{font:inherit;color:inherit}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ── المشهد ───────────────────────────────────────── */
+/* مطلقة لا ثابتة — الطبقة الثابتة تُركَّب منفصلة ولا يُعاد رسمها بشكل موثوق
+   أثناء التمرير فيبدو أسفل الصفحة أفتح حتى أول إعادة رسم. */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── الشريط العلوي ────────────────────────────────── */
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.barIn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  inline-size:100%;max-inline-size:1560px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+.brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+.barSep{width:1px;height:22px;background:var(--line)}
+.barGrow{flex:1}
+
+.nav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.nav a{text-decoration:none;color:var(--ink-3);font-size:12.5px;font-weight:500;
+  padding:6px 11px;border-radius:8px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.seg.segSm button{padding:4px 10px;font-size:11.5px}
+.segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
+
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center}
+.tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+
+.who{display:flex;align-items:center;gap:9px;font-size:13px}
+.who .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  font-size:12px;font-weight:600}
+.who .rl{color:var(--ink-3);font-size:11.5px}
+
+/* ── المسرح والطبقات ─────────────────────────────── */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+/* بلا backdrop-filter وبلا أي حركة على الزجاج — المشهد خلفها مضبَّب أصلًا. */
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.mid .pane{background:rgba(255,255,255,var(--mid-a))}
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+
+/* ── ترويسة الصفحة ───────────────────────────────── */
+.pgHead{margin-block-end:16px}
+.pgHead h1{font-size:20px;font-weight:600;line-height:1.5}
+.pgHead p{font-size:12.5px;color:var(--ink-3);margin-block-start:2px;max-inline-size:78ch}
+
+/* ── إشعار العملية (Notice) ──────────────────────── */
+.notice{display:flex;align-items:flex-start;gap:11px;padding:10px 15px;border-radius:12px;
+  font-size:12.5px;margin-block-end:14px;line-height:1.75}
+.notice.success{background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.28);color:var(--ink)}
+.notice.danger{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.30);color:var(--ink)}
+.notice.warning{background:rgba(232,176,85,.08);border:1px solid rgba(232,176,85,.30);color:var(--ink)}
+.notice .nMsg{flex:1;min-inline-size:0}
+.notice .nX{border:0;background:transparent;cursor:pointer;color:var(--ink-3);
+  font-size:13px;line-height:1;padding:3px 6px;border-radius:6px}
+.notice .nX:hover{color:var(--ink);background:rgba(255,255,255,.08)}
+
+/* ── دفتر الأرقام ────────────────────────────────── */
+/* يُرفع القسم كله فوق ما يليه وإلا حُبس ترتيب القائمة المنسدلة داخله. */
+.ledgerSec{position:relative;z-index:60}
+.ledger{display:grid;gap:0;padding:4px 0;overflow:hidden;
+  grid-template-columns:repeat(5,minmax(0,1fr))}
+.fig{padding:15px 20px;border-inline-start:1px solid var(--line-2);position:relative}
+.fig:first-child{border-inline-start:0}
+.figL{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.figV{font-size:31px;font-weight:600;line-height:1.25;margin-block-start:3px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+.figV.ver{font-size:23px}
+/* قيمة عربية داخل خانة رقمية: تعود إلى RTL وإلا حاذت يسارًا بعكس عنوانها. */
+.figV.ar{direction:rtl;unicode-bidi:isolate;text-align:start}
+.figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px;display:flex;gap:7px;align-items:baseline;
+  direction:rtl;unicode-bidi:isolate}
+.fig.hot .figV{color:var(--wanted)}
+.fig.ok .figV{color:var(--clean)}
+.snap{position:absolute;inset-block-start:13px;inset-inline-end:16px;
+  font-size:9.5px;color:var(--ink-3);border:1px solid var(--line-2);
+  padding:1px 6px;border-radius:999px}
+.figBtn{border:0;border-inline-start:1px solid var(--line-2);background:transparent;
+  cursor:pointer;text-align:start;display:block;inline-size:100%;
+  transition:background .16s var(--ease)}
+.figBtn:hover{background:rgba(255,255,255,.04)}
+.figBtn .figL,.figBtn .figV,.figBtn .figM{display:block}
+.figCue{color:var(--accent);opacity:0;transition:opacity .16s var(--ease)}
+.figBtn:hover .figCue,.figBtn:focus-visible .figCue{opacity:1}
+.figBtn[aria-expanded="true"]{background:rgba(255,255,255,.06)}
+.figBtn[aria-expanded="true"] .figCue{opacity:1}
+
+/* قائمة منسدلة — خلفية معتمة تمامًا و z-index عالٍ */
+.drop{position:absolute;z-index:200;inset-inline-end:14px;inset-block-start:calc(100% - 6px);
+  inline-size:min(340px,calc(100vw - 40px));border-radius:14px;overflow:hidden;
+  background:#101b16;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
+.drop[hidden]{display:none}
+.dHead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 14px;border-block-end:1px solid var(--line-2);font-size:12.5px;font-weight:600}
+.dX{border:0;background:transparent;cursor:pointer;color:var(--ink-3);
+  font-size:13px;line-height:1;padding:4px 6px;border-radius:6px}
+.dX:hover{color:var(--ink);background:rgba(255,255,255,.08)}
+.dgT{font-size:10.5px;color:var(--ink-3);padding:9px 14px 5px;display:flex;
+  align-items:center;gap:7px}
+.dgT .c{color:var(--ink-3);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.du{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:9px;align-items:center;
+  padding:6px 14px;font-size:12.5px}
+.du .av2{inline-size:22px;block-size:22px;border-radius:50%;display:grid;place-items:center;
+  flex:none;font-size:10.5px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+.du .duName{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.du .duVer{font-size:10.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums}
+/* هذا السطر تحذير صدق يجب أن يُقرأ فعلًا: ink-3 (5.4:1) لا ink-4 (3.1:1). */
+.dFoot{padding:9px 14px 11px;border-block-start:1px solid var(--line-2);
+  font-size:10.5px;color:var(--ink-3);line-height:1.7}
+
+/* ── مصادر البيانات ──────────────────────────────── */
+.src{display:none;font-size:10.5px;color:var(--ink-4);line-height:1.7;
+  padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.src .nw{color:var(--accent)}
+:root[data-src="1"] .src{display:block}
+
+/* ── التخطيط ─────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;
+  gap:18px;margin-block-start:18px;align-items:start}
+@media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
+@media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
+@media(max-width:1279px){
+  .ledger{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(3n+1){border-inline-start:0}
+}
+@media(max-width:760px){
+  .ledger{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(2n+1){border-inline-start:0}
+}
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .bar{padding:12px 14px}
+  .figV{font-size:26px}
+  .figV.ver{font-size:20px}
+}
+.stack > * + *{margin-block-start:18px}
+
+/* ── رؤوس اللوحات ────────────────────────────────── */
+.paneHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px 12px;
+  border-block-end:1px solid var(--line-2)}
+.paneHead.bare{border-block-end:0;padding-block-end:0}
+.paneTitle{font-size:14.5px;font-weight:600}
+.paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
+.paneBody{padding:14px 18px 16px;font-size:12.5px;color:var(--ink-2);line-height:1.85}
+.paneSub{font-size:11.5px;color:var(--ink-3);padding:10px 18px 0}
+
+/* ── جدول الإصدارات ──────────────────────────────── */
+/* أعمدة صريحة لا flex: عمود «الأحدث» محجوز دائمًا حتى حين يكون فارغًا،
+   وإلا تزحزح عمود التاريخ والحكم بين صف وآخر. */
+.vhead,.vrow{display:grid;
+  grid-template-columns:104px 52px 152px 84px minmax(0,1fr) 46px;
+  align-items:center;gap:11px;padding:10px 18px}
+.vhead{padding-block:8px;font-size:10.5px;color:var(--ink-3);
+  border-block-end:1px solid var(--line-2)}
+.vrow{border-block-end:1px solid var(--line-2);font-size:12.5px;
+  transition:background .14s var(--ease)}
+.vrow:hover{background:rgba(255,255,255,.045)}
+.vrow.isLatest{background:rgba(255,255,255,.03)}
+.vrow.blocked .cVer{color:var(--ink-2)}
+.cVer{font-weight:600;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.cVer bdi{direction:ltr;unicode-bidi:isolate}
+.cLatest{font-size:9.5px;color:var(--accent);border:1px solid currentColor;
+  border-radius:999px;padding:1px 7px;text-align:center;white-space:nowrap;
+  justify-self:start;line-height:1.7}
+.cDate{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap;
+  justify-self:start}
+.cs-allow{color:var(--clean)} .cs-block{color:var(--wanted)}
+.cVerdict{min-inline-size:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vKind{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7;white-space:nowrap}
+.k-allowed{color:var(--clean)}
+.k-optional{color:var(--unread)}
+.k-required{color:var(--wanted)}
+.vWhat{font-size:11px;color:var(--ink-3);min-inline-size:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* المفتاح — منقول سلوكه من Switch في VersionsPage.tsx:
+   زر role="switch" بـ aria-checked، ومعطّل على الأحدث. */
+.switch{inline-size:38px;block-size:21px;border-radius:999px;padding:0;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+  position:relative;cursor:pointer;justify-self:end;
+  transition:background .16s var(--ease),border-color .16s var(--ease)}
+.switch-track{position:absolute;inset-block-start:2px;inset-inline-start:2px;
+  inline-size:15px;block-size:15px;border-radius:50%;background:var(--ink-3);
+  transition:inset-inline-start .16s var(--ease),background .16s var(--ease)}
+.switch[aria-checked="true"]{background:rgba(61,220,151,.22);border-color:rgba(61,220,151,.45)}
+.switch[aria-checked="true"] .switch-track{inset-inline-start:19px;background:var(--clean)}
+.switch:disabled{cursor:not-allowed;opacity:.45}
+.switch:not(:disabled):hover{border-color:rgba(255,255,255,.26)}
+
+/* تحت 760px يصير الصف ثلاثة أسطر بمواضع grid-area صريحة — والحكم يأخذ سطره
+   كاملًا لأن حشره في 148px كان يقصّ «ما يحدث لأجهزته» بثلاث نقاط، وهو أهم
+   عمود في الجدول. */
+@media(max-width:760px){
+  .vhead{display:none}
+  .vrow{grid-template-columns:104px 52px minmax(0,1fr) 46px;row-gap:8px}
+  .cVer    {grid-area:1/1/2/2}
+  .cLatest {grid-area:1/2/2/3}
+  .cState  {grid-area:1/3/2/4;justify-self:end}
+  .cSw     {grid-area:1/4/2/5}
+  .cDate   {grid-area:2/1/3/5}
+  .cVerdict{grid-area:3/1/4/5;justify-content:flex-start}
+  .vWhat   {white-space:normal;overflow:visible;line-height:1.75}
+}
+
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
+
+/* ── تأكيد داخل الصفحة (بدل نافذة عائمة) ─────────── */
+/* لا position:fixed في هذه الصفحة إطلاقًا. التأكيد يظهر في مجرى الصفحة
+   مباشرة تحت الصف المعني، بخلفية معتمة ليقرأ كطبقة قرار لا كزينة. */
+.confirm{background:#101b16;border-block-end:1px solid var(--line-2);
+  padding:14px 18px 15px;border-inline-start:2px solid var(--wanted)}
+.cfT{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+/* أيقونة SVG مرسومة، لا محرف إيموجي — الإيموجي يُلوَّن من خط النظام فيخرج
+   عن لوحة الألوان ويختلف شكله بين المنصّات. */
+.cfT .warn{color:var(--wanted);display:inline-flex;flex:none}
+.cfD{font-size:12px;color:var(--ink-2);margin-block-start:5px;line-height:1.85}
+.cfList{font-size:11.5px;color:var(--ink-3);margin-block-start:8px;line-height:1.9;
+  padding-inline-start:0;list-style:none}
+.cfList li{position:relative;padding-inline-start:14px}
+.cfList li::before{content:"—";position:absolute;inset-inline-start:0;color:var(--ink-4)}
+.cfBtns{display:flex;gap:9px;margin-block-start:12px;flex-wrap:wrap}
+.btn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+  padding:6px 14px;border-radius:9px;font-size:12px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.btn.danger{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.12);color:#ffd3d3}
+.btn.danger:hover{background:rgba(255,107,107,.2);color:#fff}
+
+/* ── محاكي القرار ────────────────────────────────── */
+.simIn{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 18px 4px}
+/* segLbl في الشريط العلوي يعنون مقسّمًا مجزّأً بجواره؛ هنا يعنون حقل إدخال،
+   وعنوان الحقل لا يجوز أن ينزل تحت 4.5:1. */
+.simIn .segLbl{color:var(--ink-3)}
+.simField{flex:1;min-inline-size:160px;position:relative}
+.simField input{inline-size:100%;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:7px 11px;
+  font-size:12.5px;direction:ltr;unicode-bidi:isolate;text-align:start;
+  font-variant-numeric:tabular-nums;
+  transition:border-color .16s var(--ease)}
+.simField input:hover{border-color:rgba(255,255,255,.2)}
+.simField input::placeholder{color:var(--ink-4)}
+.simPick{display:flex;gap:6px;flex-wrap:wrap;padding:9px 18px 2px}
+.pick{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);
+  border-radius:999px;padding:3px 11px;font-size:11px;color:var(--ink-3);cursor:pointer;
+  direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;
+  transition:color .15s var(--ease),border-color .15s var(--ease),background .15s var(--ease)}
+.pick:hover{color:var(--ink-2);border-color:rgba(255,255,255,.2)}
+.pick[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink);
+  border-color:rgba(255,255,255,.22)}
+.pick.rtl{direction:rtl}
+.simOut{margin:12px 18px 4px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(0,0,0,.22);padding:13px 15px}
+.simKind{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.simKindId{font-size:10.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.simSay{font-size:12.5px;color:var(--ink);margin-block-start:9px;line-height:1.9}
+.simWire{font-size:11px;color:var(--ink-3);margin-block-start:9px;
+  padding-block-start:9px;border-block-start:1px solid var(--line-2);line-height:1.9}
+.simWire code{direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px}
+.simWire b{color:var(--ink-2);font-weight:500}
+
+/* ── أثر السياسة على الميدان ─────────────────────── */
+.impact{padding:6px 18px 12px}
+.imRow{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;
+  align-items:center;padding-block:8px;border-block-end:1px solid var(--line-2)}
+.imRow:last-child{border-block-end:0}
+.imDot{inline-size:9px;block-size:9px;border-radius:3px;justify-self:center}
+.imL{font-size:12px;color:var(--ink-2);min-inline-size:0}
+.imL small{display:block;font-size:10.5px;color:var(--ink-3);line-height:1.65}
+.imN{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;text-align:end}
+.imBarWrap{grid-column:2/4;block-size:3px;border-radius:99px;background:rgba(255,255,255,.07);
+  margin-block-start:2px;overflow:hidden}
+.imBar{display:block;block-size:100%;border-radius:99px}
+.imFoot{padding:11px 18px 0;margin-block-start:4px;border-block-start:1px solid var(--line-2);
+  font-size:11.5px;color:var(--ink-3);line-height:1.85;
+  direction:rtl;unicode-bidi:isolate}
+/* أرقام غربية داخل جملة عربية: كل رقم يُعزل وحده وإلا التصق بفاصلة الجملة
+   أو انقلب ترتيبه عند تجاور رقمين. */
+.imFoot b{color:var(--ink-2);font-weight:500;
+  direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+
+/* ── لوحة الإصدار المنشور ────────────────────────── */
+.rel{padding:13px 18px 15px;font-size:12px;color:var(--ink-2);line-height:1.9}
+.relRow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;
+  padding-block:4px;align-items:baseline}
+.relK{color:var(--ink-3);font-size:11px}
+.relV{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  direction:ltr;unicode-bidi:isolate;text-align:start;
+  font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:11px;color:var(--ink-2)}
+.relV.ar{direction:rtl;font-family:inherit;font-size:12px;unicode-bidi:isolate}
+/* حقل موجود في قاعدة البيانات ولا يعيده مسار الإدارة — لا تُعرض له قيمة
+   مخترعة، يُعرض غيابه صراحةً. */
+.relV.na{direction:rtl;font-family:inherit;font-size:11.5px;color:var(--ink-3);
+  white-space:normal;unicode-bidi:isolate}
+.relV.na code{direction:ltr;unicode-bidi:isolate;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--ink-3)}
+
+/* ── لوحة الحالات والأخطاء ───────────────────────── */
+.errList{padding:6px 18px 14px}
+.err{display:grid;grid-template-columns:52px minmax(0,1fr);gap:11px;
+  padding-block:10px;border-block-end:1px solid var(--line-2);align-items:start}
+.err:last-child{border-block-end:0}
+.errCode{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:8px;padding:1px 0;text-align:center}
+.errCode.hot{color:var(--wanted);border-color:rgba(255,107,107,.35)}
+.errB{min-inline-size:0}
+.errT{font-size:12px;color:var(--ink);line-height:1.8}
+/* رمز الخطأ نفسه هو ما يبحث عنه القارئ — لا يجوز أن ينزل تحت 4.5:1. */
+.errW{font-size:10.5px;color:var(--ink-3);margin-block-start:2px;line-height:1.8;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;direction:ltr;unicode-bidi:isolate}
+.errD{font-size:11.5px;color:var(--ink-3);line-height:1.85;margin-block-start:3px}
+
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-4);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="bar"><div class="barIn">
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · إصدارات التطبيق</span></div>
+  <div class="barSep" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="أقسام لوحة الإدارة">
+    <a href="../gallery/overview.html">النظرة العامة</a>
+    <a href="operators.html">المشغّلون</a>
+    <a href="operator-detail.html">ملف مشغّل</a>
+    <a href="wanted-plates.html">قائمة المطلوبين</a>
+    <a href="admins.html">المشرفون</a>
+    <a href="versions.html" aria-current="page">إصدارات التطبيق</a>
+    <a href="notifications.html">الإشعارات</a>
+  </nav>
+
+  <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+    <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+  </button>
+
+  <span class="barGrow"></span>
+
+  <div class="who">
+    <span class="av" aria-hidden="true">أ</span>
+    <span><span style="display:block">أحمد عماد</span><span class="rl">مدير النظام</span></span>
+  </div>
+</div></header>
+
+<main class="stage">
+
+  <div class="pgHead">
+    <h1>إصدارات التطبيق</h1>
+    <p>تحكم في الإصدارات المسموح لها باستخدام التطبيق. أحدث إصدار يبقى متاحًا دائمًا.
+       استبعاد إصدار يوقف أجهزته عن العمل فورًا — لا فحص لوحات ولا جلسة صوتية.</p>
+  </div>
+
+  <!-- إشعار نتيجة آخر عملية -->
+  <div id="noticeHost" role="status" aria-live="polite"></div>
+
+  <!-- ═══ دفتر الأرقام ═══ -->
+  <section class="mid ledgerSec" aria-label="حالة سياسة الإصدارات">
+    <div class="pane">
+      <div class="ledger">
+        <div class="fig">
+          <div class="figL">أحدث إصدار منشور</div>
+          <div class="figV ver" id="figLatest">1.4.0+9</div>
+          <div class="figM"><span>يبقى مسموحًا دائمًا</span></div>
+        </div>
+        <div class="fig ok">
+          <div class="figL">إصدارات مسموحة</div>
+          <div class="figV" id="figAllowed" data-count="4">4</div>
+          <div class="figM"><span id="figAllowedOf">من 7 إصدارات في السجل</span></div>
+        </div>
+        <div class="fig hot">
+          <div class="figL">إصدارات مستبعدة</div>
+          <div class="figV" id="figBlocked" data-count="3">3</div>
+          <div class="figM"><span>أجهزتها مطالَبة بالتحديث</span></div>
+        </div>
+        <div class="fig">
+          <div class="figL">التطبيقات بلا رقم إصدار</div>
+          <div class="figV ver ar" id="figLegacy">موقوفة</div>
+          <div class="figM"><span id="figLegacyM">لا تستطيع الفحص</span></div>
+        </div>
+        <button class="fig figBtn" type="button" id="stoppedBtn"
+                aria-expanded="false" aria-controls="stoppedPanel">
+          <span class="snap">محسوب هنا</span>
+          <span class="figL">مشغّلون متوقّفون بهذه السياسة</span>
+          <span class="figV" id="figStopped" data-count="5">5</span>
+          <span class="figM">
+            <span id="figStoppedM">من 31 مشغّلاً</span>
+            <span class="figCue">عرض الأسماء</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="drop" id="stoppedPanel" role="dialog" aria-label="المشغّلون المتوقّفون" hidden>
+        <div class="dHead">
+          <span>مشغّلون لا يستطيعون العمل الآن</span>
+          <button class="dX" type="button" id="stoppedClose" aria-label="إغلاق">✕</button>
+        </div>
+        <div id="stoppedGroups"></div>
+        <div class="dFoot">
+          الإصدار المعروض هو آخر إصدار سجّله جهاز المشغّل في <code>operators.appVersion</code>،
+          ويُحدَّث عند كل نبضة حضور — وليس بالضرورة الإصدار المثبَّت الآن.
+        </div>
+      </div>
+
+      <div class="src">
+        الأربعة الأولى من <code>GET /v1/admin/app-versions</code> — الرد
+        <code>{ items:[{version,allowed,latest,createdAt}], policy:{latestVersion,allowLegacyClients} }</code>.
+        حين تكون <code>policy</code> قيمتها <code>null</code> تعرض اللوحة الحقيقية تنبيه
+        «لم تُهيأ سياسة التحديث بعد» وتُعطَّل كل المفاتيح.
+        «مشغّلون متوقّفون» ليس حقلًا في الرد: يُحسب هنا بمطابقة
+        <code>operators.appVersion</code> (يعود ضمن <code>GET /v1/admin/operators</code>)
+        على قائمة السماح بنفس منطق <code>AppVersionPolicy.decide</code>.
+        <span class="nw">يحتاج بناءً:</span> تجميعة <code>$group</code> على
+        <code>appVersion</code> لعدّ الأجهزة لكل إصدار — لا يوجد مسار يعيد هذا العدّ اليوم،
+        والحساب هنا يجري في المتصفّح على صفحة المشغّلين الأولى فقط.
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <!-- ═══ العمود الرئيسي ═══ -->
+    <div class="stack">
+
+      <!-- الطبقة الأمامية — قرار السماح -->
+      <section class="near" aria-label="الإصدارات المتاحة">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">الإصدارات المتاحة</span>
+            <span class="paneNote" id="tableNote">7 إصدارات · أحدث إصدار: 1.4.0+9</span>
+            <div class="seg segSm" role="group" aria-label="تصفية الإصدارات" id="filterSeg">
+              <button type="button" data-f="all" aria-pressed="true">الكل</button>
+              <button type="button" data-f="allowed" aria-pressed="false">المسموحة</button>
+              <button type="button" data-f="blocked" aria-pressed="false">المستبعدة</button>
+            </div>
+          </div>
+          <div class="vhead" aria-hidden="true">
+            <span>الإصدار</span>
+            <span></span>
+            <span>تاريخ الإضافة</span>
+            <span>الحالة</span>
+            <span>ما يحدث لأجهزته</span>
+            <span>السماح</span>
+          </div>
+          <div id="vrows"></div>
+          <div class="paneSub">
+            تشغيل المفتاح يسري فورًا. إطفاؤه يطلب تأكيدًا، لأنه يوقف أجهزة في الميدان.
+          </div>
+          <div class="src">
+            القائمة من <code>GET /v1/admin/app-versions</code>، مرتّبة في المستودع بـ
+            <code>createdAt:-1, version:-1</code> من مجموعة <code>app_versions</code>.
+            المفتاح ينادي <code>PATCH /v1/admin/app-versions/:version</code> بجسم
+            <code>{ allowed:boolean }</code> ويعيد الحالة كاملة، فتُعاد الصفحة من رده.
+            مفتاح الأحدث معطّل في الواجهة الحقيقية (<code>disabled={versionEntry.latest}</code>)،
+            والخادم يرفضه أيضًا بـ <code>409 CONFLICT</code> و
+            <code>reason: latest_version_required</code>.
+            <span class="nw">يحتاج بناءً:</span> عمود «ما يحدث لأجهزته» — الخادم لا يعيد حكمًا
+            لكل إصدار، وهو محسوب هنا بنسخة حرفية من <code>AppVersionPolicy.decide</code>.
+            <span class="nw">غير موجود:</span> لا يوجد مسار لقراءة سجل التدقيق، فلا يمكن عرض
+            «من غيّر هذا ومتى» رغم أن الكتابة تحدث فعلًا
+            (<code>app_version.allowed</code> / <code>app_version.blocked</code>).
+          </div>
+        </div>
+      </section>
+
+      <!-- الطبقة الخلفية — محاكي القرار -->
+      <section class="far" aria-label="محاكي قرار الإصدار">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ماذا يحدث لجهاز يحمل هذا الإصدار؟</span>
+            <span class="paneNote">نفس الحساب الذي يجريه الخادم على كل طلب</span>
+          </div>
+          <div class="simIn">
+            <label class="segLbl" for="simVer" style="margin:0">رقم الإصدار المُرسَل</label>
+            <span class="simField">
+              <input id="simVer" type="text" dir="ltr" spellcheck="false" autocomplete="off"
+                     value="1.2.1+5" placeholder="1.4.0+9"
+                     aria-describedby="simOut">
+            </span>
+          </div>
+          <div class="simPick" id="simPick" role="group" aria-label="أمثلة جاهزة"></div>
+          <div class="simOut" id="simOut" role="status" aria-live="polite"></div>
+          <div class="src">
+            التطبيق يسأل <code>GET /v1/app/version</code> فيعيد كائن
+            <code>AppVersionDecision</code> بأحد الأنواع الأربعة:
+            <code>allowed</code> · <code>optional-update</code> · <code>required-update</code> ·
+            <code>unavailable</code>.
+            رقم الإصدار يصل في ترويسة <code>x-el-araby-app-version</code>، والصيغة المقبولة
+            <code>/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?\+\d+$/u</code> بطول 64 محرفًا كحدّ أقصى —
+            وأي رقم خارجها يُعامل كإصدار مستبعد. ترويسة فارغة تُقرأ
+            <code>null</code> أي «تطبيق قديم»، لا «رقم غير صالح».
+            المقارنة مع الأحدث تتم بـ <code>Intl.Collator('en',{numeric:true})</code>، وهي منسوخة
+            هنا حرفيًا.
+          </div>
+        </div>
+      </section>
+
+      <!-- الطبقة الخلفية — الحالات والأخطاء -->
+      <section class="far" aria-label="الحالات والأخطاء">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ما الذي يمكن أن يردّه هذا المسار</span>
+            <span class="paneNote">أكواد حقيقية من معالج الأخطاء، لا نصوص مخترعة</span>
+          </div>
+          <div class="errList">
+            <div class="err">
+              <span class="errCode hot">409</span>
+              <span class="errB">
+                <span class="errT">محاولة استبعاد أحدث إصدار</span>
+                <span class="errW">CONFLICT · latest_version_required</span>
+                <span class="errD">الخادم يرفض بنصّه الإنجليزي
+                  <bdi dir="ltr">Latest app version must remain allowed</bdi>. لهذا مفتاح
+                  الصف الأحدث معطّل في الواجهة أصلًا، فلا يصل الطلب.</span>
+              </span>
+            </div>
+            <div class="err">
+              <span class="errCode hot">404</span>
+              <span class="errB">
+                <span class="errT">إصدار غير موجود في السجل</span>
+                <span class="errW">NOT_FOUND · App version not found</span>
+                <span class="errD">يحدث حين يُطلب تعديل رقم إصدار لا يقابله مستند في
+                  <code>app_versions</code>.</span>
+              </span>
+            </div>
+            <div class="err">
+              <span class="errCode hot">503</span>
+              <span class="errB">
+                <span class="errT">السياسة غير مهيأة</span>
+                <span class="errW">UNAVAILABLE · app_version_policy_unconfigured</span>
+                <span class="errD">لا يوجد مستند سياسة بعد. الواجهة تعرض عندها:
+                  «لم تُهيأ سياسة التحديث بعد. انشر ملف APK واضبط أحدث إصدار قبل تغيير قائمة
+                  السماح.» وتُعطَّل كل المفاتيح.</span>
+              </span>
+            </div>
+            <div class="err">
+              <span class="errCode hot">426</span>
+              <span class="errB">
+                <span class="errT">جهاز على إصدار مستبعد يحاول العمل</span>
+                <span class="errW">APP_UPDATE_REQUIRED · update:{version,downloadUrl,sha256,sizeBytes}</span>
+                <span class="errD">كل طلب على <code>/v1/</code> يُرفض — عدا مسارات
+                  <code>/v1/admin/</code> ومسار سؤال الإصدار <code>/v1/app/version</code>
+                  ومسار اختبار الضغط الصوتي <code>/v1/stress/voice</code>. أي محاولة فحص للوحة
+                  «ر ن ب 4582» من هذا الجهاز ترتدّ قبل أن تصل إلى قائمة المطلوبين.</span>
+              </span>
+            </div>
+            <div class="err">
+              <span class="errCode">200</span>
+              <span class="errB">
+                <span class="errT">جهاز على إصدار أقدم لكنه مسموح</span>
+                <span class="errW">header: x-el-araby-app-update (base64url)</span>
+                <span class="errD">الطلب يمرّ كالمعتاد، ويُرفَق بالرد وصف أحدث إصدار حتى يعرض
+                  التطبيق تنبيه تحديث اختياري. لا شيء يتوقف.</span>
+              </span>
+            </div>
+          </div>
+          <div class="src">
+            الأكواد من جدول <code>statusByCode</code> في <code>problem-response.ts</code>،
+            وجسم الخطأ يتبع <code>application/problem+json</code> بالحقول
+            <code>type · title · status · code · retryable · reason</code>.
+            نص الخطأ الذي تعرضه لوحة الإدارة يأتي من <code>title</code> كما هو — وهو
+            <b>بالإنجليزية</b> في الخادم اليوم.
+            <span class="nw">يحتاج بناءً:</span> ترجمة عربية لرسائل الأخطاء، أو خريطة
+            <code>reason → نص عربي</code> في العميل.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ العمود الجانبي ═══ -->
+    <div class="stack">
+
+      <!-- التطبيقات القديمة -->
+      <section class="mid" aria-label="التطبيقات القديمة">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">التطبيقات القديمة</span>
+          </div>
+          <div class="paneBody" style="padding-block-end:8px">
+            السماح للإصدارات القديمة قبل تحديث <bdi dir="ltr">1.2.0+3</bdi> —
+            وهي ملفات APK لا ترسل رقم إصدار إطلاقًا.
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:0 18px 12px">
+            <button class="switch" type="button" id="legacySw" role="switch"
+                    aria-checked="false"
+                    aria-label="السماح للتطبيقات القديمة التي لا ترسل رقم الإصدار">
+              <span class="switch-track" aria-hidden="true"></span>
+            </button>
+            <span style="font-size:12px;color:var(--ink-3)" id="legacyState">
+              موقوفة — كل طلب منها يُرفض
+            </span>
+          </div>
+          <div id="legacyConfirm"></div>
+          <div class="paneBody" style="padding-block-start:0;font-size:11.5px;color:var(--ink-3)">
+            يسمح لملفات APK القديمة التي لا ترسل رقم إصدار بالاستمرار مؤقتًا.
+          </div>
+          <div class="src">
+            <code>PATCH /v1/admin/app-versions/legacy</code> بجسم <code>{ allowed:boolean }</code>،
+            والحقل المخزَّن <code>app_version_policies.allowLegacyClients</code>.
+            في الخادم: <code>decide(null)</code> يعيد <code>allowed</code> حين يكون الحقل صحيحًا،
+            و<code>required-update</code> حين يكون خاطئًا.
+            كتابة التدقيق: <code>app_version.legacy_allowed</code> /
+            <code>app_version.legacy_blocked</code>.
+          </div>
+        </div>
+      </section>
+
+      <!-- أثر السياسة على الميدان -->
+      <section class="mid" aria-label="أثر السياسة على الميدان">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">أثر السياسة الآن</span>
+            <span class="paneNote">31 مشغّلاً حسب آخر إصدار سجّلوه</span>
+          </div>
+          <div class="impact" id="impact"></div>
+          <div class="imFoot">
+            <b>26</b> اشتراكًا ساريًا من <b>31</b> مشغّلاً · قائمة المطلوبين
+            <b>48,392</b> سجلاً.<br>
+            المشغّل المتوقّف لا يستطيع مقارنة أي لوحة بهذه القائمة حتى يحدّث التطبيق.
+          </div>
+          <div class="src">
+            التوزيع محسوب هنا من <code>appVersion</code> لكل مشغّل في
+            <code>GET /v1/admin/operators</code>، والحقل يُكتب في
+            <code>operators.appVersion</code> عند كل نبضة حضور
+            (<code>operator_presence.touch</code>) حين يتغيّر الإصدار.
+            «اشتراكات سارية» من عدّ المشغّلين ذوي الاشتراك الساري — لحظي دائمًا.
+            حجم قائمة المطلوبين من <code>wanted_plate_dataset_state</code>.
+            <span class="nw">تنبيه صدق:</span> الحقل يعكس آخر مرة اتصل فيها الجهاز، لا الواقع
+            الآن — من لم يتصل منذ أسابيع قد يكون حدّث تطبيقه دون أن يظهر ذلك هنا.
+          </div>
+        </div>
+      </section>
+
+      <!-- ما يحدث لحظة الاستبعاد -->
+      <section class="mid" aria-label="ما يحدث لحظة الاستبعاد">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ما يحدث لحظة الاستبعاد</span>
+          </div>
+          <div class="paneBody">
+            <ul class="cfList" style="margin:0">
+              <li>يُحفظ التغيير ثم تُحدَّث نسخة السياسة في ذاكرة الخادم فورًا — بلا انتظار
+                إعادة تشغيل.</li>
+              <li>كل جلسة صوتية مفتوحة يصبح حكم إصدارها «تحديث إلزامي» تُغلق فورًا بالسبب
+                <bdi dir="ltr">app_update_required</bdi>.</li>
+              <li>أي طلب تالٍ من تلك الأجهزة يُرفض بـ <bdi dir="ltr">426</bdi> مع رابط أحدث
+                إصدار وبصمته.</li>
+              <li>لوحة الإدارة لا تتأثر — مسارات <bdi dir="ltr">/v1/admin/</bdi> مستثناة من
+                الفحص.</li>
+              <li>التراجع فوري: إعادة تشغيل المفتاح تعيد الإصدار إلى قائمة السماح في نفس
+                اللحظة.</li>
+            </ul>
+          </div>
+          <div class="src">
+            إغلاق الجلسات حقيقي: <code>appVersions.subscribe(...)</code> في
+            <code>bootstrap/container.ts</code> ينادي
+            <code>activeVoiceSessions.revokeOutdated(...)</code> عند كل حفظ، وهي تغلق كل جلسة
+            حكمها <code>required-update</code>.
+            <span class="nw">غير موجود:</span> لا يوجد عدّاد للجلسات التي أُغلقت بهذا السبب،
+            فلا يمكن عرض «أُنهيت N جلسة» بعد التنفيذ دون بناء جديد.
+          </div>
+        </div>
+      </section>
+
+      <!-- الإصدار المنشور -->
+      <section class="mid" aria-label="الإصدار المنشور">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ملف الإصدار الأحدث</span>
+            <span class="paneNote">حقل واحد فقط يعيده مسار الإدارة اليوم</span>
+          </div>
+          <div class="rel">
+            <div class="relRow"><span class="relK">الإصدار</span>
+              <span class="relV" id="relVer">1.4.0+9</span></div>
+            <div class="relRow"><span class="relK">الحجم</span>
+              <span class="relV na">مخزَّن في <code>app_versions.sizeBytes</code> — لا يعيده
+                <code>GET /v1/admin/app-versions</code></span></div>
+            <div class="relRow"><span class="relK">البصمة</span>
+              <span class="relV na">مخزَّنة في <code>app_versions.sha256</code> — لا يعيدها هذا
+                المسار</span></div>
+            <div class="relRow"><span class="relK">الرابط</span>
+              <span class="relV na">مخزَّن في <code>app_versions.downloadUrl</code> — لا يعيده هذا
+                المسار</span></div>
+            <div class="relRow"><span class="relK">النشر</span>
+              <span class="relV ar">عبر ترحيل قاعدة بيانات، لا من هذه الشاشة</span></div>
+          </div>
+          <div class="src">
+            الحقول <code>downloadUrl · sha256 · sizeBytes</code> موجودة فعلًا في مستند
+            <code>app_versions</code> ويشترطها <code>AppVersionPolicy</code> (رابط
+            <code>https</code> فقط، بصمة من 64 خانة، حجم صحيح موجب).
+            <span class="nw">لكن:</span> <code>GET /v1/admin/app-versions</code> لا يعيدها —
+            استعلام المستودع يُسقطها بـ
+            <code>projection:{ version:1, createdAt:1 }</code>، فرد المسار يقتصر على
+            <code>version · createdAt · allowed · latest</code>. لهذا لا تُعرض لها قيم هنا؛
+            عرضها <span class="nw">يحتاج بناءً</span> بتوسيع الرد.
+            <span class="nw">غير موجود إطلاقًا:</span> لا مسار لرفع APK ولا لإضافة إصدار — المستودع
+            يرفض حفظ سياسة أحدثُها غير منشور برسالة
+            <code>App version X is not published by a migration</code>.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>لا يعرض النظام عدد التنزيلات ولا تاريخ تحديث كل جهاز — هذه الحقول غير موجودة في قاعدة البيانات</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ══ البيانات — بشكل الرد الحقيقي ══════════════════
+     GET /v1/admin/app-versions →
+       { items:[{ version, allowed, latest, createdAt }],
+         policy:{ allowLegacyClients, latestVersion } | null }
+     الحقل ops ليس جزءًا من هذا الرد: هو عدد المشغّلين الذين آخر إصدار سجّلوه
+     هو هذا الإصدار، ويأتي من operators.appVersion في مسار المشغّلين.        */
+
+  var LATEST = "1.4.0+9";
+
+  var VERSIONS = [
+    { v:"1.4.0+9", created:"18 أغسطس 2026 — 10:24",  allowed:true,  ops:12 },
+    { v:"1.3.2+8", created:"30 يوليو 2026 — 14:02",  allowed:true,  ops:7  },
+    { v:"1.3.0+7", created:"22 يونيو 2026 — 09:41",  allowed:true,  ops:5  },
+    { v:"1.2.1+5", created:"14 مايو 2026 — 16:35",   allowed:false, ops:3  },
+    { v:"1.2.0+3", created:"9 أبريل 2026 — 11:08",   allowed:true,  ops:2  },
+    { v:"1.1.4+2", created:"27 فبراير 2026 — 13:50", allowed:false, ops:1  },
+    { v:"1.0.6+1", created:"11 ديسمبر 2025 — 08:19", allowed:false, ops:0  }
+  ];
+
+  /* مشغّلون بأسمائهم — appVersion = null يعني تطبيقًا قديمًا لا يرسل رقمًا */
+  var NAMED = [
+    { name:"خالد المطيري", ver:"1.4.0+9" },
+    { name:"نورة السبيعي", ver:"1.4.0+9" },
+    { name:"فهد القحطاني", ver:"1.3.2+8" },
+    { name:"ريم الدوسري",  ver:"1.3.0+7" },
+    { name:"سعود العتيبي", ver:"1.2.1+5" },
+    { name:"لطيفة الحربي", ver:"1.2.0+3" },
+    { name:"ماجد الشمري",  ver:"1.1.4+2" },
+    { name:"هند الزهراني", ver:null      }
+  ];
+
+  var LEGACY_OPS = 1;      /* أجهزة بلا رقم إصدار — هند الزهراني */
+  var TOTAL_OPS  = 31;     /* إجمالي المشغّلين، متسق مع الشاشة المرجعية */
+
+  var state = {
+    legacy:  false,        /* policy.allowLegacyClients */
+    filter:  "all",
+    pending: null,         /* { kind:'version', version } | { kind:'legacy' } */
+    notice:  null,         /* { message, tone } */
+    sim:     "1.2.1+5"
+  };
+
+  /* أيقونة التحذير — SVG سطري بـ currentColor، لا محرف إيموجي. */
+  var IC_WARN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ' +
+    'aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9' +
+    'a2 2 0 0 0-3.4 0"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+                    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ══ منطق القرار — منقول حرفيًا من app-version-policy.ts ══
+     versionPattern و Intl.Collator و ترتيب الفروع كما هي في المصدر.       */
+  var VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?\+\d+$/;
+  var collator = new Intl.Collator("en", { numeric:true });
+
+  function isAppVersion(v){
+    return typeof v === "string" && v.length <= 64 && VERSION_PATTERN.test(v);
+  }
+  function allowedSet(){
+    var set = {};
+    VERSIONS.forEach(function(r){ if(r.allowed) set[r.v] = true; });
+    return set;
+  }
+  function decide(clientVersion){
+    var allowed = allowedSet();
+    if(clientVersion === null){
+      return state.legacy ? { kind:"allowed" } : { kind:"required-update" };
+    }
+    if(!isAppVersion(clientVersion) || !allowed[clientVersion]){
+      return { kind:"required-update" };
+    }
+    return collator.compare(clientVersion, LATEST) < 0
+      ? { kind:"optional-update" }
+      : { kind:"allowed" };
+  }
+
+  var KIND = {
+    "allowed":         { cls:"k-allowed",  label:"يعمل",            id:"allowed" },
+    "optional-update": { cls:"k-optional", label:"تحديث اختياري",   id:"optional-update" },
+    "required-update": { cls:"k-required", label:"تحديث إلزامي",    id:"required-update" },
+    "unavailable":     { cls:"",           label:"السياسة غير مهيأة", id:"unavailable" }
+  };
+  var KIND_WHAT = {
+    "allowed":         "يفحص اللوحات طبيعيًا ولا يرى أي تنبيه",
+    "optional-update": "يعمل، ويظهر له تنبيه تحديث لا يوقفه",
+    "required-update": "يتوقف تمامًا حتى يثبّت أحدث إصدار"
+  };
+
+  /* ══ الأرقام العلوية ══════════════════════════════ */
+  function renderLedger(){
+    var allowedCount = VERSIONS.filter(function(r){ return r.allowed; }).length;
+    var blockedCount = VERSIONS.length - allowedCount;
+
+    document.getElementById("figLatest").textContent = LATEST;
+    setNum("figAllowed", allowedCount);
+    setNum("figBlocked", blockedCount);
+    document.getElementById("figAllowedOf").textContent =
+      "من " + VERSIONS.length + " إصدارات في السجل";
+
+    document.getElementById("figLegacy").textContent = state.legacy ? "مسموحة" : "موقوفة";
+    document.getElementById("figLegacyM").textContent =
+      state.legacy ? "تعمل مؤقتًا بلا رقم إصدار" : "لا تستطيع الفحص";
+
+    var st = stopped();
+    setNum("figStopped", st.count);
+    document.getElementById("figStoppedM").textContent = "من " + TOTAL_OPS + " مشغّلاً";
+    renderStoppedPanel(st);
+  }
+  function setNum(id, value){
+    var el = document.getElementById(id);
+    el.dataset.count = value;
+    el.textContent = fmt(value);
+  }
+
+  /* المشغّلون الذين حكم إصدارهم «تحديث إلزامي» الآن */
+  function stopped(){
+    var groups = [], count = 0;
+    VERSIONS.forEach(function(r){
+      if(decide(r.v).kind !== "required-update" || !r.ops) return;
+      count += r.ops;
+      groups.push({
+        title: r.v,
+        ops: r.ops,
+        names: NAMED.filter(function(o){ return o.ver === r.v; })
+      });
+    });
+    if(!state.legacy && LEGACY_OPS){
+      count += LEGACY_OPS;
+      groups.push({
+        title: null,
+        ops: LEGACY_OPS,
+        names: NAMED.filter(function(o){ return o.ver === null; })
+      });
+    }
+    return { count:count, groups:groups };
+  }
+
+  function renderStoppedPanel(st){
+    var host = document.getElementById("stoppedGroups");
+    if(!st.count){
+      host.innerHTML = '<div class="empty" style="padding:26px 14px">' +
+        '<b>لا أحد متوقّف الآن</b>كل إصدار سجّله جهاز موجود في قائمة السماح.</div>';
+      return;
+    }
+    host.innerHTML = st.groups.map(function(g){
+      var head = '<div class="dgT">' +
+        (g.title ? 'الإصدار <span class="c">' + esc(g.title) + '</span>'
+                 : 'تطبيقات بلا رقم إصدار') +
+        ' <span class="c">' + g.ops + '</span></div>';
+      var rows = g.names.map(function(o){
+        return '<div class="du"><span class="av2" aria-hidden="true">' +
+          esc(o.name.charAt(0)) + '</span>' +
+          '<span class="duName">' + esc(o.name) + '</span>' +
+          '<span class="duVer">' + (o.ver ? esc(o.ver) : "—") + '</span></div>';
+      }).join("");
+      var rest = g.ops - g.names.length;
+      if(rest > 0){
+        rows += '<div class="du"><span class="av2" aria-hidden="true">+</span>' +
+          '<span class="duName" style="color:var(--ink-3)">و ' + rest +
+          ' مشغّلين آخرين على نفس الحالة</span><span class="duVer"></span></div>';
+      }
+      return head + rows;
+    }).join("");
+  }
+
+  /* ══ جدول الإصدارات ══════════════════════════════ */
+  function visibleRows(){
+    return VERSIONS.filter(function(r){
+      if(state.filter === "allowed") return r.allowed;
+      if(state.filter === "blocked") return !r.allowed;
+      return true;
+    });
+  }
+
+  function renderTable(){
+    var host = document.getElementById("vrows"), rows = visibleRows();
+
+    /* الرقم يُعزل في bdi حتى لا يلتصق «+9» بالنص العربي المجاور فينقلب ترتيبه. */
+    document.getElementById("tableNote").innerHTML =
+      esc(rows.length === VERSIONS.length
+        ? VERSIONS.length + " إصدارات"
+        : rows.length + " من " + VERSIONS.length + " إصدارات") +
+      ' · أحدث إصدار: <bdi dir="ltr">' + esc(LATEST) + "</bdi>";
+
+    if(!rows.length){
+      host.innerHTML = '<div class="empty"><b>لا توجد سجلات مطابقة</b>' +
+        'كل الإصدارات في السجل على الحالة الأخرى — اضغط «الكل».</div>';
+      return;
+    }
+
+    host.innerHTML = rows.map(function(r){
+      var latest = r.v === LATEST,
+          k      = decide(r.v).kind,
+          meta   = KIND[k],
+          confirmOpen = state.pending &&
+                        state.pending.kind === "version" &&
+                        state.pending.version === r.v;
+
+      var sw = '<button class="switch cSw" type="button" role="switch" ' +
+        'aria-checked="' + (r.allowed ? "true" : "false") + '" ' +
+        'data-ver="' + esc(r.v) + '" ' +
+        (latest ? 'disabled ' : '') +
+        'aria-label="' + (r.allowed ? "استبعاد" : "السماح بالإصدار") + ' ' + esc(r.v) + '">' +
+        '<span class="switch-track" aria-hidden="true"></span></button>';
+
+      var row = '<div class="vrow' + (latest ? " isLatest" : "") +
+        (r.allowed ? "" : " blocked") + '">' +
+        '<span class="cVer"><bdi dir="ltr">' + esc(r.v) + '</bdi></span>' +
+        /* عمود «الأحدث» محجوز دائمًا حتى حين يكون فارغًا */
+        (latest ? '<span class="cLatest">الأحدث</span>' : '<span class="cLatest" style="border-color:transparent"></span>') +
+        '<span class="cDate">' + esc(r.created) + '</span>' +
+        '<span class="chip cState ' + (r.allowed ? "cs-allow" : "cs-block") + '">' +
+          (r.allowed ? "مسموح" : "مستبعد") + '</span>' +
+        '<span class="cVerdict">' +
+          '<span class="vKind ' + meta.cls + '">' + meta.label + '</span>' +
+          '<span class="vWhat">' +
+            (latest ? "لا يمكن استبعاد الأحدث" : KIND_WHAT[k]) +
+          '</span>' +
+        '</span>' +
+        sw +
+      '</div>';
+
+      return row + (confirmOpen ? confirmBlock(r) : "");
+    }).join("");
+  }
+
+  /* التأكيد — نصّه منقول حرفيًا من confirmDescription في VersionsPage.tsx */
+  function confirmBlock(r){
+    var affected = r.ops;
+    return '<div class="confirm" role="alertdialog" aria-label="استبعاد هذا الإصدار">' +
+      '<div class="cfT"><span class="warn">' + IC_WARN + '</span>' +
+      '<span>استبعاد الإصدار <bdi dir="ltr">' + esc(r.v) + '</bdi>؟</span></div>' +
+      '<div class="cfD">سيُطلب من مستخدمي الإصدار <bdi dir="ltr">' + esc(r.v) +
+        '</bdi> تثبيت أحدث إصدار، وستنتهي جلساتهم الصوتية النشطة.</div>' +
+      '<ul class="cfList">' +
+        '<li>' + (affected
+          ? '<b style="color:var(--ink-2);font-weight:500">' + affected +
+            '</b> مشغّلين آخر إصدار سجّلوه هو هذا الإصدار.'
+          : 'لا يوجد مشغّل سجّل هذا الإصدار مؤخّرًا.') + '</li>' +
+        '<li>كل طلب منهم يُرفض بـ <bdi dir="ltr">426</bdi> حتى يحدّثوا التطبيق.</li>' +
+        '<li>التراجع فوري بإعادة تشغيل المفتاح.</li>' +
+      '</ul>' +
+      '<div class="cfBtns">' +
+        '<button class="btn danger" type="button" data-act="confirm">تأكيد الاستبعاد</button>' +
+        '<button class="btn" type="button" data-act="cancel">إلغاء</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ══ التطبيقات القديمة ═══════════════════════════ */
+  function renderLegacy(){
+    var sw = document.getElementById("legacySw");
+    sw.setAttribute("aria-checked", state.legacy ? "true" : "false");
+    document.getElementById("legacyState").textContent =
+      state.legacy ? "مسموحة مؤقتًا — تعمل بلا رقم إصدار" : "موقوفة — كل طلب منها يُرفض";
+
+    var host = document.getElementById("legacyConfirm");
+    if(!(state.pending && state.pending.kind === "legacy")){ host.innerHTML = ""; return; }
+    host.innerHTML =
+      '<div class="confirm" role="alertdialog" aria-label="إيقاف التطبيقات القديمة" ' +
+        'style="border-radius:0;margin-block-end:4px">' +
+      '<div class="cfT"><span class="warn">' + IC_WARN + '</span>' +
+        '<span>إيقاف التطبيقات القديمة؟</span></div>' +
+      '<div class="cfD">سيُمنع فورًا أي تطبيق قديم لا يرسل رقم الإصدار، وستنتهي جلساته ' +
+        'الصوتية النشطة.</div>' +
+      '<ul class="cfList">' +
+        '<li>' + LEGACY_OPS + ' جهاز في الميدان لم يرسل رقم إصدار في آخر اتصال.</li>' +
+        '<li>هذه الأجهزة لا تعرف كيف تعرض تنبيه التحديث، فستظهر كأنها معطّلة.</li>' +
+      '</ul>' +
+      '<div class="cfBtns">' +
+        '<button class="btn danger" type="button" data-act="confirm">تأكيد الإيقاف</button>' +
+        '<button class="btn" type="button" data-act="cancel">إلغاء</button>' +
+      '</div></div>';
+  }
+
+  /* ══ أثر السياسة على الميدان ═════════════════════ */
+  function renderImpact(){
+    var buckets = {
+      "allowed":         { n:0, label:"يعمل بلا تنبيه",  sub:"على أحدث إصدار", color:"var(--clean)" },
+      "optional-update": { n:0, label:"يعمل مع تنبيه",   sub:"إصدار أقدم لكنه مسموح", color:"var(--unread)" },
+      "required-update": { n:0, label:"متوقّف",          sub:"إصدار مستبعد أو بلا رقم", color:"var(--wanted)" }
+    };
+    VERSIONS.forEach(function(r){ buckets[decide(r.v).kind].n += r.ops; });
+    buckets[decide(null).kind].n += LEGACY_OPS;
+
+    var total = TOTAL_OPS;
+    document.getElementById("impact").innerHTML =
+      ["allowed","optional-update","required-update"].map(function(k){
+        var b = buckets[k], pct = total ? (b.n / total * 100) : 0;
+        return '<div class="imRow">' +
+          '<span class="imDot" style="background:' + b.color + '"></span>' +
+          '<span class="imL">' + b.label + '<small>' + b.sub + '</small></span>' +
+          '<span class="imN" style="color:' + b.color + '">' + b.n + '</span>' +
+          '<span class="imBarWrap"><span class="imBar" style="inline-size:' +
+            pct.toFixed(1) + '%;background:' + b.color + '"></span></span>' +
+        '</div>';
+      }).join("");
+  }
+
+  /* ══ محاكي القرار ════════════════════════════════ */
+  var PICKS = [
+    { v:"1.4.0+9", lbl:"1.4.0+9" },
+    { v:"1.3.0+7", lbl:"1.3.0+7" },
+    { v:"1.2.1+5", lbl:"1.2.1+5" },
+    { v:"1.0.6+1", lbl:"1.0.6+1" },
+    { v:"1.4+9",   lbl:"1.4+9",  bad:true },
+    { v:null,      lbl:"بلا رقم إصدار", rtl:true }
+  ];
+
+  function renderPicks(){
+    document.getElementById("simPick").innerHTML = PICKS.map(function(p){
+      var on = (p.v === null) ? (state.sim === null) : (state.sim === p.v);
+      return '<button class="pick' + (p.rtl ? " rtl" : "") + '" type="button" ' +
+        'aria-pressed="' + (on ? "true" : "false") + '" ' +
+        'data-v="' + (p.v === null ? "" : esc(p.v)) + '" ' +
+        'data-null="' + (p.v === null ? "1" : "0") + '">' +
+        esc(p.lbl) + (p.bad ? " (صيغة غير صالحة)" : "") + '</button>';
+    }).join("");
+  }
+
+  function renderSim(){
+    var v = state.sim, d = decide(v), meta = KIND[d.kind], out = [];
+
+    var head = '<div class="simKind">' +
+      '<span class="vKind ' + meta.cls + '">' + meta.label + '</span>' +
+      '<span class="simKindId">kind: "' + meta.id + '"</span>' +
+      '<span style="font-size:11px;color:var(--ink-3)">' +
+        (v === null ? "بلا ترويسة إصدار" : 'الترويسة: ' +
+          '<bdi dir="ltr">' + esc(v) + '</bdi>') + '</span>' +
+    '</div>';
+
+    if(v !== null && !isAppVersion(v)){
+      out.push('الرقم لا يطابق الصيغة المقبولة، فيُعامل كإصدار غير معروف: التطبيق يتوقف ' +
+        'ويُطالَب بتثبيت أحدث إصدار.');
+    } else if(v === null){
+      out.push(state.legacy
+        ? 'تطبيق قديم لا يرسل رقم إصدار — مسموح له بالعمل لأن مفتاح «التطبيقات القديمة» مشغّل.'
+        : 'تطبيق قديم لا يرسل رقم إصدار — ممنوع لأن مفتاح «التطبيقات القديمة» مطفأ.');
+    } else if(d.kind === "required-update"){
+      out.push('الإصدار خارج قائمة السماح: الجهاز يتوقف تمامًا. أي محاولة لفحص لوحة مثل ' +
+        '«ر ن ب 4582» ترتدّ قبل الوصول إلى قائمة المطلوبين.');
+    } else if(d.kind === "optional-update"){
+      out.push('الإصدار مسموح لكنه أقدم من الأحدث: الجهاز يعمل كالمعتاد، ويصله وصف أحدث ' +
+        'إصدار ليعرض تنبيهًا لا يوقفه.');
+    } else {
+      out.push('الجهاز على أحدث إصدار مسموح: يعمل بلا تنبيه ولا قيد.');
+    }
+
+    var wire;
+    if(d.kind === "required-update"){
+      wire = 'الرد: <code>426 APP_UPDATE_REQUIRED</code> على كل مسار ' +
+        '<code>/v1/</code> عدا <code>/v1/admin/</code> و<code>/v1/app/version</code> ' +
+        'و<code>/v1/stress/voice</code>، مع كائن ' +
+        '<code>update</code> فيه <b>الرابط والبصمة والحجم</b>. ' +
+        'وأي جلسة صوتية مفتوحة لهذا الجهاز تُغلق بالسبب ' +
+        '<code>app_update_required</code>.';
+    } else if(d.kind === "optional-update"){
+      wire = 'الرد: <code>200</code> مع ترويسة <code>x-el-araby-app-update</code> تحمل وصف ' +
+        'أحدث إصدار مرمَّزًا بـ <code>base64url</code>. لا شيء يُرفض.';
+    } else {
+      wire = 'الرد: <code>200</code> بلا أي ترويسة تحديث. المرور طبيعي.';
+    }
+
+    document.getElementById("simOut").innerHTML =
+      head + '<div class="simSay">' + out.join(" ") + '</div>' +
+      '<div class="simWire">' + wire + '</div>';
+  }
+
+  /* ══ الإشعار ═════════════════════════════════════ */
+  function renderNotice(){
+    var host = document.getElementById("noticeHost");
+    if(!state.notice){ host.innerHTML = ""; return; }
+    host.innerHTML = '<div class="notice ' + state.notice.tone + '">' +
+      '<span class="nMsg">' + esc(state.notice.message) + '</span>' +
+      '<button class="nX" type="button" id="noticeX" aria-label="إخفاء الإشعار">✕</button></div>';
+    document.getElementById("noticeX").addEventListener("click", function(){
+      state.notice = null; renderNotice();
+    });
+  }
+
+  /* ══ إعادة الرسم ═════════════════════════════════ */
+  function rerender(){
+    renderLedger(); renderTable(); renderLegacy();
+    renderImpact(); renderPicks(); renderSim(); renderNotice();
+  }
+
+  /* ══ التغييرات ═══════════════════════════════════
+     السماح يسري فورًا بلا تأكيد، والاستبعاد يمرّ بتأكيد —
+     وهو نفس سلوك VersionsPage.tsx حرفيًا.                                */
+  function applyVersion(version, allowed){
+    VERSIONS.forEach(function(r){ if(r.v === version) r.allowed = allowed; });
+    state.pending = null;
+    state.notice = {
+      message: allowed ? "تم السماح بالإصدار " + version + "."
+                       : "تم استبعاد الإصدار " + version + ".",
+      tone: "success"
+    };
+    rerender();
+  }
+  function applyLegacy(allowed){
+    state.legacy = allowed;
+    state.pending = null;
+    state.notice = {
+      message: allowed ? "تم السماح للتطبيقات القديمة."
+                       : "تم إيقاف التطبيقات التي لا ترسل رقم الإصدار.",
+      tone: "success"
+    };
+    rerender();
+  }
+
+  /* ══ إدارة التركيز ═══════════════════════════════
+     كل من renderTable و renderLegacy يستبدل الـ innerHTML، فالزر الذي ضغطه
+     المستخدم يُهدم ويسقط التركيز إلى <body>. تُعاد الإعادة يدويًا: عند فتح
+     التأكيد ينتقل التركيز داخله (وهو role="alertdialog")، وعند إغلاقه يعود
+     إلى المفتاح الذي فتحه.                                                */
+  function findSwitch(version){
+    var list = document.querySelectorAll("#vrows .switch");
+    for(var i = 0; i < list.length; i++){
+      if(list[i].dataset.ver === version) return list[i];
+    }
+    return null;
+  }
+  function focusConfirm(host){
+    var btn = (host || document).querySelector(".confirm .btn.danger");
+    if(btn) btn.focus();
+  }
+  function focusSwitch(version){
+    var el = findSwitch(version);
+    if(el && !el.disabled){ el.focus(); return; }
+    /* اختفى الصف بفعل التصفية — التركيز يبقى داخل نفس اللوحة. */
+    var seg = document.querySelector('#filterSeg button[aria-pressed="true"]');
+    if(seg) seg.focus();
+  }
+
+  /* ══ التفاعلات ═══════════════════════════════════ */
+  document.getElementById("vrows").addEventListener("click", function(e){
+    var sw = e.target.closest(".switch");
+    if(sw && !sw.disabled){
+      var version = sw.dataset.ver,
+          nowOn   = sw.getAttribute("aria-checked") === "true";
+      if(!nowOn){ applyVersion(version, true); focusSwitch(version); return; }
+      state.pending = { kind:"version", version:version };
+      state.notice = null;
+      renderTable();
+      focusConfirm();
+      return;
+    }
+    var act = e.target.closest("[data-act]");
+    if(!act || !state.pending || state.pending.kind !== "version") return;
+    var target = state.pending.version;
+    if(act.dataset.act === "cancel"){
+      state.pending = null; renderTable(); focusSwitch(target); return;
+    }
+    applyVersion(target, false);
+    focusSwitch(target);
+  });
+
+  var legacySw = document.getElementById("legacySw");
+  legacySw.addEventListener("click", function(){
+    if(this.getAttribute("aria-checked") !== "true"){ applyLegacy(true); return; }
+    state.pending = { kind:"legacy" };
+    state.notice = null;
+    renderLegacy();
+    focusConfirm(document.getElementById("legacyConfirm"));
+  });
+  document.getElementById("legacyConfirm").addEventListener("click", function(e){
+    var act = e.target.closest("[data-act]"); if(!act) return;
+    if(act.dataset.act === "cancel"){ state.pending = null; renderLegacy(); }
+    else applyLegacy(false);
+    legacySw.focus();
+  });
+
+  /* Escape يلغي التأكيد المفتوح ويعيد التركيز إلى مفتاحه. */
+  addEventListener("keydown", function(e){
+    if(e.key !== "Escape" || !state.pending) return;
+    var p = state.pending;
+    state.pending = null;
+    if(p.kind === "legacy"){ renderLegacy(); legacySw.focus(); }
+    else { renderTable(); focusSwitch(p.version); }
+  });
+
+  document.getElementById("filterSeg").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    [].forEach.call(this.querySelectorAll("button"), function(x){
+      x.setAttribute("aria-pressed", String(x === b));
+    });
+    state.filter = b.dataset.f;
+    state.pending = null;
+    renderTable();
+  });
+
+  document.getElementById("simVer").addEventListener("input", function(){
+    /* الخادم يقرأ الترويسة هكذا: header.length > 0 ? header : null —
+       فحقل فارغ يعني «تطبيق لا يرسل رقم إصدار» لا «رقمًا غير صالح». */
+    var typed = this.value.trim();
+    state.sim = typed.length ? typed : null;
+    renderPicks(); renderSim();
+  });
+  document.getElementById("simPick").addEventListener("click", function(e){
+    var b = e.target.closest(".pick"); if(!b) return;
+    var isNull = b.dataset.null === "1";
+    state.sim = isNull ? null : b.dataset.v;
+    document.getElementById("simVer").value = isNull ? "" : b.dataset.v;
+    renderPicks(); renderSim();
+  });
+
+  /* قائمة المتوقّفين */
+  (function(){
+    var btn   = document.getElementById("stoppedBtn"),
+        panel = document.getElementById("stoppedPanel"),
+        close = document.getElementById("stoppedClose");
+    function setOpen(on){
+      panel.hidden = !on;
+      btn.setAttribute("aria-expanded", String(on));
+      if(on) close.focus();
+    }
+    btn.addEventListener("click", function(e){ e.stopPropagation(); setOpen(panel.hidden); });
+    close.addEventListener("click", function(){ setOpen(false); btn.focus(); });
+    panel.addEventListener("click", function(e){ e.stopPropagation(); });
+    addEventListener("click", function(){ if(!panel.hidden) setOpen(false); });
+    addEventListener("keydown", function(e){
+      if(e.key === "Escape" && !panel.hidden){ setOpen(false); btn.focus(); }
+    });
+  })();
+
+  document.getElementById("srcTgl").addEventListener("click", function(){
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", String(on));
+    document.documentElement.setAttribute("data-src", on ? "1" : "0");
+  });
+
+  /* ══ العدّادات — القيمة الحقيقية مكتوبة في الـ markup أصلًا ══ */
+  function countTo(el, target){
+    if(document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches){
+      el.textContent = fmt(target); return;
+    }
+    var from = 0, t0 = performance.now(), dur = 900;
+    function step(now){
+      var p = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(from + (target - from) * e));
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  rerender();
+  [].forEach.call(document.querySelectorAll("[data-count]"), function(el){
+    countTo(el, +el.dataset.count);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قرارات تصميم النظرة العامة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b; --wanted:#ff6b6b; --clean:#3ddc97;
+  --keep:#3ddc97; --drop:#ff6b6b; --new:#6ec49b;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(100px)}
+.l1{width:800px;height:800px;top:-250px;left:-160px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.18}
+.l2{width:700px;height:700px;top:-150px;right:-140px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:900px;height:900px;bottom:-400px;left:26%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:560px;height:560px;bottom:-180px;right:8%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 120% 90% at 50% 45%,transparent 30%,rgba(0,0,0,.62) 100%)}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{position:relative;z-index:2;max-width:1180px;margin-inline:auto;padding:38px 26px 80px}
+.pageTitle{font-size:29px;font-weight:600;line-height:1.35}
+.pageSub{color:var(--ink-3);font-size:14.5px;margin-block-start:8px;max-width:74ch}
+
+section{margin-block-start:52px}
+.secHead{display:flex;align-items:baseline;gap:12px;padding-block-end:14px;
+  border-block-end:1px solid var(--line);margin-block-end:24px;flex-wrap:wrap}
+.secNum{font-size:12px;font-weight:600;color:var(--ink-3);
+  width:26px;height:26px;display:grid;place-items:center;border-radius:8px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
+  direction:ltr;unicode-bidi:isolate;flex:none;align-self:center}
+.secTitle{font-size:20px;font-weight:600}
+.secNote{color:var(--ink-3);font-size:13px;flex:1;min-width:240px}
+
+.panel{background:rgba(255,255,255,.045);
+  backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid rgba(255,255,255,.085);border-radius:16px;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+
+/* ── 1. plane map ───────────────────────────────────── */
+.planes{display:flex;flex-direction:column;gap:16px}
+.plane{padding:18px 20px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.07)}
+.planeFar{background:rgba(255,255,255,.028);backdrop-filter:blur(34px)}
+.planeMid{background:rgba(255,255,255,.05);backdrop-filter:blur(22px)}
+.planeNear{background:rgba(255,255,255,.075);backdrop-filter:blur(12px);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.12) inset,0 26px 60px -24px rgba(0,0,0,.7)}
+.planeHead{display:flex;align-items:baseline;gap:10px;margin-block-end:14px;flex-wrap:wrap}
+.planeName{font-size:15px;font-weight:600}
+.planeMeta{font-size:12px;color:var(--ink-3)}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(215px,100%),1fr));gap:10px}
+.slot{padding:13px 14px;border-radius:11px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.03);display:flex;flex-direction:column;gap:5px}
+.slotName{font-size:14px;font-weight:500;line-height:1.5}
+.slotWhy{font-size:11.5px;color:var(--ink-3);line-height:1.65}
+.tag{align-self:flex-start;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7}
+.tKeep{color:var(--keep)} .tDrop{color:var(--drop)} .tNew{color:var(--new)}
+.slot.drop{opacity:.55}
+.slot.drop .slotName{text-decoration:line-through;text-decoration-color:rgba(255,107,107,.55)}
+.slot.newSlot{border-color:rgba(110,196,155,.3);background:rgba(110,196,155,.045)}
+
+.callout{margin-block-start:20px;padding:16px 18px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);
+  font-size:13.5px;color:var(--ink-2);line-height:1.85}
+.callout b{color:var(--ink);font-weight:600}
+
+/* ── 2. option cards ────────────────────────────────── */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));gap:16px;align-items:start}
+.opt{padding:0;overflow:hidden;cursor:pointer;text-align:start;appearance:none;
+  font:inherit;color:inherit;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  transition:border-color .18s var(--ease),transform .18s var(--ease),box-shadow .18s var(--ease)}
+.opt:hover{border-color:rgba(255,255,255,.17);transform:translateY(-3px)}
+.opt:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.opt[aria-pressed="true"]{border-color:rgba(110,196,155,.5);
+  box-shadow:0 0 36px -14px rgba(110,196,155,.5),0 1px 0 0 rgba(255,255,255,.12) inset}
+.optHead{padding:14px 16px 12px;border-block-end:1px solid var(--line-2);
+  display:flex;align-items:center;gap:10px}
+.optMark{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--ink-3);flex:none;
+  display:grid;place-items:center;transition:border-color .18s var(--ease)}
+.optMark::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);
+  transform:scale(0);transition:transform .18s var(--ease)}
+.opt[aria-pressed="true"] .optMark{border-color:var(--accent)}
+.opt[aria-pressed="true"] .optMark::after{transform:scale(1)}
+.optName{font-size:14.5px;font-weight:600}
+.optBody{padding:14px 16px 16px;flex:1}
+.optNote{font-size:12px;color:var(--ink-3);line-height:1.7;
+  padding:0 16px 15px;border-block-start:1px solid var(--line-2);padding-block-start:12px}
+
+/* event rows */
+.evRow{display:flex;align-items:center;gap:11px;padding:8px 0;
+  border-block-end:1px solid var(--line-2);font-size:12.5px}
+.evRow:last-child{border-block-end:0}
+.evT{color:var(--ink-3);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;flex:none;font-size:11.5px}
+.evPlate{font-weight:600;letter-spacing:normal;direction:rtl;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;flex:none;min-inline-size:96px}
+.evOp{color:var(--ink-2);flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evV{flex:none;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.vw{color:var(--wanted)} .vs{color:var(--clean)}
+.mask{color:var(--ink-3);letter-spacing:.12em}
+
+/* ── 3. hour charts ─────────────────────────────────── */
+.chartWrap{padding:16px 18px 18px}
+.chartTitle{font-size:13px;color:var(--ink-2);margin-block-end:4px}
+.chartSub{font-size:11.5px;color:var(--ink-3);margin-block-end:14px;line-height:1.7}
+svg.hours{display:block;width:100%;height:auto;overflow:visible}
+svg.hours text{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:8.5px;fill:var(--ink-3)}
+svg.hours text.ax{direction:ltr;unicode-bidi:isolate}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-block-start:12px;font-size:11.5px;color:var(--ink-3)}
+.lgi{display:flex;align-items:center;gap:6px}
+.lgs{width:11px;height:11px;border-radius:3px;flex:none}
+
+.foot{margin-block-start:56px;padding-block-start:20px;border-block-start:1px solid var(--line-2);
+  color:var(--ink-3);font-size:12px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div>
+  <div class="lamp l3"></div><div class="lamp l4"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="wrap">
+  <h1 class="pageTitle">قرارات تصميم النظرة العامة</h1>
+  <p class="pageSub">
+    ثلاث نقاط باقية قبل ما أبني تصميم ٩ من جديد. كل حاجة هنا معروضة بشكلها الحقيقي —
+    اضغط الاختيار اللي يعجبك في القسمين ٢ و ٣ وقول لي رقمه.
+  </p>
+
+  <!-- ═══ 1 ═══ -->
+  <section>
+    <div class="secHead">
+      <span class="secNum">01</span>
+      <span class="secTitle">فين «سجل الإصابات» في تصميم ٩؟</span>
+      <span class="secNote">ده سؤالك — دي خريطة الطبقات التلاتة وكل لوحة فيها</span>
+    </div>
+
+    <div class="planes">
+      <div class="plane planeFar">
+        <div class="planeHead">
+          <span class="planeName">الطبقة الخلفية</span>
+          <span class="planeMeta">كبيرة، باهتة، ضباب كثيف — سياق مش محتوى</span>
+        </div>
+        <div class="slots">
+          <div class="slot drop">
+            <span class="tag tDrop">يتشال</span>
+            <span class="slotName">أحجام البوابات اليوم</span>
+            <span class="slotWhy">مفيش كيان بوابة في النظام أصلاً. ده اللي طلبت أستبدله.</span>
+          </div>
+          <div class="slot newSlot">
+            <span class="tag tNew">جديد</span>
+            <span class="slotName">ذروة ساعات اليوم</span>
+            <span class="slotWhy">أعمدة لكل ساعة — اللي اخترته. شكلها في القسم ٣ تحت.</span>
+          </div>
+          <div class="slot">
+            <span class="tag tKeep">يفضل</span>
+            <span class="slotName">حجم المسح على مدار الوقت</span>
+            <span class="slotWhy">موجود، بس محتاج فهرس <span style="direction:ltr;unicode-bidi:isolate">{createdAt:1}</span> قبل الإطلاق.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="plane planeMid">
+        <div class="planeHead">
+          <span class="planeName">الطبقة المتوسطة</span>
+          <span class="planeMeta">أوضح، تباين أعلى — الأرقام الرئيسية</span>
+        </div>
+        <div class="slots">
+          <div class="slot">
+            <span class="tag tKeep">يفضل</span>
+            <span class="slotName">الأرقام الرئيسية</span>
+            <span class="slotWhy">إجمالي الفحص · المطلوبين ونسبتهم · المشغّلين النشطين · حجم القائمة. كلها جاهزة من <span style="direction:ltr;unicode-bidi:isolate">/v1/admin/dashboard</span>.</span>
+          </div>
+          <div class="slot drop">
+            <span class="tag tDrop">يتشال</span>
+            <span class="slotName">حالة البوابات</span>
+            <span class="slotWhy">نفس السبب — مفيش بوابات. مكانها يروح لترتيب المشغّلين.</span>
+          </div>
+          <div class="slot newSlot">
+            <span class="tag tNew">جديد</span>
+            <span class="slotName">ترتيب المشغّلين</span>
+            <span class="slotWhy">اللي اخترته: الاسم · عدد فحوصاته · عدد إصاباته.</span>
+          </div>
+          <div class="slot">
+            <span class="tag tKeep">يفضل</span>
+            <span class="slotName">المراجعون</span>
+            <span class="slotWhy">هيندمج مع ترتيب المشغّلين — نفس البيانات مرتين مالهاش لازمة.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="plane planeNear">
+        <div class="planeHead">
+          <span class="planeName">الطبقة الأمامية</span>
+          <span class="planeMeta">أصغر، أحدّ، أعلى تباين — اللي يستاهل انتباهك</span>
+        </div>
+        <div class="slots">
+          <div class="slot drop">
+            <span class="tag tDrop">يتشال</span>
+            <span class="slotName">تنبيهات مركبات مطلوبة</span>
+            <span class="slotWhy">دي الكروت الحمرا في الصورة التانية اللي بعتهالي. اللي طلبت تشيله.</span>
+          </div>
+          <div class="slot">
+            <span class="tag tKeep">يفضل</span>
+            <span class="slotName">الأحداث الأخيرة</span>
+            <span class="slotWhy">دي اللي فيها أرقام اللوحات — وسؤال القسم ٢ تحت عليها هي بالذات.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>الإجابة على سؤالك:</b> «سجل الإصابات» <b>مش موجود كلوحة في تصميم ٩ خالص.</b>
+      أنا اتكلمت عنه كتقرير في الباك إند، مش كحاجة على الشاشة.
+      اللي على الشاشة حاجتين بس: <b>تنبيهات مركبات مطلوبة</b> (الكروت الحمرا — اللي شيلتها)،
+      و<b>الأحداث الأخيرة</b> (قائمة فيها السليم والمطلوب مع بعض).
+      يعني مفيش حاجة تانية محتاجة قرار منك هنا — سؤالي كان في غير محله وأنا آسف على اللخبطة.
+    </div>
+  </section>
+
+  <!-- ═══ 2 ═══ -->
+  <section>
+    <div class="secHead">
+      <span class="secNum">02</span>
+      <span class="secTitle">أرقام اللوحات في «الأحداث الأخيرة»</span>
+      <span class="secNote">اللوحة الأمامية اللي فوق. دي نفس الصفوف بتلات طرق عرض</span>
+    </div>
+
+    <div class="opts" id="plateOpts">
+      <button class="opt" type="button" data-k="counts" aria-pressed="false">
+        <div class="optHead"><span class="optMark"></span><span class="optName">أ · من غير لوحات</span></div>
+        <div class="optBody" id="oCounts"></div>
+        <div class="optNote">
+          الوقت والمشغّل والنتيجة بس. الأغلبية الساحقة من السجلات نتيجتها «سليم» —
+          يعني مركبات مواطنين مالهمش أي علاقة بأي بلاغ.
+        </div>
+      </button>
+
+      <button class="opt" type="button" data-k="masked" aria-pressed="false">
+        <div class="optHead"><span class="optMark"></span><span class="optName">ب · مخفية جزئيًا</span></div>
+        <div class="optBody" id="oMasked"></div>
+        <div class="optNote">
+          الحروف تبان والأرقام مخفية. يدّي إحساس بالنشاط ويخلّي الصف مميّز عن اللي قبله،
+          من غير ما يكشف اللوحة.
+        </div>
+      </button>
+
+      <button class="opt" type="button" data-k="full" aria-pressed="false">
+        <div class="optHead"><span class="optMark"></span><span class="optName">ج · كاملة</span></div>
+        <div class="optBody" id="oFull"></div>
+        <div class="optNote">
+          زي الموك الأصلي. أوضح للتشغيل، لكن معناه إن أرقام لوحات مواطنين تفضل
+          معروضة على شاشة يشوفها أكتر من شخص.
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══ 3 ═══ -->
+  <section>
+    <div class="secHead">
+      <span class="secNum">03</span>
+      <span class="secTitle">ذروة ساعات اليوم — قصدك أنهي واحدة؟</span>
+      <span class="secNote">قلت «كام لوحة اتفحصت وكام لوحة طلعت صح» — و«صح» ليها معنيين هنا</span>
+    </div>
+
+    <div class="callout" style="margin-block-start:0;margin-block-end:20px">
+      النظام بيسجّل نتيجتين بس لا تالت لهم: <b style="color:var(--clean)">سليم</b> أو
+      <b style="color:var(--wanted)">مطلوب</b>. فـ«طلعت صح» يا إما تقصد بيها المطلوبين
+      (الفحص لقى حاجة)، يا إما السليمين. المشكلة إن السليمين ٩٩٫٧٪ من الإجمالي —
+      فرسمهم بيطلع عمود مطابق للإجمالي ومالوش أي فايدة. الاتنين تحت موضّحين الفرق.
+    </div>
+
+    <div class="opts" id="hourOpts">
+      <button class="opt" type="button" data-k="stack" aria-pressed="false">
+        <div class="optHead"><span class="optMark"></span><span class="optName">أ · الإجمالي والمطلوب مميّز فوقه</span></div>
+        <div class="chartWrap">
+          <div class="chartTitle">فحوصات كل ساعة</div>
+          <div class="chartSub">ارتفاع العمود = إجمالي الفحص. الجزء الأحمر فوقه = المطلوبين، مكبّر عشان يبان.</div>
+          <svg class="hours" id="cStack" viewBox="0 0 620 190" role="img"
+               aria-label="أعمدة فحوصات كل ساعة مع تمييز المطلوبين"></svg>
+          <div class="legend">
+            <span class="lgi"><span class="lgs" style="background:rgba(255,255,255,.5)"></span>إجمالي الفحص</span>
+            <span class="lgi"><span class="lgs" style="background:var(--wanted)"></span>مطلوب (مقياس مكبّر)</span>
+          </div>
+        </div>
+        <div class="optNote">
+          عمود واحد لكل ساعة. مضغوط وبيدي الصورتين مع بعض — بس لازم نكتب صراحة إن
+          الجزء الأحمر مكبّر، وإلا يبقى تضليل.
+        </div>
+      </button>
+
+      <button class="opt" type="button" data-k="pair" aria-pressed="false">
+        <div class="optHead"><span class="optMark"></span><span class="optName">ب · رسمين فوق بعض بنفس محور الساعات</span></div>
+        <div class="chartWrap">
+          <div class="chartTitle">فحوصات كل ساعة</div>
+          <div class="chartSub">كل رسم بمقياسه الصحيح، ومحور الساعات مشترك. مفيش أي تكبير ولا تشويه.</div>
+          <svg class="hours" id="cPair" viewBox="0 0 620 190" role="img"
+               aria-label="رسمان فوق بعضهما: الإجمالي والمطلوب بنفس محور الساعات"></svg>
+          <div class="legend">
+            <span class="lgi"><span class="lgs" style="background:rgba(255,255,255,.5)"></span>إجمالي الفحص</span>
+            <span class="lgi"><span class="lgs" style="background:var(--wanted)"></span>مطلوب (مقياسه الحقيقي)</span>
+          </div>
+        </div>
+        <div class="optNote">
+          بياخد ارتفاع أكتر، لكنه الطريقة الصحيحة إحصائيًا: مفيش رقم اتظبط عشان يبان.
+          ده اللي أنصح بيه.
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <p class="foot">
+    الأرقام في الرسوم والصفوف دي توضيحية لشكل العرض بس — الشاشة الحقيقية هتقرأ من
+    <span style="direction:ltr;unicode-bidi:isolate">/v1/admin/dashboard</span> ومن تجميعة جديدة على
+    <span style="direction:ltr;unicode-bidi:isolate">operatorId</span> و
+    <span style="direction:ltr;unicode-bidi:isolate">createdAt</span>.
+  </p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* شكل الصفوف الحقيقي: وقت · لوحة · مشغّل · نتيجة */
+  var ROWS = [
+    { t:"14:31", L:"ر ن ب", D:"4582", op:"نورة السبيعي",  v:"wanted" },
+    { t:"14:29", L:"أ ل م", D:"7123", op:"خالد المطيري",  v:"clean"  },
+    { t:"14:27", L:"ك ط د", D:"9046", op:"فهد القحطاني",  v:"clean"  },
+    { t:"14:24", L:"ب ي و", D:"6350", op:"ريم الدوسري",   v:"clean"  },
+    { t:"14:22", L:"د ر ق", D:"2708", op:"فهد القحطاني",  v:"wanted" },
+    { t:"14:20", L:"ه م ن", D:"5419", op:"سعود العتيبي",  v:"clean"  },
+    { t:"14:18", L:"ط س ل", D:"8264", op:"لطيفة الحربي",  v:"clean"  }
+  ];
+
+  function verdict(v){
+    return '<span class="evV '+(v==="wanted"?"vw":"vs")+'">'+(v==="wanted"?"مطلوب":"سليم")+'</span>';
+  }
+  function render(el, mode){
+    el.innerHTML = ROWS.map(function(r){
+      var plate = "";
+      if(mode==="full")   plate = '<span class="evPlate">'+r.L+' '+r.D+'</span>';
+      if(mode==="masked") plate = '<span class="evPlate">'+r.L+' <span class="mask">••••</span></span>';
+      return '<div class="evRow"><span class="evT">'+r.t+'</span>'+plate+
+             '<span class="evOp">'+r.op+'</span>'+verdict(r.v)+'</div>';
+    }).join("");
+  }
+  render(document.getElementById("oCounts"), "counts");
+  render(document.getElementById("oMasked"), "masked");
+  render(document.getElementById("oFull"),   "full");
+
+  /* ── الرسوم ────────────────────────────────────────── */
+  var TOTAL  = [218,164,131,119,147,268,512,753,874,846,752,724,703,658,691,709,802,858,804,651,487,392,314,270];
+  var WANTED = [1,0,1,0,0,1,2,3,4,2,2,1,2,1,2,2,3,4,3,2,1,0,1,0];
+  var NS = "http://www.w3.org/2000/svg";
+
+  function el(n,a){ var e=document.createElementNS(NS,n);
+    for(var k in a) e.setAttribute(k,a[k]); return e; }
+
+  function niceTop(v){
+    if(v<=0) return 1;
+    var e=Math.pow(10,Math.floor(Math.log10(v))), f=v/e;
+    var n = f<=1?1 : f<=2?2 : f<=2.5?2.5 : f<=5?5 : 10;
+    return n*e;
+  }
+  /* محور الساعات: RTL يعني 00 على اليمين */
+  function xOf(i,W,pad){ var inner=W-pad.r-pad.l; return W-pad.r-(i+.5)*(inner/24); }
+
+  function hourLabels(svg,W,y,pad){
+    for(var i=0;i<24;i+=3){
+      var t=el("text",{x:xOf(i,W,pad),y:y,"text-anchor":"middle"});
+      t.setAttribute("class","ax");
+      t.textContent=String(i).padStart(2,"0");
+      svg.appendChild(t);
+    }
+  }
+
+  /* أ — عمود واحد، والمطلوب مميّز فوقه بمقياس مكبّر */
+  (function(){
+    var svg=document.getElementById("cStack"), W=620,H=190,
+        pad={t:12,r:16,b:26,l:16}, plotH=H-pad.t-pad.b,
+        bw=(W-pad.l-pad.r)/24-3, top=niceTop(Math.max.apply(null,TOTAL));
+    for(var i=0;i<24;i++){
+      var x=xOf(i,W,pad)-bw/2,
+          h=TOTAL[i]/top*plotH,
+          wh=WANTED[i]/8*plotH*.34;           /* مكبّر بوضوح */
+      svg.appendChild(el("rect",{x:x,y:pad.t+plotH-h,width:bw,height:Math.max(h,1),
+        rx:2,fill:"rgba(255,255,255,.5)"}));
+      if(WANTED[i]>0)
+        svg.appendChild(el("rect",{x:x,y:pad.t+plotH-h-wh-1.5,width:bw,height:Math.max(wh,2),
+          rx:2,fill:"#ff6b6b"}));
+    }
+    svg.appendChild(el("line",{x1:pad.l,y1:pad.t+plotH,x2:W-pad.r,y2:pad.t+plotH,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+    hourLabels(svg,W,H-9,pad);
+  })();
+
+  /* ب — رسمان بمقياسين صحيحين ومحور مشترك */
+  (function(){
+    var svg=document.getElementById("cPair"), W=620,H=190,
+        pad={t:10,r:16,b:26,l:16},
+        gap=16, hA=104, hB=34,
+        bw=(W-pad.l-pad.r)/24-3,
+        topA=niceTop(Math.max.apply(null,TOTAL)),
+        topB=niceTop(Math.max.apply(null,WANTED));
+    var i,x;
+    for(i=0;i<24;i++){
+      x=xOf(i,W,pad)-bw/2;
+      var h=TOTAL[i]/topA*hA;
+      svg.appendChild(el("rect",{x:x,y:pad.t+hA-h,width:bw,height:Math.max(h,1),
+        rx:2,fill:"rgba(255,255,255,.5)"}));
+    }
+    svg.appendChild(el("line",{x1:pad.l,y1:pad.t+hA,x2:W-pad.r,y2:pad.t+hA,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+    var t1=el("text",{x:W-pad.r,y:pad.t+9,"text-anchor":"end"});
+    t1.setAttribute("class","ax"); t1.textContent=String(topA); svg.appendChild(t1);
+
+    var y0=pad.t+hA+gap;
+    for(i=0;i<24;i++){
+      x=xOf(i,W,pad)-bw/2;
+      var h2=WANTED[i]/topB*hB;
+      if(WANTED[i]>0)
+        svg.appendChild(el("rect",{x:x,y:y0+hB-h2,width:bw,height:Math.max(h2,2),
+          rx:2,fill:"#ff6b6b"}));
+    }
+    svg.appendChild(el("line",{x1:pad.l,y1:y0+hB,x2:W-pad.r,y2:y0+hB,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+    var t2=el("text",{x:W-pad.r,y:y0+9,"text-anchor":"end"});
+    t2.setAttribute("class","ax"); t2.textContent=String(topB); svg.appendChild(t2);
+
+    hourLabels(svg,W,H-9,pad);
+  })();
+
+  /* ── الاختيار ──────────────────────────────────────── */
+  function group(id){
+    var g=document.getElementById(id);
+    g.addEventListener("click",function(e){
+      var b=e.target.closest(".opt"); if(!b) return;
+      [].forEach.call(g.querySelectorAll(".opt"),function(o){
+        o.setAttribute("aria-pressed", String(o===b));
+      });
+    });
+  }
+  group("plateOpts"); group("hourOpts");
+})();
+</script>
+</body>
+</html>

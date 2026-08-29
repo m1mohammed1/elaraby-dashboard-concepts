@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-depth="all">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الإشعارات — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   الإشعارات  ·  /notifications
+   المشهد والمادة والشريط والصفوف منقولة حرفيًا من الشاشة المرجعية
+   prototype/gallery/overview.html — لا إعادة اختراع.
+
+   كل ما تعرضه هذه الصفحة يقابل كودًا حقيقيًا:
+     POST /v1/admin/notifications           → admin.ts:506
+     NotificationAdministration.send        → حدود 100 / 1000 حرفًا
+     FirebaseNotificationPublisher          → موضوع elaraby_all_devices
+     audit.append('notification.sent')      → كتابة فقط، بلا قراءة
+   شغّل «مصادر البيانات» ليظهر أسفل كل لوحة ما يغذّيها وما ينقصه.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --unread:#e8b055;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  --far-a:.050;  --far-ink:1;
+  --mid-a:.058;  --mid-ink:1;
+  --near-a:.080; --near-ink:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* min-height لا height: الجسم يكبر مع المحتوى فتغطّيه طبقة المشهد كاملةً
+   وهي مطلقة الموضع بدل ثابتة. */
+html,body{min-block-size:100%}
+body{
+  position:relative;
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ── المشهد — منقول كما هو ──────────────────────────── */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── الشريط العلوي ────────────────────────────────── */
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.barIn{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+  inline-size:100%;max-inline-size:1560px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+.brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+.barSep{width:1px;height:22px;background:var(--line)}
+.barGrow{flex:1}
+
+/* التنقّل — سبع صفحات، النشط بخلفية .10 */
+.nav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.nav a{text-decoration:none;color:var(--ink-3);font-size:12.5px;font-weight:500;
+  padding:6px 11px;border-radius:8px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.seg.segSm button{padding:4px 10px;font-size:11.5px}
+/* --ink-4 (#5f6b65) يعطي 3.09:1 فقط فوق اللوحة المركَّبة (~#151d19) — دون 4.5:1.
+   لذلك كل نصّ يحمل معنى يستخدم --ink-3 (5.39:1)، ويبقى --ink-4 للزخرفة وحدها. */
+.segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
+
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center}
+.tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+
+/* مجموعة أداة الشريط — تلتفّ بدل أن تدفع الشريط إلى تمرير أفقي عند 390px */
+.barTool{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.who{display:flex;align-items:center;gap:9px;font-size:13px}
+.who .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  font-size:12px;font-weight:600}
+.who .rl{color:var(--ink-3);font-size:11.5px}
+
+/* ── المسرح والمادة ───────────────────────────────── */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.plane{opacity:var(--pl-ink,1)}
+.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+/* بلا backdrop-filter وبلا حركة على الزجاج — انظر عقد التصميم §0 */
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.far{opacity:var(--far-ink)}
+.mid .pane{background:rgba(255,255,255,var(--mid-a))}
+.mid{opacity:var(--mid-ink)}
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near{opacity:var(--near-ink)}
+
+.paneHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:14px 18px 0}
+.paneTitle{font-size:14.5px;font-weight:600}
+.paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
+.paneSub{font-size:11.5px;color:var(--ink-3);padding:6px 18px 2px}
+
+/* ── مصادر البيانات ──────────────────────────────── */
+.src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
+  padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.src .nw{color:var(--accent)}
+.src b{color:var(--ink-2);font-weight:500}
+:root[data-src="1"] .src{display:block}
+
+/* ── التخطيط ─────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;
+  gap:18px;margin-block-start:18px;align-items:start}
+@media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
+@media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+/* ── شريط الإشعار الناتج (Notice) ─────────────────── */
+.notice{display:none;align-items:flex-start;gap:12px;flex-wrap:wrap;
+  padding:11px 16px;margin-block-end:14px;border-radius:12px;font-size:12.5px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--ink-2)}
+.notice.on{display:flex}
+.notice.ok{background:rgba(61,220,151,.07);border-color:rgba(61,220,151,.26)}
+.notice.bad{background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.28)}
+.notice .nMsg{flex:1;min-inline-size:160px}
+.notice .nSrv{display:block;margin-block-start:2px;color:var(--ink-3);font-size:11px;
+  direction:ltr;unicode-bidi:isolate;text-align:start;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.notice.ok .nTag{color:var(--clean)} .notice.bad .nTag{color:var(--wanted)}
+.notice .nTag{font-weight:600}
+.clearBtn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+  padding:4px 11px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease)}
+.clearBtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+
+/* ── المحرِّر ────────────────────────────────────── */
+.compBody{padding:14px 18px 18px}
+.step{display:none}
+.step.on{display:block}
+.field{display:block;margin-block-end:14px}
+.fieldTop{display:flex;align-items:baseline;gap:10px;margin-block-end:6px}
+.fieldLbl{font-size:12.5px;font-weight:500}
+.fieldHint{font-size:11px;color:var(--ink-3);flex:1}
+.cnt{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate}
+.cnt.warn{color:var(--unread)}
+.input{inline-size:100%;background:rgba(255,255,255,.04);color:var(--ink);
+  border:1px solid rgba(255,255,255,.11);border-radius:11px;
+  padding:10px 13px;font-size:13px;line-height:1.8;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.input::placeholder{color:var(--ink-3)}
+.input:hover{border-color:rgba(255,255,255,.17)}
+.input:focus{outline:none;border-color:rgba(110,196,155,.45);background:rgba(255,255,255,.055)}
+.input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+textarea.input{resize:vertical;min-block-size:112px}
+
+/* اختيار الجمهور — خيار واحد فقط منفَّذ في الخادم */
+.audLbl{font-size:12.5px;font-weight:500;margin-block-end:8px;display:block}
+.audList{display:grid;gap:8px;margin-block-end:14px}
+.aud{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:11px;align-items:start;
+  inline-size:100%;text-align:start;cursor:pointer;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);
+  border-radius:12px;padding:10px 13px;
+  transition:background .16s var(--ease),border-color .16s var(--ease)}
+.aud:hover{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.15)}
+.aud[aria-pressed="true"]{background:rgba(255,255,255,.08);border-color:rgba(110,196,155,.35)}
+.audDot{inline-size:14px;block-size:14px;border-radius:50%;margin-block-start:4px;
+  border:1.5px solid var(--ink-3);display:grid;place-items:center;flex:none}
+.aud[aria-pressed="true"] .audDot{border-color:var(--accent)}
+.audDot::after{content:"";inline-size:7px;block-size:7px;border-radius:50%;
+  background:var(--accent);transform:scale(0);transition:transform .16s var(--ease)}
+.aud[aria-pressed="true"] .audDot::after{transform:scale(1)}
+.audName{font-size:12.5px;font-weight:500;display:block}
+.audMeta{font-size:11px;color:var(--ink-3);display:block;line-height:1.65}
+.audTag{font-size:10px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;
+  white-space:nowrap;line-height:1.8;flex:none}
+.audTag.live{color:var(--clean)}
+.audTag.todo{color:var(--unread)}
+.aud[data-blocked="1"] .audName{color:var(--ink-2)}
+
+.blockNote{display:none;gap:9px;align-items:flex-start;
+  border:1px solid rgba(232,176,85,.28);background:rgba(232,176,85,.07);
+  border-radius:12px;padding:11px 14px;margin-block-end:14px;
+  font-size:11.5px;color:var(--ink-2);line-height:1.75}
+.blockNote.on{display:flex}
+.blockIcon{flex:none;color:var(--unread);margin-block-start:3px}
+.blockNote b{color:var(--unread);font-weight:600}
+.blockNote code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
+  font-size:10.5px;color:var(--ink-3)}
+
+.reach{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border-block-start:1px solid var(--line-2);padding-block-start:13px;margin-block-end:14px;
+  font-size:12px;color:var(--ink-2)}
+.reach svg{flex:none;color:var(--ink-3)}
+/* عزل كل رقم داخل جملة عربية — بلا عزل ينزلق الرقم عبر المحايدات المجاورة */
+.reach b{font-weight:600;color:var(--ink);unicode-bidi:isolate}
+
+.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);
+  color:var(--ink-2);font-size:12.5px;font-weight:500;padding:9px 16px;border-radius:10px;
+  transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease)}
+.btn:hover:not(:disabled){background:rgba(255,255,255,.11);color:var(--ink)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn.primary{border-color:rgba(110,196,155,.42);background:rgba(110,196,155,.14);color:var(--ink)}
+.btn.primary:hover:not(:disabled){background:rgba(110,196,155,.22)}
+.btn.danger{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.13);color:var(--ink)}
+.btn.danger:hover:not(:disabled){background:rgba(255,107,107,.2)}
+.btnWhy{font-size:11px;color:var(--ink-3);flex:1;min-inline-size:140px}
+
+/* ── خطوة التأكيد ────────────────────────────────── */
+.cfHead{display:flex;align-items:center;gap:10px;margin-block-end:10px}
+.cfHead .warnMk{inline-size:26px;block-size:26px;border-radius:9px;flex:none;
+  display:grid;place-items:center;color:var(--wanted);
+  border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.1)}
+.cfTitle{font-size:14px;font-weight:600}
+.cfLead{font-size:12.5px;color:var(--ink-2);line-height:1.85;margin-block-end:14px}
+.cfLead q{color:var(--ink);font-weight:600}
+.cfNumsCap{font-size:11px;color:var(--ink-3);margin-block-end:6px;line-height:1.7}
+.cfNums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-block-end:14px}
+@media(max-width:620px){ .cfNums{grid-template-columns:repeat(1,minmax(0,1fr))} }
+.cfN{padding:11px 14px;border-inline-start:1px solid var(--line-2)}
+.cfN:first-child{border-inline-start:0}
+@media(max-width:620px){
+  .cfN{border-inline-start:0;border-block-start:1px solid var(--line-2)}
+  .cfN:first-child{border-block-start:0}
+}
+.cfNL{font-size:11px;color:var(--ink-3)}
+/* inline-block لا block: الصندوق يحتضن الرقم فيضعه الأبُ العربي عند بداية السطر،
+   والرقم نفسه يبقى معزولًا LTR. block + text-align:start كان يحاذيه لليسار
+   ويترك تسميته على اليمين — يظهر مكسورًا حين تصير الخانة بعرض كامل تحت 620px. */
+.cfNV{display:inline-block;font-size:21px;font-weight:600;line-height:1.35;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate}
+/* «غير معروف» نصّ عربي لا رقم — direction:ltr الموروث كان يحاذيه لليسار
+   داخل لوحة RTL. يعود إلى rtl صراحةً. */
+.cfNV.unknown{font-size:15px;color:var(--ink-2);font-weight:500;
+  direction:rtl;unicode-bidi:isolate}
+.cfWarn{border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.07);
+  border-radius:12px;padding:12px 14px;font-size:12px;color:var(--ink-2);
+  line-height:1.85;margin-block-end:14px}
+.cfWarn b{color:var(--wanted);font-weight:600}
+.cfWarn ul{margin-block-start:6px;padding-inline-start:18px}
+.cfWarn li{margin-block-start:3px}
+.ack{display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-2);line-height:1.75;margin-block-end:14px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);
+  border-radius:12px;padding:11px 14px;inline-size:100%;text-align:start;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.ack:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.055)}
+.ack[aria-pressed="true"]{border-color:rgba(110,196,155,.4)}
+.ackBox{inline-size:16px;block-size:16px;border-radius:5px;flex:none;margin-block-start:3px;
+  border:1.5px solid var(--ink-3);display:grid;place-items:center}
+.ack[aria-pressed="true"] .ackBox{border-color:var(--accent)}
+.ackBox::after{content:"";inline-size:8px;block-size:8px;border-radius:2px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.ack[aria-pressed="true"] .ackBox::after{transform:scale(1)}
+.cfSum{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-block-end:14px}
+.cfSumT{font-size:13px;font-weight:600;line-height:1.6}
+.cfSumB{font-size:12px;color:var(--ink-2);line-height:1.8;margin-block-start:4px;
+  white-space:pre-wrap;word-break:break-word}
+
+/* ── المعاينة على الجهاز ─────────────────────────── */
+.devWrap{padding:14px 18px 16px}
+.dev{border-radius:18px;border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg,rgba(6,20,15,.92),rgba(6,16,12,.96));
+  overflow:hidden;box-shadow:0 18px 40px -24px rgba(0,0,0,.8)}
+.devBar{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px 6px;font-size:10.5px;color:var(--ink-3)}
+.devClock{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.devIcons{display:flex;gap:5px;align-items:center;color:var(--ink-4)}
+.devScreen{padding:6px 10px 16px}
+.notif{border-radius:14px;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.1);padding:10px 12px 11px}
+.nMeta{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--ink-3);
+  margin-block-end:5px}
+.nIcon{inline-size:17px;block-size:17px;border-radius:5px;flex:none;display:grid;
+  place-items:center;font-size:9.5px;font-weight:700;color:#06100c;background:var(--accent)}
+.nChev{margin-inline-start:auto;color:var(--ink-3);display:grid;place-items:center}
+.nTitle{font-size:12.5px;font-weight:600;line-height:1.6;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nBody{font-size:12px;color:var(--ink-2);line-height:1.7;margin-block-start:2px;
+  white-space:pre-wrap;word-break:break-word}
+.notif.collapsed .nBody{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nPlace{color:var(--ink-3)}
+.devFoot{font-size:10.5px;color:var(--ink-3);line-height:1.75;padding:10px 18px 0;
+  border-block-start:1px solid var(--line-2);margin-block-start:14px}
+.devFoot code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
+  font-size:10px;color:var(--ink-2)}
+
+/* ── من سيستلم ───────────────────────────────────── */
+.reachBody{padding:14px 18px 16px}
+.rl2{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  font-size:12px;color:var(--ink-3);padding-block:5px;
+  border-block-end:1px solid var(--line-2)}
+.rl2:last-of-type{border-block-end:0}
+.rlSplit{font-size:11px;color:var(--ink-3);line-height:1.7;
+  padding-block:9px 3px;margin-block-start:4px;
+  border-block-start:1px solid var(--line-2)}
+.rl2 .v{color:var(--ink-2);font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate;font-weight:500}
+/* قيمة عربية داخل خانة قيَم LTR — تُعاد إلى rtl وإلا حوذيت لليسار */
+.rl2 .v.na{color:var(--ink-3);font-weight:400;direction:rtl;unicode-bidi:isolate}
+.reachWarn{margin-block-start:12px;padding-block-start:11px;
+  border-block-start:1px solid var(--line-2);font-size:11.5px;color:var(--ink-3);line-height:1.85}
+.reachWarn b{color:var(--unread);font-weight:600}
+.reachWarn code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
+  font-size:10.5px;color:var(--ink-2)}
+
+/* ── سجل الإرسال ─────────────────────────────────── */
+.hist{margin-block-start:18px}
+.histHead{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;
+  border-block-end:1px solid var(--line-2);flex-wrap:wrap}
+.histCount{font-size:11.5px;color:var(--ink-3);margin-inline-start:auto;
+  font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate}
+/* أعمدة صريحة لا flex — الأعمدة الاختيارية محجوزة دائمًا حتى حين تكون فارغة */
+.rowH,.row{display:grid;
+  grid-template-columns:104px 116px minmax(0,1fr) 92px 92px;
+  align-items:center;gap:11px;padding:9px 18px;
+  border-block-end:1px solid var(--line-2);font-size:12.5px}
+.rowH{font-size:10.5px;color:var(--ink-3);padding-block:8px;
+  border-block-end:1px solid var(--line-2)}
+.row{transition:background .14s var(--ease)}
+.row:hover{background:rgba(255,255,255,.045)}
+.row:last-child{border-block-end:0}
+.rT{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate}
+.rBy{color:var(--ink-2);font-size:12px;min-inline-size:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.rMid{color:var(--ink-3);font-size:11px;min-inline-size:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;
+  direction:ltr;unicode-bidi:isolate;text-align:start;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.rLen{font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;
+  direction:rtl;unicode-bidi:isolate}
+.rLen .u{color:var(--ink-3);font-size:10.5px}
+.row.fresh .rT{color:var(--accent)}
+@media(max-width:760px){
+  .rowH{display:none}
+  .row{grid-template-columns:minmax(0,1fr) 92px 92px;row-gap:6px}
+  .rT  {grid-area:1/1/2/2}
+  .rBy {grid-area:1/2/2/4;text-align:end}
+  .rMid{grid-area:2/1/3/2}
+  .rL1 {grid-area:2/2/3/3}
+  .rL2 {grid-area:2/3/3/4}
+  /* رأس الجدول مخفي هنا، فالعمودان يحملان تسميتهما بأنفسهما */
+  .rL1::before{content:"عنوان "}
+  .rL2::before{content:"نص "}
+  .rL1::before,.rL2::before{color:var(--ink-3);font-size:10.5px}
+}
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
+.more{display:flex;justify-content:center;padding:12px 18px 14px;
+  border-block-start:1px solid var(--line-2)}
+.more[hidden]{display:none}
+
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-3);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .bar{padding:12px 14px}
+  .compBody{padding:12px 14px 16px}
+  .cfNV{font-size:19px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="bar"><div class="barIn">
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · الإشعارات</span></div>
+  <div class="barSep" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="أقسام لوحة الإدارة">
+    <a href="../gallery/overview.html">النظرة العامة</a>
+    <a href="operators.html">المشغّلون</a>
+    <a href="operator-detail.html">ملف مشغّل</a>
+    <a href="wanted-plates.html">قائمة المطلوبين</a>
+    <a href="admins.html">المشرفون</a>
+    <a href="versions.html">الإصدارات</a>
+    <a href="notifications.html" aria-current="page">الإشعارات</a>
+  </nav>
+
+  <span class="barGrow"></span>
+
+  <div class="barTool">
+    <span class="segLbl">استجابة تجريبية</span>
+    <div class="seg segSm" role="group" aria-label="استجابة الخادم في هذا النموذج" id="mockSeg">
+      <button type="button" data-m="ok"           aria-pressed="true">نجاح</button>
+      <button type="button" data-m="unavailable"  aria-pressed="false">تعذّر Firebase</button>
+      <button type="button" data-m="unconfigured" aria-pressed="false">غير مهيّأ</button>
+    </div>
+  </div>
+
+  <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+    <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+  </button>
+
+  <div class="who">
+    <span class="av" aria-hidden="true">أ</span>
+    <span><span style="display:block">أحمد عماد</span><span class="rl">مدير النظام</span></span>
+  </div>
+</div></header>
+
+<main class="stage">
+
+  <!-- نتيجة آخر محاولة إرسال — نفس مكوّن Notice في لوحة الإدارة -->
+  <div class="notice" id="notice" role="status" aria-live="polite">
+    <span class="nMsg"><span class="nTag" id="noticeTag"></span> <span id="noticeMsg"></span>
+      <span class="nSrv" id="noticeSrv"></span></span>
+    <button class="clearBtn" type="button" id="noticeClose">إغلاق</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- ═══ العمود الرئيسي ═══ -->
+    <div>
+
+      <!-- ── المحرِّر (الطبقة الأمامية) ── -->
+      <section class="plane near" aria-label="إنشاء إشعار">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">محتوى الإشعار</span>
+            <span class="paneNote" id="compNote">اكتب رسالة واضحة ومختصرة تظهر خارج التطبيق</span>
+          </div>
+
+          <div class="compBody">
+
+            <!-- ── الخطوة 1: التحرير ── -->
+            <div class="step on" id="stepCompose">
+              <div class="field">
+                <div class="fieldTop">
+                  <label class="fieldLbl" for="nTitleIn">العنوان</label>
+                  <span class="fieldHint">سطر واحد — يظهر عريضًا في شريط الإشعارات</span>
+                  <span class="cnt" id="titleCnt">0 / 100</span>
+                </div>
+                <input class="input" id="nTitleIn" maxlength="100" autocomplete="off"
+                       placeholder="مثال: تنبيه مهم للمستخدمين">
+              </div>
+
+              <div class="field">
+                <div class="fieldTop">
+                  <label class="fieldLbl" for="nBodyIn">نص الرسالة</label>
+                  <span class="fieldHint">اكتب التفاصيل التي يحتاج المستخدم إلى معرفتها</span>
+                  <span class="cnt" id="bodyCnt">0 / 1000</span>
+                </div>
+                <textarea class="input" id="nBodyIn" maxlength="1000" rows="4"
+                          placeholder="اكتب التفاصيل التي يحتاج المستخدم إلى معرفتها."></textarea>
+              </div>
+
+              <span class="audLbl">الجمهور</span>
+              <div class="audList" id="audList" role="group" aria-label="جمهور الإشعار">
+                <button class="aud" type="button" data-a="all" aria-pressed="true">
+                  <span class="audDot" aria-hidden="true"></span>
+                  <span>
+                    <span class="audName">جميع أجهزة التطبيق</span>
+                    <span class="audMeta">بثّ إلى الموضوع <span dir="ltr">elaraby_all_devices</span> — كل جهاز مشترك فيه</span>
+                  </span>
+                  <span class="audTag live">منفَّذ</span>
+                </button>
+                <button class="aud" type="button" data-a="picked" data-blocked="1" aria-pressed="false">
+                  <span class="audDot" aria-hidden="true"></span>
+                  <span>
+                    <span class="audName">مشغّلون محدَّدون</span>
+                    <span class="audMeta">اختيار أسماء من قائمة المشغّلين</span>
+                  </span>
+                  <span class="audTag todo">يحتاج بناءً</span>
+                </button>
+                <button class="aud" type="button" data-a="online" data-blocked="1" aria-pressed="false">
+                  <span class="audDot" aria-hidden="true"></span>
+                  <span>
+                    <span class="audName">المتصلون الآن فقط</span>
+                    <span class="audMeta">من لديه حضور نشط في اللحظة الحالية</span>
+                  </span>
+                  <span class="audTag todo">يحتاج بناءً</span>
+                </button>
+              </div>
+
+              <!-- SVG مضمَّن لا محرف نصّي: المحرف يتحوّل إلى إيموجي ملوّن على بعض
+                   المنصّات ويخرج عن لغة الأيقونات في بقية الشاشات. -->
+              <div class="blockNote" id="blockNote" role="status" aria-live="polite">
+                <svg class="blockIcon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 9v4"/><path d="M12 17h.01"/>
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                </svg>
+                <span id="blockText"></span>
+              </div>
+
+              <div class="reach">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M10.268 21a2 2 0 0 0 3.464 0"/>
+                  <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                </svg>
+                <span id="reachLine">سيصل الإشعار إلى كل جهاز مشترك في الموضوع — والخادم لا يعرف عددها.</span>
+              </div>
+
+              <div class="actions">
+                <button class="btn primary" type="button" id="reviewBtn"
+                        aria-describedby="reviewWhy" disabled>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/>
+                    <path d="m21.854 2.147-10.94 10.939"/>
+                  </svg>
+                  مراجعة وإرسال
+                </button>
+                <span class="btnWhy" id="reviewWhy" role="status">اكتب عنوانًا ونصًّا لتفعيل الإرسال.</span>
+              </div>
+            </div>
+
+            <!-- ── الخطوة 2: التأكيد ── -->
+            <div class="step" id="stepConfirm">
+              <div class="cfHead">
+                <span class="warnMk" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 9v4"/><path d="M12 17h.01"/>
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  </svg>
+                </span>
+                <span class="cfTitle">إرسال هذا الإشعار؟</span>
+              </div>
+
+              <p class="cfLead">
+                سيُرسل إشعار <q id="cfTitleQ">—</q> الآن إلى جميع أجهزة التطبيق.
+                <b style="color:var(--wanted);font-weight:600">لا يمكن سحبه بعد الإرسال.</b>
+              </p>
+
+              <div class="cfSum">
+                <div class="cfSumT" id="cfPrevT">—</div>
+                <div class="cfSumB" id="cfPrevB">—</div>
+              </div>
+
+              <!-- الرقمان الأوّلان يصفان حسابات المشغّلين في قاعدة البيانات، ولا علاقة
+                   لهما بالاشتراك في موضوع FCM. الفصل مصرَّح به هنا حتى لا يُقرآ كمدى وصول. -->
+              <p class="cfNumsCap">أرقام سياق عن الحسابات — لا يقيس أيٌّ منها من سيستلم فعلًا</p>
+              <div class="cfNums">
+                <div class="cfN">
+                  <div class="cfNL">حسابات مشغّلين مسجَّلة</div>
+                  <div class="cfNV">31</div>
+                </div>
+                <div class="cfN">
+                  <div class="cfNL">منها باشتراك ساري</div>
+                  <div class="cfNV">26</div>
+                </div>
+                <div class="cfN">
+                  <div class="cfNL">أجهزة ستستلم فعليًا</div>
+                  <div class="cfNV unknown">غير معروف</div>
+                </div>
+              </div>
+
+              <div class="cfWarn">
+                <b>هذه هواتف حقيقية بيد مشغّلين في الميدان.</b>
+                الإشعار يصل خارج التطبيق فورًا، ولا يوجد أي مسار في الخادم لسحبه أو تعديله بعد الإرسال.
+                <ul>
+                  <li>الخادم لا يحتفظ برموز أجهزة، فلا يستطيع إخبارك بعدد من استلم. الرقمان أعلاه
+                      يصفان <b>حسابات المشغّلين</b> لا الأجهزة المشتركة في الموضوع.</li>
+                  <li>الاشتراك في الموضوع يجريه التطبيق على الجهاز نفسه، لا الخادم. جهاز لم يشترك بعد،
+                      أو أُلغي تثبيت التطبيق عليه، أو مُنع من الإشعارات في إعدادات النظام — لن يستلم،
+                      ولا سبيل للخادم إلى معرفة ذلك.</li>
+                  <li>لا يُخزَّن نصّ الإشعار في أي مكان بعد الإرسال — راجعه الآن.</li>
+                </ul>
+              </div>
+
+              <button class="ack" type="button" id="ackBtn" aria-pressed="false">
+                <span class="ackBox" aria-hidden="true"></span>
+                <span>أفهم أن الإشعار يصل إلى هواتف مشغّلين حقيقيين فورًا، وأنه لا يمكن سحبه أو تعديله بعد الإرسال.</span>
+              </button>
+
+              <div class="actions">
+                <button class="btn danger" type="button" id="sendBtn"
+                        aria-describedby="sendWhy" disabled>إرسال إلى الجميع</button>
+                <button class="btn" type="button" id="backBtn">رجوع للتحرير</button>
+                <span class="btnWhy" id="sendWhy" role="status">أقرّ بالتحذير أعلاه لتفعيل الإرسال.</span>
+              </div>
+            </div>
+
+            <!-- ── الخطوة 3: جارٍ الإرسال ── -->
+            <div class="step" id="stepSending">
+              <p class="cfLead">جارٍ الإرسال إلى الموضوع <span dir="ltr">elaraby_all_devices</span>…</p>
+              <p class="paneNote">المهلة في الخادم 10 ثوانٍ؛ بعدها تُعاد استجابة «تعذّر Firebase».</p>
+            </div>
+          </div>
+
+          <div class="src">
+            <code>POST /v1/admin/notifications</code> — الحقلان المقبولان هما
+            <code>title</code> و <code>body</code> فقط، بلا أي حقل جمهور.
+            التحقّق في <code>NotificationAdministration.send</code>: العنوان
+            <b>1–100</b> حرفًا والنص <b>1–1000</b> حرفًا بعد <code>trim</code>، وإلا
+            <code>INVALID_INPUT (400)</code>. المسار محصور بدور
+            <code>admin</code> عبر <code>assertAdminRole</code> — دور <code>mod</code> يتلقّى
+            <code>FORBIDDEN (403)</code>، وصفحة الإدارة تحوّله بعيدًا قبل ذلك.
+            <span class="nw">يحتاج بناءً:</span> «مشغّلون محدَّدون» و«المتصلون الآن» —
+            النشر كلّه إلى موضوع واحد <code>elaraby_all_devices</code> ولا تصل رموز الأجهزة
+            إلى الخادم إطلاقًا، فالاستهداف الفردي يحتاج تسجيل رموز
+            <code>FCM</code> وجدولًا جديدًا ومسارًا يقبل قائمة مستقبِلين.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── سجل الإرسال ── -->
+      <section class="plane mid hist" aria-label="سجل الإشعارات المرسلة">
+        <div class="pane">
+          <div class="histHead">
+            <span class="paneTitle">سجل الإرسال</span>
+            <div class="seg segSm" role="group" aria-label="مدى السجل" id="histSeg">
+              <button type="button" data-h="today" aria-pressed="false">اليوم</button>
+              <button type="button" data-h="w7"    aria-pressed="false">7 أيام</button>
+              <button type="button" data-h="all"   aria-pressed="true">الكل</button>
+            </div>
+            <!-- القيمة الحقيقية مكتوبة في الـ markup لا "—": المدى الافتراضي «الكل»
+                 وفيه 9 سجلات، فلو لم ينفَّذ السكربت يبقى العدّاد صادقًا. -->
+            <span class="histCount" id="histCount">9 إشعارًا مرسلاً</span>
+          </div>
+          <div class="paneSub">
+            نصّ الإشعار لا يُخزَّن — سجل التدقيق يحفظ طول العنوان وطول النص فقط.
+          </div>
+          <div class="rowH" aria-hidden="true">
+            <span>الوقت</span><span>المرسِل</span><span>معرّف رسالة FCM</span>
+            <span>طول العنوان</span><span>طول النص</span>
+          </div>
+          <div id="histBody"></div>
+          <div class="more" id="moreWrap" hidden>
+            <button class="clearBtn" type="button" id="moreBtn">عرض المزيد</button>
+          </div>
+          <div class="src">
+            <span class="nw">يحتاج بناءً بالكامل:</span> لا يوجد أي مسار قراءة على سجل
+            التدقيق. الكتابة موجودة —
+            <code>audit.append({action:'notification.sent'})</code> في
+            <code>notification-administration.ts</code> — والواجهة
+            <code>AuditWriter</code> تعرّف <code>append</code> فقط، بلا
+            <code>list</code>. يلزم <code>GET /v1/admin/notifications</code> يقرأ
+            <code>audit</code> بترشيح <code>action</code> وترتيب <code>createdAt</code>.
+            الحقول المتاحة فعلًا في الإدخال: <code>createdAt</code> ·
+            <code>actor.username</code> · <code>targetIds[0]</code> (اسم رسالة
+            <code>FCM</code> الراجع من الـ API) · <code>metadata.titleLength</code> ·
+            <code>metadata.bodyLength</code>.
+            <span class="nw">تنبيهان:</span> (1) نصّ الإشعار <b>غير محفوظ</b> — عرضه يحتاج
+            حقلًا جديدًا وقرارًا بالاحتفاظ به. (2) المحاولات <b>الفاشلة لا تُسجَّل
+            إطلاقًا</b>: التدقيق يُكتب بعد نجاح النشر، فلا يوجد عمود «الحالة» ولا يمكن
+            اختراعه — كل صف هنا ناجح بالضرورة.
+            الصف الجديد بعد إرسال ناجح يُضاف في هذه الصفحة محليًا للتوضيح فقط.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ العمود الجانبي ═══ -->
+    <div>
+
+      <!-- ── المعاينة ── -->
+      <section class="plane mid" aria-label="معاينة الإشعار على الجهاز">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">المعاينة</span>
+            <div class="seg segSm" role="group" aria-label="حالة الإشعار على الجهاز" id="prevSeg">
+              <button type="button" data-p="expanded" aria-pressed="true">موسّع</button>
+              <button type="button" data-p="collapsed" aria-pressed="false">مطوي</button>
+            </div>
+          </div>
+          <div class="devWrap">
+            <div class="dev">
+              <div class="devBar">
+                <span class="devClock">14:31</span>
+                <span class="devIcons" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.6" stroke-linecap="round"><path d="M5 12.5a10 10 0 0 1 14 0"/>
+                    <path d="M8.5 16a5.5 5.5 0 0 1 7 0"/><path d="M12 19.5h.01"/></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.6"><rect x="2" y="7" width="17" height="10" rx="2.5"/>
+                    <path d="M21.5 11v2"/></svg>
+                </span>
+              </div>
+              <div class="devScreen">
+                <div class="notif" id="notifCard">
+                  <div class="nMeta">
+                    <span class="nIcon" aria-hidden="true">ع</span>
+                    <span>العربي · الآن</span>
+                    <span class="nChev" aria-hidden="true">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                           stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                  </div>
+                  <div class="nTitle" id="pvTitle">عنوان الإشعار</div>
+                  <div class="nBody" id="pvBody">سيظهر نص الرسالة هنا قبل الإرسال.</div>
+                </div>
+              </div>
+            </div>
+            <p class="devFoot">
+              قد يختلف موضع الإشعار قليلًا حسب إصدار Android وإعدادات الجهاز.
+              القناة المستخدمة في الطلب: <code>channel_id: "notifications"</code>.
+            </p>
+          </div>
+          <div class="src">
+            المعاينة محلية بالكامل — لا يقابلها أي طلب. الحقلان المرسومان هما
+            <code>notification.title</code> و <code>notification.body</code> كما تبنيهما
+            <code>firebase-notification-publisher.ts</code>، وتحتهما
+            <code>android.notification.channel_id = "notifications"</code>.
+            الأيقونة واسم التطبيق ولون الشارة يملكها تطبيق الأندرويد لا الخادم، فما
+            تراه هنا تقريب لا نسخة مطابقة.
+            <span class="nw">غير موجود:</span> صورة أو زر إجراء أو رابط عميق داخل
+            الإشعار — الطلب لا يحمل أيًّا منها.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── من سيستلم ── -->
+      <section class="plane far" style="margin-block-start:18px" aria-label="من سيستلم الإشعار">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">من سيستلم</span>
+          </div>
+          <div class="reachBody">
+            <div class="rl2"><span>الموضوع</span><span class="v" dir="ltr">elaraby_all_devices</span></div>
+            <div class="rl2"><span>أجهزة مشتركة في الموضوع</span><span class="v na">غير معروف</span></div>
+            <div class="rl2"><span>تأكيد استلام لكل جهاز</span><span class="v na">غير متاح</span></div>
+            <p class="rlSplit">أرقام الحسابات أدناه — سياق فقط، لا مدى وصول:</p>
+            <div class="rl2"><span>حسابات مشغّلين مسجَّلة</span><span class="v">31</span></div>
+            <div class="rl2"><span>منها باشتراك ساري</span><span class="v">26</span></div>
+            <div class="reachWarn">
+              <b>البثّ كلّه أو لا شيء.</b>
+              لا تصل رموز الأجهزة إلى الخادم، فلا يمكن استهداف مشغّل بعينه ولا معرفة كم
+              جهازًا استلم. الاستجابة الوحيدة الراجعة هي اسم الرسالة
+              <code>projects/…/messages/…</code>، وهو يعني «قبِلت FCM الرسالة» لا «وصلت».
+              و«الاشتراك الساري» هنا هو مدّة اشتراك حساب المشغّل في
+              <code>operators.subscription</code> — ليس اشتراكًا في موضوع
+              <code>FCM</code>، والتطبيق هو من يشترك في الموضوع على الجهاز نفسه.
+            </div>
+          </div>
+          <div class="src">
+            الموضوع ثابت في الكود: <code>const TOPIC = 'elaraby_all_devices'</code> في
+            <code>firebase-notification-publisher.ts</code>.
+            رقما الحسابات <b>موجودان اليوم</b> ويعودان معًا من
+            <code>GET /v1/admin/dashboard</code> في الحقلين <code>operators</code> و
+            <code>activeSubscriptions</code> — <code>countDocuments</code> على
+            <code>operators</code>، والثاني بمرشّح
+            <code>subscription.startsAt ≤ now &lt; subscription.endsAt</code> و
+            <code>suspendedAt = null</code> (انظر
+            <code>work-report-mongo-repository.ts</code>).
+            <span class="nw">يلزم فقط:</span> نداء هذا المسار من صفحة الإشعارات — لا استعلام جديد.
+            «أجهزة مشتركة» و«تأكيد الاستلام» <b>لا يمكن بناؤهما بالبنية الحالية</b>:
+            بثّ الموضوع في <code>FCM</code> لا يعيد عدد المستقبِلين، ويلزم تسجيل رموز
+            أجهزة في الخادم لمعرفته.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>لا يعرض النظام حالة تسليم لكل جهاز ولا عدد المستقبِلين — بثّ الموضوع لا يعيدهما</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ══ الحالة ════════════════════════════════════════
+     كل ما يظهر على الشاشة مشتقّ من هذا الكائن، ويُعاد رسمه منه.  */
+  var state = {
+    title:"", body:"",
+    audience:"all",          /* all | picked | online — الأخيران غير منفَّذين في الخادم */
+    step:"compose",          /* compose | confirm | sending */
+    ack:false,
+    preview:"expanded",      /* expanded | collapsed */
+    mock:"ok",               /* ok | unavailable | unconfigured */
+    histRange:"all",         /* today | w7 | all */
+    histShown:5
+  };
+
+  var LIMIT = { title:100, body:1000 };   /* حدود الخادم حرفيًا */
+
+  /* رسائل الخطأ كما تصل فعلًا: الواجهة تعرض body.title من problem+json،
+     وهو نصّ DomainError الإنجليزي بلا ترجمة. */
+  var RESPONSES = {
+    ok:           { ok:true },
+    unavailable:  { ok:false, status:503, code:"UNAVAILABLE",
+                    reason:"firebase_messaging_unavailable",
+                    title:"Firebase could not send the notification" },
+    unconfigured: { ok:false, status:503, code:"UNAVAILABLE",
+                    reason:"firebase_messaging_unconfigured",
+                    title:"Firebase messaging is not configured" }
+  };
+
+  var BLOCKED = {
+    picked: 'اختيار مشغّلين بعينهم <b>غير منفَّذ في الخادم</b>. الطلب '+
+            '<code>POST /v1/admin/notifications</code> يقبل <code>title</code> و'+
+            '<code>body</code> فقط، والنشر يذهب دائمًا إلى موضوع واحد. '+
+            'يلزم تسجيل رموز أجهزة <code>FCM</code> لكل مشغّل ثم مسار يقبل قائمة مستقبِلين.',
+    online: 'قصر الإرسال على المتصلين الآن <b>غير منفَّذ</b>. الحضور اللحظي موجود في '+
+            '<code>operator_presence</code> بمهلة دقيقتين، لكن لا رابط بينه وبين أي '+
+            'رمز جهاز، ولا يقبل النشر قائمة مستقبِلين أصلاً.'
+  };
+
+  /* ══ سجل التدقيق — الحقول المتاحة فعلًا فقط ═════════
+     action:'notification.sent' · createdAt · actor.username ·
+     targetIds[0] (اسم رسالة FCM) · metadata.titleLength · metadata.bodyLength
+     لا نصّ، ولا جمهور، ولا حالة تسليم — لأنها غير مخزَّنة.                */
+  var HISTORY = [
+    { at:"09:14", day:1,  date:"28-08", by:"أحمد عماد",
+      mid:"projects/el-araby-firebase-app/messages/0:1756366440118%3a1f7c04", tl:34, bl:186 },
+    { at:"17:02", day:3,  date:"26-08", by:"أحمد عماد",
+      mid:"projects/el-araby-firebase-app/messages/0:1756193320774%3a5ea118", tl:22, bl:97 },
+    { at:"11:47", day:4,  date:"25-08", by:"سلمان الغامدي",
+      mid:"projects/el-araby-firebase-app/messages/0:1756112820044%3a9d20e1", tl:41, bl:412 },
+    { at:"08:30", day:6,  date:"23-08", by:"أحمد عماد",
+      mid:"projects/el-araby-firebase-app/messages/0:1755937800910%3ac47b02", tl:18, bl:64 },
+    { at:"14:22", day:9,  date:"20-08", by:"أحمد عماد",
+      mid:"projects/el-araby-firebase-app/messages/0:1755692520337%3a6be910", tl:29, bl:238 },
+    { at:"10:05", day:12, date:"17-08", by:"سلمان الغامدي",
+      mid:"projects/el-araby-firebase-app/messages/0:1755424500781%3a20fd7a", tl:37, bl:503 },
+    { at:"19:41", day:15, date:"14-08", by:"أحمد عماد",
+      mid:"projects/el-araby-firebase-app/messages/0:1755199260465%3ae1a883", tl:26, bl:141 },
+    { at:"12:18", day:21, date:"08-08", by:"أحمد عماد",
+      mid:"projects/el-araby-firebase-app/messages/0:1754651880129%3a77c405", tl:31, bl:275 },
+    { at:"09:52", day:28, date:"01-08", by:"سلمان الغامدي",
+      mid:"projects/el-araby-firebase-app/messages/0:1754041920658%3a0ba3d6", tl:20, bl:88 }
+  ];
+
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  };
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+  var trimmed = function(){
+    return { t:state.title.trim(), b:state.body.trim() };
+  };
+  var canSend = function(){
+    var v = trimmed();
+    return Boolean(v.t && v.b && state.audience === "all");
+  };
+
+  /* ══ 1) المحرِّر + المعاينة ═════════════════════════ */
+  function drawComposer(){
+    var v = trimmed(), blocked = state.audience !== "all";
+
+    $("titleCnt").textContent = state.title.length + " / " + LIMIT.title;
+    $("bodyCnt").textContent  = state.body.length  + " / " + LIMIT.body;
+    $("titleCnt").classList.toggle("warn", state.title.length >= LIMIT.title - 10);
+    $("bodyCnt").classList.toggle("warn",  state.body.length  >= LIMIT.body  - 60);
+
+    [].forEach.call(document.querySelectorAll(".aud"), function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.a === state.audience));
+    });
+
+    var note = $("blockNote");
+    note.classList.toggle("on", blocked);
+    if(blocked) $("blockText").innerHTML = BLOCKED[state.audience];
+
+    /* لا رقم مدى وصول هنا: عدد الأجهزة المشتركة في الموضوع غير معروف للخادم،
+       وعدّ الاشتراكات في جدول operators شيء آخر تمامًا. */
+    $("reachLine").innerHTML = blocked
+      ? 'لن يُرسل شيء — هذا الجمهور غير مدعوم في الخادم.'
+      : 'سيصل الإشعار إلى <b>كل جهاز مشترك في الموضوع</b> — والخادم لا يعرف عددها.';
+
+    var ok = canSend();
+    $("reviewBtn").disabled = !ok;
+    $("reviewWhy").textContent =
+      blocked ? "اختر «جميع أجهزة التطبيق» — لا يوجد مسار خادم لغيره."
+      : !v.t   ? "اكتب عنوانًا لتفعيل الإرسال."
+      : !v.b   ? "اكتب نصّ الرسالة لتفعيل الإرسال."
+      : "ستظهر خطوة تأكيد قبل أي إرسال.";
+  }
+
+  function drawPreview(){
+    var v = trimmed();
+    var t = $("pvTitle"), b = $("pvBody");
+    t.textContent = v.t || "عنوان الإشعار";
+    b.textContent = v.b || "سيظهر نص الرسالة هنا قبل الإرسال.";
+    t.classList.toggle("nPlace", !v.t);
+    b.classList.toggle("nPlace", !v.b);
+    $("notifCard").classList.toggle("collapsed", state.preview === "collapsed");
+  }
+
+  /* ══ 2) تدفّق الإرسال متعدّد الخطوات ════════════════ */
+  function drawStep(){
+    $("stepCompose").classList.toggle("on", state.step === "compose");
+    $("stepConfirm").classList.toggle("on", state.step === "confirm");
+    $("stepSending").classList.toggle("on", state.step === "sending");
+
+    $("compNote").textContent =
+      state.step === "compose"  ? "اكتب رسالة واضحة ومختصرة تظهر خارج التطبيق"
+    : state.step === "confirm"  ? "خطوة أخيرة — راجع النصّ جيدًا قبل التأكيد"
+    : "جارٍ التنفيذ…";
+
+    if(state.step === "confirm"){
+      var v = trimmed();
+      $("cfTitleQ").textContent = v.t;
+      $("cfPrevT").textContent  = v.t;
+      $("cfPrevB").textContent  = v.b;
+      $("ackBtn").setAttribute("aria-pressed", String(state.ack));
+      $("sendBtn").disabled = !state.ack;
+      $("sendWhy").textContent = state.ack
+        ? "الإرسال فوري وغير قابل للتراجع."
+        : "أقرّ بالتحذير أعلاه لتفعيل الإرسال.";
+    }
+  }
+
+  function showNotice(tone, msg, server){
+    var n = $("notice");
+    n.classList.add("on");
+    n.classList.toggle("ok",  tone === "ok");
+    n.classList.toggle("bad", tone === "bad");
+    $("noticeTag").textContent = tone === "ok" ? "تم:" : "فشل:";
+    $("noticeMsg").textContent = msg;
+    $("noticeSrv").textContent = server || "";
+  }
+  function hideNotice(){
+    $("notice").classList.remove("on","ok","bad");
+  }
+
+  function doSend(){
+    state.step = "sending";
+    drawStep();
+    /* تأخير رمزي يمثّل نداء الشبكة — مهلة الخادم الحقيقية 10 ثوانٍ */
+    setTimeout(function(){
+      var r = RESPONSES[state.mock], v = trimmed();
+      if(r.ok){
+        var id = "projects/el-araby-firebase-app/messages/0:" +
+                 String(Date.now()) + "%3a" + Math.random().toString(16).slice(2,8);
+        HISTORY.unshift({ at:nowClock(), day:0, date:"29-08", by:"أحمد عماد",
+                          mid:id, tl:v.t.length, bl:v.b.length, fresh:true });
+        state.title = ""; state.body = "";
+        $("nTitleIn").value = ""; $("nBodyIn").value = "";
+        showNotice("ok", "تم إرسال الإشعار بنجاح.",
+                   "201 Created · messageId: " + id);
+        state.histShown = Math.max(state.histShown, 5);
+        drawHistory();
+      } else {
+        /* errorMessage(reason) في الواجهة يعرض problem.title كما هو — بالإنجليزية */
+        showNotice("bad", r.title,
+                   r.status + " " + r.code + " · reason: " + r.reason);
+      }
+      state.step = "compose"; state.ack = false;
+      drawStep(); drawComposer(); drawPreview();
+    }, 900);
+  }
+
+  function nowClock(){
+    var d = new Date();
+    return String(d.getHours()).padStart(2,"0") + ":" +
+           String(d.getMinutes()).padStart(2,"0");
+  }
+
+  /* ══ 3) سجل الإرسال — ترشيح وترقيم ═════════════════ */
+  function histFiltered(){
+    return HISTORY.filter(function(e){
+      if(state.histRange === "today") return e.day === 0;
+      if(state.histRange === "w7")    return e.day <= 7;
+      return true;
+    });
+  }
+  function drawHistory(){
+    var rows = histFiltered(),
+        shown = rows.slice(0, state.histShown),
+        host = $("histBody");
+
+    $("histCount").textContent = rows.length
+      ? (rows.length === HISTORY.length
+          ? fmt(HISTORY.length) + " إشعارًا مرسلاً"
+          : fmt(rows.length) + " من " + fmt(HISTORY.length) + " إشعارًا")
+      : "لا شيء في هذا المدى";
+
+    if(!shown.length){
+      host.innerHTML =
+        '<div class="empty"><b>لا توجد سجلات مطابقة</b>' +
+        (state.histRange === "today"
+          ? "لم يُرسل أي إشعار اليوم. أرسل واحدًا أو وسّع المدى إلى «7 أيام» أو «الكل»."
+          : "وسّع المدى إلى «الكل».") +
+        '</div>';
+      $("moreWrap").hidden = true;
+      return;
+    }
+
+    host.innerHTML = shown.map(function(e){
+      return '<div class="row'+(e.fresh?" fresh":"")+'">'+
+        '<span class="rT">'+esc(e.date)+' '+esc(e.at)+'</span>'+
+        '<span class="rBy">'+esc(e.by)+'</span>'+
+        '<span class="rMid" title="'+esc(e.mid)+'">'+esc(e.mid)+'</span>'+
+        '<span class="rLen rL1">'+e.tl+' <span class="u">حرفًا</span></span>'+
+        '<span class="rLen rL2">'+e.bl+' <span class="u">حرفًا</span></span>'+
+      '</div>';
+    }).join("");
+
+    $("moreWrap").hidden = shown.length >= rows.length;
+  }
+
+  /* ══ الربط ═════════════════════════════════════════ */
+  $("nTitleIn").addEventListener("input", function(){
+    state.title = this.value; drawComposer(); drawPreview();
+  });
+  $("nBodyIn").addEventListener("input", function(){
+    state.body = this.value; drawComposer(); drawPreview();
+  });
+
+  $("audList").addEventListener("click", function(e){
+    var b = e.target.closest(".aud"); if(!b) return;
+    state.audience = b.dataset.a;
+    drawComposer();
+  });
+
+  $("reviewBtn").addEventListener("click", function(){
+    if(!canSend()) return;
+    hideNotice();
+    state.step = "confirm"; state.ack = false;
+    drawStep();
+    $("ackBtn").focus();
+  });
+  $("backBtn").addEventListener("click", function(){
+    state.step = "compose"; state.ack = false;
+    drawStep(); $("nTitleIn").focus();
+  });
+  $("ackBtn").addEventListener("click", function(){
+    state.ack = !state.ack; drawStep();
+  });
+  $("sendBtn").addEventListener("click", function(){
+    if(!state.ack || !canSend()) return;
+    doSend();
+  });
+  $("noticeClose").addEventListener("click", hideNotice);
+  addEventListener("keydown", function(e){
+    if(e.key === "Escape" && state.step === "confirm"){
+      state.step = "compose"; state.ack = false; drawStep();
+    }
+  });
+
+  $("moreBtn").addEventListener("click", function(){
+    state.histShown += 5; drawHistory();
+  });
+
+  function segment(id, apply){
+    var g = $(id);
+    g.addEventListener("click", function(e){
+      var b = e.target.closest("button"); if(!b) return;
+      [].forEach.call(g.querySelectorAll("button"), function(x){
+        x.setAttribute("aria-pressed", String(x === b));
+      });
+      apply(b);
+    });
+  }
+  segment("prevSeg", function(b){ state.preview = b.dataset.p; drawPreview(); });
+  segment("mockSeg", function(b){ state.mock    = b.dataset.m; });
+  segment("histSeg", function(b){
+    state.histRange = b.dataset.h;
+    state.histShown = 5;
+    drawHistory();
+  });
+
+  $("srcTgl").addEventListener("click", function(){
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", String(on));
+    document.documentElement.setAttribute("data-src", on ? "1" : "0");
+  });
+
+  drawComposer(); drawPreview(); drawStep(); drawHistory();
+})();
+</script>
+</body>
+</html>

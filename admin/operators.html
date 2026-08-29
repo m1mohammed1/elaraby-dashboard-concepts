@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-depth="all">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المستخدمون — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   المشغّلون — /operators و /operators/archive
+   المشهد والمادة والشريط العلوي وصف الجدول ومفتاح مصادر البيانات
+   منقولة من الشاشة المرجعية prototype/gallery/overview.html.
+   كل عمود وكل إجراء وكل نص حالة هنا مأخوذ من:
+     admin-client/src/features/operators/OperatorsPage.tsx
+     admin-client/src/features/operators/OperatorRow.tsx
+     admin-client/src/features/operators/OperatorControls.tsx
+     admin-client/src/features/operators/OperatorActions.tsx
+     admin-client/src/features/operators/api.ts
+     server/src/interfaces/http/routes/admin.ts
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --unread:#e8b055;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  --far-a:.050;  --far-ink:1;
+  --mid-a:.058;  --mid-ink:1;
+  --near-a:.080; --near-ink:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* min-block-size لا height: الجسم يكبر مع المحتوى فتغطّيه طبقة المشهد المطلقة كاملةً. */
+html,body{min-block-size:100%}
+body{
+  position:relative;
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button,input,select{font:inherit;color:inherit}
+/* عناصر الشريط والحقول تحمل display صريحًا، فبدون هذا السطر لا تُخفي
+   السمة hidden أزرار «العودة» و«إضافة مستخدم» ولا حقول التصفية في الأرشيف. */
+[hidden]{display:none !important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ── المشهد — منقول حرفيًا ───────────────────────── */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── الشريط العلوي ────────────────────────────────── */
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+/* نفس إيقاع الشاشة المرجعية: فجوة 22px داخل الشريط. */
+.barIn{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+  inline-size:100%;max-inline-size:1560px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+.brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+.barSep{width:1px;height:22px;background:var(--line)}
+.barGrow{flex:1}
+
+/* التنقّل — روابط الصفحات السبع، النشط بخلفية أفتح */
+.nav{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.nav a{text-decoration:none;color:var(--ink-3);font-size:12.5px;font-weight:500;
+  padding:6px 11px;border-radius:8px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.seg.segSm button{padding:4px 10px;font-size:11.5px}
+.segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
+
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center}
+.tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+
+.who{display:flex;align-items:center;gap:9px;font-size:13px}
+.who .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  font-size:12px;font-weight:600}
+.who .rl{color:var(--ink-3);font-size:11.5px}
+
+/* ── المسرح والمادة ──────────────────────────────── */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+/* بلا backdrop-filter وبلا أي حركة على .pane — المشهد خلفها مضبَّب أصلًا. */
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.far{opacity:var(--far-ink)}
+.mid .pane{background:rgba(255,255,255,var(--mid-a))}
+.mid{opacity:var(--mid-ink)}
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near{opacity:var(--near-ink)}
+
+/* ── مصادر البيانات ──────────────────────────────── */
+/* ink-3 لا ink-4: النسبة على اللوحة المركَّبة (~#151d19) هي 5.6:1 مقابل 3.2:1،
+   وهذا نصّ مواصفة يُقرأ فعلًا لا زخرفة. النص مختلط (عربي + مسارات + أرقام)
+   فيلزمه عزل ثنائي الاتجاه على الحاوية نفسها لا على <code> وحدها. */
+.src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
+  padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl;unicode-bidi:isolate}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.src .nw{color:var(--accent)}
+.src b{color:var(--ink-2);font-weight:500}
+:root[data-src="1"] .src{display:block}
+
+/* ── ترويسة الصفحة ───────────────────────────────── */
+.head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;
+  padding:16px 20px 14px}
+.headText{flex:1;min-inline-size:220px}
+.h1{font-size:20px;font-weight:600;line-height:1.5}
+.h1sub{font-size:12px;color:var(--ink-3);margin-block-start:2px}
+.route{font-size:10.5px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-block-start:4px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);
+  color:var(--ink-2);font-size:12.5px;padding:7px 13px;border-radius:9px;cursor:pointer;
+  text-decoration:none;white-space:nowrap;
+  transition:background .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease)}
+.btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.btn[disabled]{opacity:.42;cursor:not-allowed}
+.btn[disabled]:hover{background:rgba(255,255,255,.05);color:var(--ink-2)}
+.btn.primary{border-color:rgba(110,196,155,.4);color:var(--accent);background:rgba(110,196,155,.10)}
+.btn.primary:hover{background:rgba(110,196,155,.17);color:#8fd8b4}
+.btn.danger{border-color:rgba(255,107,107,.36);color:var(--wanted);background:rgba(255,107,107,.08)}
+.btn.danger:hover{background:rgba(255,107,107,.15)}
+.btn.sm{font-size:11.5px;padding:4px 10px;border-radius:8px}
+/* أيقونات SVG مضمّنة فقط — لا محارف رسوم (‹ › ▲ ← +) ولا خطوط أيقونات:
+   المحرف يتبع اتجاه النص ويختلف رسمه بين الأنظمة، والسهم ينقلب معناه في RTL. */
+.btn svg,.ico{display:block;flex:none}
+.ico{inline-size:12px;block-size:12px;stroke:currentColor;fill:none;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ico.lg{inline-size:14px;block-size:14px}
+
+/* ── شريط الأدوات ────────────────────────────────── */
+.toolSec{position:relative;z-index:50}
+.tools{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
+  padding:0 20px 15px;border-block-end:1px solid var(--line-2)}
+.field{display:flex;flex-direction:column;gap:5px;min-inline-size:0}
+.fieldL{font-size:11px;color:var(--ink-3)}
+.inp,.sel{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);
+  border-radius:9px;padding:7px 11px;font-size:12.5px;color:var(--ink);
+  inline-size:100%;transition:border-color .16s var(--ease)}
+.inp::placeholder{color:var(--ink-3)}
+.inp:hover,.sel:hover{border-color:rgba(255,255,255,.18)}
+/* السهم مرسوم عند الحافة اليسرى، وهي في هذا المستند (dir=rtl الثابت) نهايةُ
+   السطر. الحشو المحجوز له يجب أن يكون على الجهة نفسها: padding-inline-END
+   لا START — وإلا حُجزت المساحة عند بداية السطر ومرّ النص فوق السهم.
+   background-position بلا صيغة منطقية في CSS، فبقي physical مع هذا التعليق. */
+.sel{cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),
+                   linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:left 13px top 15px,left 8px top 15px;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-inline-end:28px}
+.sel option{background:#101b16;color:var(--ink)}
+.fSearch{flex:1;min-inline-size:180px;max-inline-size:300px}
+.fSel{inline-size:158px}
+.toolsGrow{flex:1}
+.toolBtns{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+
+/* ── دفتر الأرقام الصغير ─────────────────────────── */
+.figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:2px 0}
+.fig{padding:13px 20px;border-inline-start:1px solid var(--line-2)}
+.fig:first-child{border-inline-start:0}
+.figL{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.figV{font-size:26px;font-weight:600;line-height:1.25;margin-block-start:2px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+/* «النتائج المطابقة: 27» و«من 31 مستخدمًا» — عربي + أرقام في سطر واحد. */
+.figM{font-size:11.5px;color:var(--ink-3);margin-block-start:1px;display:flex;gap:7px;
+  align-items:baseline;direction:rtl;unicode-bidi:isolate}
+.snap{font-size:9.5px;color:var(--ink-3);border:1px solid var(--line);
+  padding:1px 6px;border-radius:999px;margin-inline-start:6px}
+/* النبضة الوحيدة في الشاشة كلها */
+.voiceNow{display:inline-flex;align-items:center;gap:6px;color:var(--clean)}
+.pulse{inline-size:7px;block-size:7px;border-radius:50%;background:var(--clean);
+  flex:none;position:relative;box-shadow:0 0 8px -1px rgba(61,220,151,.6)}
+.pulse::after{content:"";position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid var(--clean);animation:ring 2s var(--ease) infinite}
+@keyframes ring{
+  0%{transform:scale(1);opacity:.85}
+  70%{transform:scale(2.6);opacity:0}
+  100%{transform:scale(2.6);opacity:0}
+}
+
+/* ── إشعار النتيجة ───────────────────────────────── */
+.notice{display:flex;align-items:center;gap:10px;padding:10px 16px;margin-block-end:14px;
+  border-radius:12px;font-size:12.5px;line-height:1.7;
+  direction:rtl;unicode-bidi:isolate}
+.notice.success{background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.25);color:var(--ink-2)}
+.notice.danger{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.28);color:var(--ink-2)}
+.notice .w{flex:1;min-inline-size:120px}
+.notice[hidden]{display:none}
+
+/* ── نموذج إنشاء مستخدم ──────────────────────────── */
+.formPanel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+  padding:16px 20px;border-block-end:1px solid var(--line-2)}
+.formPanel .full{grid-column:1/-1;display:flex;gap:9px;justify-content:flex-end}
+.hint{font-size:10.5px;color:var(--ink-3);direction:rtl;unicode-bidi:isolate}
+.formPanel[hidden]{display:none}
+
+/* ── شريط التحديد ────────────────────────────────── */
+.bulk{display:none;padding:12px 20px;border-block-end:1px solid var(--line-2);
+  background:rgba(110,196,155,.05)}
+.bulk.on{display:block}
+.bulkTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* «تم تحديد 12 مستخدم» و«تحديد كل النتائج (27)» — عربي + أرقام. */
+.bulkCount{font-size:12.5px;font-weight:600;direction:rtl;unicode-bidi:isolate}
+.bulkAll{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+  padding:4px 11px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
+  direction:rtl;unicode-bidi:isolate;
+  transition:background .15s var(--ease)}
+.bulkAll:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.bulkRow{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap;margin-block-start:11px}
+.bulkSubHead{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);
+  inline-size:100%;padding-block-start:9px;margin-block-start:4px;
+  border-block-start:1px solid var(--line-2)}
+.bulkSubHead span{color:var(--ink-3);font-size:11px}
+.dateF{inline-size:152px}
+
+/* ── الجدول ──────────────────────────────────────── */
+/* أعمدة صريحة لا flex: عمود التحديد وعمود الإجراء اختياريان بحسب الوضع
+   (قائمة / أرشيف) ومحجوزان دائمًا حتى حين يكونان فارغين، فتبقى الأعمدة
+   مصطفّة بين الوضعين وبين صف وآخر. */
+.tbl{padding:2px 0 4px}
+.row{display:grid;
+  grid-template-columns:34px minmax(110px,1.2fr) 96px 100px minmax(130px,1.3fr) 84px 110px 124px 100px 84px;
+  align-items:center;gap:10px;padding:9px 16px;
+  border-block-end:1px solid var(--line-2);font-size:12.5px;
+  transition:background .14s var(--ease)}
+.row:last-child{border-block-end:0}
+.rowHead{font-size:11px;color:var(--ink-3);padding-block:8px;
+  border-block-end:1px solid var(--line);background:rgba(255,255,255,.02)}
+.rowBody:hover{background:rgba(255,255,255,.045)}
+.rowBody.sel{background:rgba(110,196,155,.09)}
+.rowBody.sel:hover{background:rgba(110,196,155,.13)}
+
+.chk{inline-size:15px;block-size:15px;accent-color:var(--accent);cursor:pointer;margin:0}
+.cUser a{color:var(--ink);text-decoration:none;font-weight:500;
+  border-block-end:1px solid transparent;transition:border-color .15s var(--ease)}
+.cUser a:hover{border-block-end-color:rgba(255,255,255,.35)}
+/* «وقت النشاط: 42 دقيقة» — عربي + رقم، فيلزمه عزل ثنائي الاتجاه. */
+.cMini{color:var(--ink-3);font-size:10.5px;display:block;
+  direction:rtl;unicode-bidi:isolate;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell{min-inline-size:0;overflow:hidden}
+.cVer,.cLast{color:var(--ink-2);font-size:11.5px;
+  font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* الخلية مختلطة: طراز جهاز لاتيني أو نص عربي «غير مرتبط».
+   الاتجاه يبقى rtl مع عزل ثنائي الاتجاه، فيُرسم الطراز اللاتيني صحيحًا
+   داخله بدل أن يُحاذى النص العربي إلى اليسار. */
+.cDev span.dv{display:block;color:var(--ink-2);font-size:11.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  direction:rtl;unicode-bidi:isolate;text-align:start}
+.cLbl{display:none;font-size:10px;color:var(--ink-3);margin-inline-end:5px}
+.sortBtn{border:0;background:transparent;cursor:pointer;color:var(--ink-3);font-size:11px;
+  padding:2px 5px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;
+  transition:color .15s var(--ease),background .15s var(--ease)}
+.sortBtn:hover{color:var(--ink-2);background:rgba(255,255,255,.06)}
+[aria-sort="ascending"] .sortBtn,[aria-sort="descending"] .sortBtn{color:var(--ink)}
+/* السهم أيقونة SVG لا محرف ▲/▼: المحرف يُرسم بأحجام مختلفة بين الأنظمة
+   وقد يُستبدل من خط احتياطي. الاتجاه يُقلب بـ scaleY لا بمحرف آخر. */
+.sortBtn .ar{inline-size:9px;block-size:9px;flex:none;stroke:currentColor;fill:none;
+  stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.sortBtn .ar.desc{transform:scaleY(-1)}
+
+/* شارة الحالة — حبة بحدّ currentColor، نفس منطق StatusChip.tsx */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;
+  padding:2px 8px;border-radius:999px;border:1px solid currentColor;line-height:1.7;
+  white-space:nowrap;max-inline-size:100%;overflow:hidden}
+.chip .cd{inline-size:5px;block-size:5px;border-radius:50%;background:currentColor;flex:none}
+.chip .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-success{color:var(--clean)}
+.t-warning{color:var(--unread)}
+.t-danger{color:var(--wanted)}
+.t-info{color:var(--accent)}
+/* ink-3 لا ink-4: «غير مرتبط» و«منتهي» و«غير متصل» بيانات تُقرأ، و ink-4
+   يعطي 3.2:1 على اللوحة المركَّبة — دون حدّ النص العادي. */
+.t-muted{color:var(--ink-3)}
+
+/* اسم مسموع لعمود التحديد — العمود بلا عنوان مرئي بحكم التصميم. */
+.vh{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap}
+.empty{padding:40px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px;font-size:14px}
+
+/* ── الترقيم — خادمي، مطابق لـ Pagination.tsx ─────── */
+.pg{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:13px 18px;border-block-start:1px solid var(--line-2)}
+.pgPages{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pgB{border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.04);
+  color:var(--ink-2);font-size:12px;min-inline-size:32px;block-size:30px;
+  padding:0 8px;border-radius:8px;cursor:pointer;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;
+  transition:background .15s var(--ease),color .15s var(--ease)}
+.pgB:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.pgB[disabled]{opacity:.4;cursor:not-allowed}
+.pgB[aria-current="page"]{background:rgba(255,255,255,.14);color:var(--ink);
+  border-color:rgba(255,255,255,.2);opacity:1;cursor:default}
+.pgB .ico{inline-size:11px;block-size:11px;margin-inline:auto}
+.pgEll{color:var(--ink-4);padding:0 3px}   /* زخرفة فقط، aria-hidden */
+.pgJump{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-3)}
+.pgJump input{inline-size:64px;background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.10);border-radius:8px;padding:5px 9px;
+  font-size:12px;color:var(--ink);text-align:center;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.pgErr{color:var(--wanted);font-size:11px;direction:rtl;unicode-bidi:isolate}
+.pgTot{margin-inline-start:auto;font-size:11.5px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate}
+.pgTot b{color:var(--ink-2);font-weight:500;direction:ltr;unicode-bidi:isolate;display:inline-block}
+
+/* ── حوار التأكيد ────────────────────────────────────
+   طبقة مطلقة لا ثابتة: الطبقات الثابتة تُركَّب في طبقة منفصلة لا يُعاد
+   رسمها بشكل موثوق مع التمرير. الغطاء يغطّي الوثيقة كاملةً لأن الجسم
+   نفسه هو مرجع الموضع، وصندوق الحوار يوضع من JS عند موضع التمرير. */
+.scrim{position:absolute;inset:0;z-index:300;background:rgba(3,10,8,.66);display:none}
+.scrim.on{display:block}
+.dlg{position:absolute;inset-inline:0;margin-inline:auto;
+  inline-size:min(460px,calc(100vw - 32px));border-radius:14px;overflow:hidden;
+  background:#101b16;border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
+.dlgH{padding:15px 18px 4px;font-size:15px;font-weight:600}
+/* نصّ الحوار مختلط: جملة عربية + عدد + تاريخ عربي فيه أرقام غربية. */
+.dlgB{padding:0 18px 14px;font-size:12.5px;color:var(--ink-2);line-height:1.85;
+  direction:rtl;unicode-bidi:isolate}
+.dlgF{display:flex;gap:9px;justify-content:flex-end;padding:12px 18px 15px;
+  border-block-start:1px solid var(--line-2)}
+
+/* ink-3 لا ink-4: سطر «بيانات توضيحية» إقرار يجب أن يُقرأ فعلًا،
+   و ink-4 على خلفية المشهد يعطي 3.5:1 — دون 4.5:1. */
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-3);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+/* ── نقاط التكيّف ────────────────────────────────────
+     ≥1200  الجدول بأعمدته العشرة وترويسة أعمدة
+     <1200  الصف سطران بمواضع grid-area صريحة، والترويسة تُخفى
+     <760   الصف عدة أسطر، والأعمدة تبقى محجوزة
+     <620   حشو أصغر وأرقام أصغر */
+@media(max-width:1279px){ .figs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fig:nth-child(2n+1){border-inline-start:0} }
+@media(max-width:1199px){
+  .rowHead{display:none}
+  .cLbl{display:inline}
+  .row{grid-template-columns:34px minmax(0,1.4fr) 104px 108px 108px 86px;row-gap:7px}
+  .cChk {grid-area:1/1/2/2}
+  .cUser{grid-area:1/2/2/3}
+  .cStat{grid-area:1/3/2/4}
+  .cSub {grid-area:1/4/2/5}
+  .cAct {grid-area:1/5/2/6}
+  .cDo  {grid-area:1/6/2/7}
+  .cDev {grid-area:2/2/3/4}
+  .cVer {grid-area:2/4/3/5}
+  .cLast{grid-area:2/5/3/6}
+  .cOn  {grid-area:2/6/3/7}
+}
+@media(max-width:900px){
+  .formPanel{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:759px){
+  .row{grid-template-columns:34px minmax(0,1fr) 108px;row-gap:6px}
+  .cChk {grid-area:1/1/2/2}
+  .cUser{grid-area:1/2/2/3}
+  .cStat{grid-area:1/3/2/4}
+  .cSub {grid-area:2/2/3/3}
+  .cAct {grid-area:2/3/3/4}
+  .cDev {grid-area:3/2/4/4}
+  .cVer {grid-area:4/2/5/3}
+  .cLast{grid-area:4/3/5/4}
+  .cOn  {grid-area:5/2/6/4}
+  .cDo  {grid-area:6/2/7/4}
+  .fSearch{max-inline-size:none}
+  .fSel{inline-size:100%}
+  .field.fSel,.field.fSearch{flex:1 1 100%}
+}
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .bar{padding:12px 14px}
+  .figV{font-size:22px}
+  .head,.tools,.bulk,.formPanel{padding-inline:14px}
+  .row{padding-inline:14px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="bar"><div class="barIn">
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي</span></div>
+  <div class="barSep" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="أقسام لوحة الإدارة">
+    <a href="../gallery/overview.html">النظرة العامة</a>
+    <a href="operators.html" aria-current="page">المستخدمون</a>
+    <a href="operator-detail.html">ملف مستخدم</a>
+    <a href="wanted-plates.html">قائمة المطلوبين</a>
+    <a href="admins.html">المشرفون</a>
+    <a href="versions.html">إصدارات التطبيق</a>
+    <a href="notifications.html">الإشعارات</a>
+  </nav>
+
+  <span class="barGrow"></span>
+
+  <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+    <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+  </button>
+
+  <div class="who">
+    <span class="av" aria-hidden="true">أ</span>
+    <span><span style="display:block">أحمد عماد</span><span class="rl">مدير النظام</span></span>
+  </div>
+</div></header>
+
+<main class="stage">
+
+  <div class="notice" id="notice" role="status" hidden>
+    <span class="w" id="noticeText"></span>
+    <button class="btn sm" type="button" id="noticeClose">إغلاق</button>
+  </div>
+
+  <!-- ═══ الطبقة المتوسطة — أرقام السياق ═══ -->
+  <section class="mid" aria-label="أرقام المستخدمين">
+    <div class="pane">
+      <div class="figs">
+        <div class="fig">
+          <div class="figL">إجمالي المستخدمين</div>
+          <div class="figV" id="figTotal" data-count="31">31</div>
+          <div class="figM"><span id="figFiltered">النتائج المطابقة: 27</span></div>
+        </div>
+        <div class="fig">
+          <div class="figL">اشتراكات سارية</div>
+          <div class="figV" id="figSubs" data-count="26">26</div>
+          <div class="figM"><span id="figSubsOf">من 31 مستخدمًا</span></div>
+        </div>
+        <div class="fig">
+          <div class="figL">نشطون اليوم<span class="snap">اليوم</span></div>
+          <div class="figV" id="figActive" data-count="18">18</div>
+          <div class="figM"><span>سجّلوا فحصًا واحدًا على الأقل</span></div>
+        </div>
+        <div class="fig">
+          <div class="figL">متصلون الآن<span class="snap">لحظي</span></div>
+          <div class="figV" id="figOnline" data-count="7">7</div>
+          <div class="figM">
+            <span class="voiceNow"><span class="pulse" aria-hidden="true"></span><span id="figVoice">3 جلسات صوتية</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="src">
+        «إجمالي المستخدمين» و«النتائج المطابقة» من حقل <code>total</code> في
+        <code>GET /v1/admin/operators</code> — الأول بلا تصفية والثاني بالتصفية الجارية.
+        «اشتراكات سارية» و«نشطون اليوم» و«متصلون الآن» و«الجلسات الصوتية» من
+        <code>GET /v1/admin/dashboard</code> — الحقول <code>activeSubscriptions</code> و
+        <code>activeUsers</code> و <code>onlineUsers</code> و <code>activeVoiceUsers</code>.
+        الرقمان الأخيران لحظيان: <code>operator_presence</code> و
+        <code>active_voice_sessions</code> عليهما <code>TTL</code> بدقيقتين.
+        <span class="nw">يحتاج بناءً في الواجهة فقط:</span> صفحة المستخدمين الحالية
+        (<code>OperatorsPage.tsx</code>) <b>لا تعرض هذا الشريط إطلاقًا</b> — كل أرقامه
+        موجودة في مسارات قائمة، لكن جمعها هنا تركيب جديد يحتاج نداءً ثانيًا للوحة المعلومات.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ الطبقة الأمامية — اللوحة الرئيسية ═══ -->
+  <section class="near toolSec" aria-label="قائمة المستخدمين" style="margin-block-start:18px">
+    <div class="pane">
+
+      <div class="head">
+        <div class="headText">
+          <div class="h1" id="pageTitle">المستخدمون</div>
+          <div class="h1sub">إدارة حسابات مستخدمي تطبيق الفحص، حالاتهم، وأجهزة العمل المرتبطة.</div>
+          <div class="route" id="pageRoute">/operators?status=active</div>
+        </div>
+        <div class="seg" role="group" aria-label="العرض" id="viewSeg">
+          <button type="button" data-v="list" aria-pressed="true">المستخدمون</button>
+          <button type="button" data-v="archive" aria-pressed="false">الأرشيف</button>
+        </div>
+        <!-- سهم يمين مضمّن — نفس ArrowRight في OperatorsPage.tsx، لا محرف «←». -->
+        <button class="btn" type="button" id="backBtn" hidden>
+          <svg class="ico lg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+          العودة إلى المستخدمين
+        </button>
+      </div>
+
+      <div class="tools">
+        <label class="field fSearch">
+          <span class="fieldL">البحث</span>
+          <input class="inp" id="fq" type="search" placeholder="اسم المستخدم" autocomplete="off">
+        </label>
+        <label class="field fSel" id="fStatusWrap">
+          <span class="fieldL">حالة المستخدم</span>
+          <select class="sel" id="fStatus">
+            <option value="">جميع الحالات</option>
+            <option value="active" selected>مفعّل</option>
+            <option value="disabled">موقوف</option>
+            <option value="expired">منتهي</option>
+          </select>
+        </label>
+        <label class="field fSel" id="fSubWrap">
+          <span class="fieldL">حالة الاشتراك</span>
+          <select class="sel" id="fSub">
+            <option value="">كل الاشتراكات</option>
+            <option value="active">ساري</option>
+            <option value="suspended">معلّق</option>
+            <option value="expired">منتهي</option>
+            <option value="none">بدون اشتراك</option>
+          </select>
+        </label>
+        <label class="field fSel" id="fActiveWrap">
+          <span class="fieldL">النشاط</span>
+          <select class="sel" id="fActive">
+            <option value="">الكل</option>
+            <option value="true">نشط اليوم</option>
+            <option value="false">غير نشط اليوم</option>
+          </select>
+        </label>
+        <span class="toolsGrow"></span>
+        <div class="toolBtns">
+          <button class="btn" type="button" id="clearBtn">مسح التصفية</button>
+          <button class="btn primary" type="button" id="createBtn" aria-expanded="false">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            إضافة مستخدم
+          </button>
+        </div>
+      </div>
+
+      <form class="formPanel" id="createForm" autocomplete="off" hidden>
+        <label class="field">
+          <span class="fieldL">اسم المستخدم</span>
+          <input class="inp" id="newName" required>
+        </label>
+        <label class="field">
+          <span class="fieldL">كلمة المرور الأولية</span>
+          <input class="inp" id="newPass" type="password" minlength="12" required>
+          <span class="hint">12 خانة على الأقل — نفس الحدّ في <code>PasswordField</code></span>
+        </label>
+        <div class="full">
+          <button class="btn" type="button" id="createCancel">إلغاء</button>
+          <button class="btn primary" type="submit">إنشاء المستخدم</button>
+        </div>
+      </form>
+
+      <!-- شريط إجراءات التحديد -->
+      <div class="bulk" id="bulk">
+        <div class="bulkTop">
+          <span class="bulkCount" id="bulkCount">لم يتم تحديد مستخدمين</span>
+          <button class="bulkAll" type="button" id="bulkAll">تحديد كل النتائج</button>
+          <button class="bulkAll" type="button" id="bulkNone">إلغاء التحديد</button>
+        </div>
+        <div class="bulkRow">
+          <label class="field fSel">
+            <span class="fieldL">تغيير حالة المستخدمين المحددين</span>
+            <select class="sel" id="bulkStatus">
+              <option value="">تغيير الحالة…</option>
+              <option value="active">تفعيل</option>
+              <option value="disabled">إيقاف</option>
+              <option value="expired">تعيين منتهي</option>
+            </select>
+          </label>
+          <button class="btn" type="button" id="bulkDevice">إعادة ربط الجهاز</button>
+          <button class="btn danger" type="button" id="bulkRemove">حذف</button>
+        </div>
+        <div class="bulkSubHead">
+          <strong>إدارة الاشتراك</strong><span>شهر واحد افتراضيًا</span>
+        </div>
+        <div class="bulkRow">
+          <label class="field dateF">
+            <span class="fieldL">بداية الاشتراك</span>
+            <input class="inp" id="subStart" type="date" value="2026-08-29">
+          </label>
+          <label class="field dateF">
+            <span class="fieldL">نهاية الاشتراك</span>
+            <input class="inp" id="subEnd" type="date" value="2026-09-29">
+          </label>
+          <button class="btn primary" type="button" id="subStartBtn">بدء الاشتراك</button>
+          <button class="btn" type="button" id="subSuspendBtn">تعليق الاشتراك</button>
+        </div>
+      </div>
+
+      <div class="tbl" id="tbl"></div>
+      <div class="pg" id="pg"></div>
+
+      <div class="src">
+        <b>القائمة:</b> <code>GET /v1/admin/operators?q=&amp;status=&amp;subscription=&amp;active=&amp;includeDeleted=&amp;sort=&amp;direction=&amp;page=&amp;pageSize=</code>
+        — ترقيم <b>خادمي</b>: الردّ <code>{ items, page, pageSize, total }</code>.
+        الواجهة الحالية ترسل <code>pageSize:25</code> ثابتة، والخادم يقبل حتى 100
+        (<code>pageNumber(query.pageSize, 50, 100)</code>).
+        <code>sort</code> محصور في <code>username | status | createdAt</code> و
+        <code>direction</code> في <code>asc | desc</code> (<code>operatorSort</code> في
+        <code>admin.ts</code>).
+        <span class="nw">يحتاج بناءً في الواجهة فقط:</span> الخادم يدعم الفرز، لكن
+        <code>OperatorControls.tsx</code> <b>لا يعرض أي زر فرز</b> — أزرار الفرز في ترويسة
+        الجدول هنا جديدة على الواجهة ولا تحتاج أي عمل في الخادم.
+        كذلك عوامل التصفية الثلاثة موجودة فعلًا لكنها في التطبيق داخل نافذة
+        «عوامل التصفية» (<code>MobileActionsDialog</code>) لا في شريط مكشوف.<br>
+        <b>حقول الصف</b> من <code>Operator</code> في <code>lib/types.ts</code>:
+        <code>username</code> · <code>status</code> · <code>subscription.status</code> ·
+        <code>deviceBound</code> · <code>deviceModel</code> ·
+        <code>deviceSecurity.bindingVersion</code> ·
+        <code>deviceSecurity.securityLevel</code> ·
+        <code>deviceSecurity.attestationEligible</code> · <code>appVersion</code> ·
+        <code>lastActivity</code> · <code>online</code> · <code>onlineSince</code> ·
+        <code>activeVoiceSession</code> · <code>active</code>.
+        نصوص الحالات حرفية من <code>OperatorRow.tsx</code>.<br>
+        <b>الإجراءات الجماعية:</b> <code>POST /v1/admin/operators/bulk/status</code> ·
+        <code>POST /v1/admin/operators/bulk/reset-device</code> ·
+        <code>POST /v1/admin/operators/bulk/subscription/start</code> ·
+        <code>POST /v1/admin/operators/bulk/subscription/suspend</code> — كلها تأخذ
+        <code>selection</code> بالشكل <code>{mode:'ids',ids}</code> أو
+        <code>{mode:'filter',filter,excludedIds}</code> وتعيد
+        <code>{matched, modified, failures[]}</code>. «الحذف» هو
+        <code>status:'deleted'</code> على نفس المسار، لا حذفًا فعليًا.
+        «إعادة ربط الجهاز» تظهر لدور <code>admin</code> فقط.<br>
+        <b>الإنشاء:</b> <code>POST /v1/admin/operators</code> بجسم
+        <code>{username, password}</code> ويعيد 201.<br>
+        <b>الأرشيف:</b> نفس مسار القائمة بـ <code>status=deleted</code> و
+        <code>includeDeleted=true</code>؛ «استعادة» هي
+        <code>bulk/status</code> بـ <code>status:'active'</code>.<br>
+        <span class="nw">غير مرسوم هنا:</span> <code>GET /v1/admin/operators/events</code>
+        بثّ <code>SSE</code> بحدث <code>operators-changed</code> يعيد تحميل القائمة عند أي
+        تغيير — النموذج ساكن ولا يحاكي البثّ.
+        كذلك <b>لا يوجد</b> عمود بوابة أو موقع أو زمن معالجة أو دقة تعرّف: هذه الحقول
+        غير موجودة في قاعدة البيانات.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>الحالات الأربع المعروضة هي حالات النظام الحقيقية: مفعّل · موقوف · منتهي · محذوف</span>
+</footer>
+
+<!-- حوار التأكيد — طبقة مطلقة لا ثابتة -->
+<div class="scrim" id="scrim">
+  <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="dlgH" id="dlgTitle"></div>
+    <div class="dlgB" id="dlgBody"></div>
+    <div class="dlgF">
+      <button class="btn" type="button" id="dlgCancel">إلغاء</button>
+      <button class="btn primary" type="button" id="dlgOk">تأكيد الإجراء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ══ بيانات توضيحية بشكل النوع Operator الحقيقي ═════════════════
+     الحقول مطابقة لـ admin-client/src/lib/types.ts :
+       id · username · status · deviceBound · deviceModel · deviceSecurity
+       · appVersion · createdAt · lastActivity · subscription · active
+       · online · onlineSince · activeVoiceSession
+     التواريخ مكتوبة جاهزة للعرض لأن التنسيق في التطبيق يتم عبر
+     formatDateLabel/formatElapsed بمنطقة زمنية من الجلسة.               */
+
+  var TODAY = "2026-08-29";
+
+  function sub(status, s, e){ return status ? { status:status, startDate:s, endDate:e } : null; }
+  function dsec(v, lvl, elig){ return { bindingVersion:v, securityLevel:lvl, attestationEligible:elig }; }
+
+  var OPERATORS = [
+    { id:"o01", username:"خالد المطيري", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A546E", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2025-11-04", lastActivity:"اليوم", active:true, online:true, onlineSince:"42 دقيقة", voice:true },
+    { id:"o02", username:"نورة السبيعي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Xiaomi 23021RAA2Y", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.1",
+      createdAt:"2025-11-04", lastActivity:"اليوم", active:true, online:true, onlineSince:"1 ساعة", voice:true },
+    { id:"o03", username:"فهد القحطاني", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Honor CRT-NX1", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2025-12-18", lastActivity:"اليوم", active:true, online:true, onlineSince:"18 دقيقة", voice:false },
+    { id:"o04", username:"ريم الدوسري", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A155F", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2026-01-09", lastActivity:"اليوم", active:true, online:true, onlineSince:"3 ساعة", voice:true },
+    { id:"o05", username:"سعود العتيبي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Oppo CPH2565", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2026-01-09", lastActivity:"اليوم", active:true, online:true, onlineSince:"7 دقيقة", voice:false },
+    { id:"o06", username:"لطيفة الحربي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Realme RMX3771", sec:dsec(1,null,true), appVersion:"2.3.7",
+      createdAt:"2026-02-02", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o07", username:"ماجد الشمري", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A346E", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.1",
+      createdAt:"2026-02-02", lastActivity:"اليوم", active:true, online:true, onlineSince:"2 ساعة", voice:false },
+    { id:"o08", username:"هند الزهراني", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Infinix X6831", sec:dsec(null,null,true), appVersion:"2.4.0",
+      createdAt:"2026-02-14", lastActivity:"اليوم", active:true, online:true, onlineSince:"26 دقيقة", voice:false },
+    { id:"o09", username:"عبدالله الغامدي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A556E", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2026-02-14", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o10", username:"منيرة العنزي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Xiaomi 2201117TY", sec:dsec(1,null,false), appVersion:"2.3.7",
+      createdAt:"2026-03-01", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o11", username:"تركي البقمي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Tecno KJ5", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2026-03-01", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o12", username:"أسماء الشهري", status:"disabled", sub:sub("suspended","2026-08-01","2026-08-31"),
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,false), appVersion:"2.3.7",
+      createdAt:"2026-03-11", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o13", username:"بندر الجهني", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A057F", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.1",
+      createdAt:"2026-03-11", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o14", username:"وجدان المالكي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Oppo CPH2337", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2026-03-26", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o15", username:"يوسف الرشيدي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Honor LLY-LX1", sec:dsec(1,null,true), appVersion:"2.4.0",
+      createdAt:"2026-03-26", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o16", username:"غادة الخالدي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-M146B", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.1",
+      createdAt:"2026-04-07", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o17", username:"مشاري الحارثي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Realme RMX3627", sec:dsec(null,null,true), appVersion:"2.4.0",
+      createdAt:"2026-04-07", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o18", username:"دلال السهلي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Xiaomi 22120RN86G", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2026-04-19", lastActivity:"اليوم", active:true, online:false, onlineSince:null, voice:false },
+    { id:"o19", username:"نايف العتيبي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A245F", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2026-04-19", lastActivity:"28 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o20", username:"سارة الزهراني", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Infinix X6525", sec:dsec(1,null,false), appVersion:"2.3.7",
+      createdAt:"2026-05-03", lastActivity:"28 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o21", username:"راكان الدوسري", status:"disabled", sub:sub("suspended","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Oppo CPH2477", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2026-05-03", lastActivity:"27 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o22", username:"أروى القرني", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A356E", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2026-05-21", lastActivity:"27 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o23", username:"سلطان الرويلي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,true), appVersion:null,
+      createdAt:"2026-05-21", lastActivity:"26 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o24", username:"جواهر الأحمدي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Honor RKY-LX1", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2026-06-08", lastActivity:"26 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o25", username:"عمر الشمراني", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Tecno KI5k", sec:dsec(1,null,true), appVersion:"2.3.7",
+      createdAt:"2026-06-08", lastActivity:"25 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o26", username:"لمى الصاعدي", status:"expired", sub:sub("expired","2026-06-01","2026-06-30"),
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,false), appVersion:"2.3.7",
+      createdAt:"2026-06-22", lastActivity:"30 يونيو 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o27", username:"فيصل الحربي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Samsung SM-A166P", sec:dsec(2,"trusted_environment",true), appVersion:"2.4.1",
+      createdAt:"2026-06-22", lastActivity:"24 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o28", username:"نجود المطرفي", status:"active", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Xiaomi 24069RA21G", sec:dsec(2,"strongbox",true), appVersion:"2.4.1",
+      createdAt:"2026-07-05", lastActivity:"24 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o29", username:"زياد العمري", status:"disabled", sub:sub("active","2026-08-01","2026-08-31"),
+      deviceBound:true, deviceModel:"Realme RMX3830", sec:dsec(null,null,false), appVersion:"2.4.0",
+      createdAt:"2026-07-05", lastActivity:"23 أغسطس 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o30", username:"شهد البلوي", status:"active", sub:null,
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,true), appVersion:null,
+      createdAt:"2026-08-11", lastActivity:null, active:false, online:false, onlineSince:null, voice:false },
+    { id:"o31", username:"طلال الثبيتي", status:"active", sub:sub("future","2026-09-01","2026-09-30"),
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,true), appVersion:null,
+      createdAt:"2026-08-25", lastActivity:null, active:false, online:false, onlineSince:null, voice:false },
+
+    /* ── محذوفون: لا يظهرون إلا في /operators/archive ── */
+    { id:"o32", username:"مازن الفيفي", status:"deleted", sub:sub("expired","2026-04-01","2026-04-30"),
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,false), appVersion:"2.3.7",
+      createdAt:"2025-12-18", lastActivity:"29 أبريل 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o33", username:"عهود الشريف", status:"deleted", sub:sub("expired","2026-05-01","2026-05-31"),
+      deviceBound:false, deviceModel:null, sec:dsec(1,null,false), appVersion:"2.3.7",
+      createdAt:"2026-01-09", lastActivity:"30 مايو 2026", active:false, online:false, onlineSince:null, voice:false },
+    { id:"o34", username:"وليد الزيدي", status:"deleted", sub:null,
+      deviceBound:false, deviceModel:null, sec:dsec(null,null,true), appVersion:null,
+      createdAt:"2026-02-14", lastActivity:null, active:false, online:false, onlineSince:null, voice:false },
+    { id:"o35", username:"بشاير النفيعي", status:"deleted", sub:sub("suspended","2026-07-01","2026-07-31"),
+      deviceBound:false, deviceModel:null, sec:dsec(2,"trusted_environment",true), appVersion:"2.4.0",
+      createdAt:"2026-03-11", lastActivity:"18 يوليو 2026", active:false, online:false, onlineSince:null, voice:false }
+  ];
+
+  /* ══ نصوص الحالات — منقولة حرفيًا من OperatorRow.tsx ══════════ */
+  function operatorStatus(s){
+    return s==="active"   ? ["مفعّل","success"]
+         : s==="disabled" ? ["موقوف","warning"]
+         : s==="expired"  ? ["منتهي","muted"]
+         :                  ["محذوف","danger"];
+  }
+  function subscriptionStatus(o){
+    var s = o.sub && o.sub.status;
+    if(!s) return ["بدون اشتراك","muted"];
+    if(s==="active")    return ["ساري","success"];
+    if(s==="future")    return ["يبدأ لاحقًا","info"];
+    if(s==="suspended") return ["معلّق","warning"];
+    return ["منتهي","muted"];
+  }
+  function deviceSecurityStatus(o){
+    var d = o.sec;
+    if(d && d.bindingVersion===2)
+      return d.securityLevel==="strongbox" ? ["موثّق StrongBox","success"] : ["موثّق TEE","success"];
+    if(d && d.bindingVersion===1) return ["ارتباط قديم","warning"];
+    if(d && d.attestationEligible) return ["مؤهل للربط الآمن","info"];
+    return ["غير مرتبط","muted"];
+  }
+
+  /* ══ الحالة — مرآة لمعاملات الرابط في OperatorsPage.tsx ══════ */
+  var PAGE_SIZE = 25;   /* ثابتة في الواجهة الحقيقية */
+  var state = {
+    archive:false,
+    q:"", status:"active", subscription:"", active:"",
+    sort:"username", direction:"asc",
+    page:1,
+    selection:{ mode:"ids", ids:[] },
+    anchor:null,
+    showCreate:false,
+    pending:null
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+  function esc(s){
+    return String(s).replace(/[&<>"']/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  /* ══ التصفية والفرز والترقيم — كما يفعلها الخادم ══════════════ */
+  function matches(o){
+    if(state.archive){ if(o.status!=="deleted") return false; }
+    else { if(o.status==="deleted") return false; }
+
+    if(state.q && o.username.indexOf(state.q)<0) return false;
+    if(!state.archive && state.status && o.status!==state.status) return false;
+    if(state.subscription){
+      var s = o.sub ? o.sub.status : "none";
+      if(state.subscription==="none" ? o.sub : s!==state.subscription) return false;
+    }
+    if(state.active==="true"  && !o.active) return false;
+    if(state.active==="false" &&  o.active) return false;
+    return true;
+  }
+  var STATUS_ORDER = { active:0, disabled:1, expired:2, deleted:3 };
+  function sorted(list){
+    var dir = state.direction==="desc" ? -1 : 1, key = state.sort;
+    return list.slice().sort(function(a,b){
+      var r;
+      if(key==="status")         r = STATUS_ORDER[a.status]-STATUS_ORDER[b.status];
+      else if(key==="createdAt") r = a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0;
+      else                       r = a.username.localeCompare(b.username,"ar");
+      if(r===0) r = a.id < b.id ? -1 : 1;
+      return r*dir;
+    });
+  }
+  function results(){ return sorted(OPERATORS.filter(matches)); }
+
+  /* ══ التحديد — منقول من lib/selection.ts ═════════════════════ */
+  function isSelected(id){
+    return state.selection.mode==="ids"
+      ? state.selection.ids.indexOf(id)>=0
+      : (state.selection.excludedIds||[]).indexOf(id)<0;
+  }
+  function selectionCount(total){
+    return state.selection.mode==="ids"
+      ? state.selection.ids.length
+      : Math.max(0, total-((state.selection.excludedIds||[]).length));
+  }
+  function toggleSelection(id, checked){
+    var s = state.selection, i;
+    if(s.mode==="ids"){
+      var ids = s.ids.slice(); i = ids.indexOf(id);
+      if(checked){ if(i<0) ids.push(id); } else if(i>=0) ids.splice(i,1);
+      state.selection = { mode:"ids", ids:ids };
+      return;
+    }
+    var ex = (s.excludedIds||[]).slice(); i = ex.indexOf(id);
+    if(checked){ if(i>=0) ex.splice(i,1); } else if(i<0) ex.push(id);
+    state.selection = { mode:"filter", filter:s.filter, excludedIds:ex };
+  }
+  function toggleOrdered(id, checked, extend, orderedIds){
+    if(!extend || !state.anchor || state.selection.mode!=="ids"){
+      toggleSelection(id, checked); state.anchor = id; return;
+    }
+    var a = orderedIds.indexOf(state.anchor), b = orderedIds.indexOf(id);
+    if(a<0 || b<0){ toggleSelection(id, checked); state.anchor = id; return; }
+    var from = Math.min(a,b), to = Math.max(a,b), k;
+    for(k=from;k<=to;k++) toggleSelection(orderedIds[k], checked);
+    state.anchor = id;
+  }
+  function currentFilter(){
+    return { q:state.q||undefined, status:state.archive?"deleted":(state.status||undefined),
+             subscription:state.subscription||undefined,
+             active:state.active===""?undefined:state.active==="true",
+             includeDeleted:state.archive||undefined };
+  }
+  function clearSelection(){ state.selection = { mode:"ids", ids:[] }; state.anchor = null; }
+
+  /* ══ رسم الصفوف ═══════════════════════════════════════════════ */
+  function chip(label, tone){
+    return '<span class="chip t-'+tone+'"><span class="cd" aria-hidden="true"></span>'+
+           '<span class="tx">'+esc(label)+'</span></span>';
+  }
+  /* رأس عمود قابل للفرز.
+     aria-sort خاصية الـ columnheader لا خاصية الزرّ — وضعها على <button>
+     يجعلها بلا معنى لقارئ الشاشة. الزرّ يحمل اسمًا يصرّح بالفعل والاتجاه
+     القادم، والسهم أيقونة SVG مضمّنة لا محرف. */
+  function headCell(cls, label, key){
+    if(!key) return '<div class="'+cls+'" role="columnheader">'+esc(label)+'</div>';
+    var on = state.sort===key;
+    var sortState = on ? (state.direction==="asc" ? "ascending" : "descending") : "none";
+    var next = on && state.direction==="asc" ? "تنازليًا" : "تصاعديًا";
+    var caret = !on ? "" :
+      '<svg class="ar'+(state.direction==="desc"?" desc":"")+'" viewBox="0 0 12 12" '+
+      'aria-hidden="true" focusable="false"><path d="M2 8l4-4 4 4"/></svg>';
+    return '<div class="'+cls+'" role="columnheader" aria-sort="'+sortState+'">'+
+           '<button class="sortBtn" type="button" data-sort="'+key+'" '+
+           'aria-label="'+esc("ترتيب حسب "+label+" "+next)+'">'+
+           esc(label)+caret+'</button></div>';
+  }
+
+  function renderHead(){
+    return '<div class="row rowHead" role="row">'+
+      '<div class="cChk" role="columnheader"><span class="vh">التحديد</span></div>'+
+      headCell("cUser","اسم المستخدم","username")+
+      headCell("cStat","حالة المستخدم","status")+
+      headCell("cSub","الاشتراك")+
+      headCell("cDev","الجهاز")+
+      headCell("cVer","إصدار التطبيق")+
+      headCell("cLast","آخر نشاط")+
+      headCell("cOn","الاتصال")+
+      headCell("cAct","النشاط اليوم")+
+      headCell("cDo", state.archive ? "إجراء" : "")+
+    '</div>';
+  }
+
+  function renderRow(o){
+    var st = operatorStatus(o.status), sb = subscriptionStatus(o),
+        dv = deviceSecurityStatus(o),
+        last = o.lastActivity ? o.lastActivity : "لا يوجد نشاط",
+        presence = o.online ? "نشط الآن" : "غير متصل",
+        device = o.deviceBound ? (o.deviceModel || "مرتبط") : "غير مرتبط",
+        selected = !state.archive && isSelected(o.id);
+
+    var html = '<div class="row rowBody'+(selected?" sel":"")+'" data-id="'+o.id+'" role="row">';
+
+    /* عمود التحديد — محجوز دائمًا، وفارغ في الأرشيف */
+    html += '<div class="cChk cell" role="cell">'+
+      (state.archive ? "" :
+        '<input class="chk" type="checkbox" data-check="'+o.id+'" '+
+        (selected?"checked":"")+' aria-label="تحديد '+esc(o.username)+'">')+
+      '</div>';
+
+    html += '<div class="cUser cell" role="cell"><a href="operator-detail.html?id='+o.id+'">'+esc(o.username)+'</a></div>';
+    html += '<div class="cStat cell" role="cell"><span class="cLbl">الحالة</span>'+chip(st[0],st[1])+'</div>';
+    html += '<div class="cSub cell" role="cell"><span class="cLbl">الاشتراك</span>'+chip(sb[0],sb[1])+'</div>';
+    html += '<div class="cDev cell" role="cell"><span class="cLbl">الجهاز</span><span class="dv">'+esc(device)+'</span>'+chip(dv[0],dv[1])+'</div>';
+    html += '<div class="cVer cell" role="cell"><span class="cLbl">الإصدار</span>'+esc(o.appVersion||"غير معروف")+'</div>';
+    html += '<div class="cLast cell" role="cell"><span class="cLbl">آخر نشاط</span>'+esc(last)+'</div>';
+
+    html += '<div class="cOn cell" role="cell"><span class="cLbl">الاتصال</span>'+
+            chip(presence, o.online?"success":"muted")+
+            (o.onlineSince ? '<span class="cMini">وقت النشاط: '+esc(o.onlineSince)+'</span>' : "")+
+            (o.voice ? '<span class="cMini">جلسة صوتية نشطة</span>' : "")+
+            '</div>';
+
+    html += '<div class="cAct cell" role="cell"><span class="cLbl">النشاط</span>'+
+            chip(o.active?"نشط اليوم":"غير نشط اليوم", o.active?"success":"muted")+'</div>';
+
+    /* عمود الإجراء — محجوز دائمًا، وفارغ خارج الأرشيف */
+    html += '<div class="cDo cell" role="cell">'+
+      (state.archive
+        ? '<button class="btn sm" type="button" data-restore="'+o.id+'" '+
+          'aria-label="'+esc("استعادة المستخدم "+o.username)+'">استعادة</button>'
+        : "")+
+      '</div>';
+
+    return html+'</div>';
+  }
+
+  function renderTable(){
+    var all = results(), total = all.length;
+    var pages = Math.max(1, Math.ceil(total/PAGE_SIZE));
+    if(state.page > pages) state.page = pages;
+    var start = (state.page-1)*PAGE_SIZE;
+    var items = all.slice(start, start+PAGE_SIZE);
+    var host = $("tbl");
+
+    if(total===0){
+      /* البحث متاح في الأرشيف أيضًا (OperatorControls يخفي الفلاتر الثلاثة
+         فقط)، فبحثٌ بلا نتائج داخل الأرشيف كان يقول «الأرشيف فارغ» وهو
+         خطأ: الأرشيف قد يكون عامرًا والتصفية وحدها هي التي لم تُطابق. */
+      var anyFilter = state.archive
+        ? Boolean(state.q)
+        : Boolean(state.q || state.subscription || state.active || state.status);
+      var title, detail;
+      if(anyFilter){
+        title  = "لا توجد نتائج مطابقة";
+        detail = state.archive
+          ? "لا يطابق البحث الحالي أي مستخدم محذوف. امسح حقل البحث لعرض الأرشيف كاملًا."
+          : "أضف مستخدمًا جديدًا أو امسح عوامل التصفية الحالية.";
+      } else if(state.archive){
+        title  = "الأرشيف فارغ";
+        detail = "لم يُحذف أي مستخدم حتى الآن.";
+      } else {
+        title  = "لا يوجد مستخدمون بعد";
+        detail = "أضف مستخدمًا جديدًا للبدء.";
+      }
+      host.innerHTML = '<div class="empty" role="status"><b>'+esc(title)+'</b>'+esc(detail)+'</div>';
+    } else {
+      /* role="row" بلا جدولٍ حاوٍ لا معنى له. الغلاف يحمل role="table"
+         فتتكوّن الشجرة: table ← row ← columnheader/cell. الحالة الفارغة
+         تبقى خارج هذا الغلاف لأنها ليست صفًا. */
+      host.innerHTML =
+        '<div class="tblIn" role="table" aria-label="'+
+        (state.archive ? "المستخدمون المحذوفون" : "المستخدمون")+'" '+
+        'aria-rowcount="'+(total+1)+'">'+
+        renderHead()+items.map(renderRow).join("")+'</div>';
+    }
+    return { total:total, pages:pages, items:items };
+  }
+
+  /* ══ الترقيم — نفس منطق Pagination.tsx ════════════════════════ */
+  function pageTokens(current, count){
+    var i, out=[];
+    if(count<=5){ for(i=1;i<=count;i++) out.push(i); return out; }
+    if(current<=3) return [1,2,3,"e",count];
+    if(current>=count-2) return [1,"e",count-2,count-1,count];
+    return [1,"e",current-1,current,current+1,"e2",count];
+  }
+  var jumpErr = false;
+  /* شيفرون SVG لا محرف «‹ ›»: المحرف يتبع اتجاه النص فينقلب معناه.
+     في RTL «السابق» أوّل عنصر أي أقصى اليمين، فسهمه يشير يمينًا،
+     و«التالي» يشير يسارًا. */
+  function chev(dir){
+    return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+
+           '<path d="'+(dir==="prev"?"M9 5l7 7-7 7":"M15 5l-7 7 7 7")+'"/></svg>';
+  }
+  function renderPagination(total, pages){
+    var current = Math.min(Math.max(state.page,1), pages);
+    var html = '<div class="pgPages">'+
+      '<button class="pgB" type="button" data-page="'+(current-1)+'" aria-label="الصفحة السابقة" '+
+      (current<=1?"disabled":"")+'>'+chev("prev")+'</button>';
+    pageTokens(current,pages).forEach(function(t){
+      if(typeof t!=="number"){ html += '<span class="pgEll" aria-hidden="true">…</span>'; return; }
+      html += '<button class="pgB" type="button" data-page="'+t+'" '+
+              (t===current?'aria-current="page" disabled ':"")+
+              'aria-label="'+(t===current?("الصفحة الحالية، "+t):("الصفحة "+t))+'">'+t+'</button>';
+    });
+    html += '<button class="pgB" type="button" data-page="'+(current+1)+'" aria-label="الصفحة التالية" '+
+            (current>=pages?"disabled":"")+'>'+chev("next")+'</button></div>';
+
+    html += '<form class="pgJump" id="pgJumpForm">'+
+      '<label for="pgJumpInput">رقم الصفحة</label>'+
+      '<input id="pgJumpInput" inputmode="numeric" autocomplete="off" '+
+      (jumpErr?'aria-invalid="true" aria-describedby="pgJumpErr"':"")+'>'+
+      '<button class="pgB" type="submit" aria-label="انتقال إلى الصفحة">انتقال</button>'+
+      (jumpErr?'<span class="pgErr" id="pgJumpErr" role="alert">أدخل رقم صفحة من 1 إلى '+pages+'</span>':"")+
+      '</form>';
+
+    var from = total ? (current-1)*PAGE_SIZE+1 : 0;
+    var to   = Math.min(current*PAGE_SIZE, total);
+    html += '<span class="pgTot">عرض <b>'+from+'–'+to+'</b> من <b>'+fmt(total)+'</b> سجلاً · '+
+            'حجم الصفحة <b>'+PAGE_SIZE+'</b></span>';
+
+    $("pg").innerHTML = html;
+    $("pg").style.display = total ? "flex" : "none";
+  }
+
+  /* ══ شريط التحديد ═════════════════════════════════════════════ */
+  function renderBulk(total){
+    var bulk = $("bulk");
+    if(state.archive){ bulk.classList.remove("on"); return; }
+    bulk.classList.add("on");
+    var n = selectionCount(total);
+    $("bulkCount").textContent = n
+      ? (state.selection.mode==="filter"
+          ? "تم تحديد كل النتائج المطابقة — "+fmt(n)+" مستخدم"
+          : "تم تحديد "+fmt(n)+" مستخدم")
+      : "لم يتم تحديد مستخدمين";
+    $("bulkAll").textContent = n===total && total>0 ? "إلغاء تحديد الكل" : "تحديد كل النتائج ("+fmt(total)+")";
+    $("bulkAll").disabled = total===0;
+    $("bulkNone").hidden = n===0;
+    $("bulkStatus").disabled = !n;
+    $("bulkDevice").disabled = !n;
+    $("bulkRemove").disabled = !n;
+    var datesValid = /^\d{4}-\d{2}-\d{2}$/.test($("subStart").value) && $("subEnd").value > $("subStart").value;
+    $("subStartBtn").disabled = !n || !datesValid;
+    $("subSuspendBtn").disabled = !n;
+  }
+
+  /* ══ الرسم الكامل ═════════════════════════════════════════════ */
+  function render(){
+    /* الوضع: قائمة أم أرشيف */
+    $("pageTitle").textContent = state.archive ? "أرشيف المستخدمين" : "المستخدمون";
+    $("pageRoute").textContent = state.archive
+      ? "/operators/archive"
+      : "/operators?" + [
+          "status="+state.status, state.q?("q="+state.q):"",
+          state.subscription?("subscription="+state.subscription):"",
+          state.active!==""?("active="+state.active):"",
+          "sort="+state.sort, "direction="+state.direction,
+          "page="+state.page
+        ].filter(Boolean).join("&");
+    $("backBtn").hidden = !state.archive;
+    $("fStatusWrap").hidden = state.archive;
+    $("fSubWrap").hidden = state.archive;
+    $("fActiveWrap").hidden = state.archive;
+    $("createBtn").hidden = state.archive;
+    $("clearBtn").hidden = state.archive;
+    if(state.archive && state.showCreate){ state.showCreate=false; }
+    $("createForm").hidden = !state.showCreate;
+    $("createBtn").setAttribute("aria-expanded", String(state.showCreate));
+    [].forEach.call(document.querySelectorAll("#viewSeg button"),function(b){
+      b.setAttribute("aria-pressed", String((b.dataset.v==="archive")===state.archive));
+    });
+
+    var out = renderTable();
+    renderPagination(out.total, out.pages);
+    renderBulk(out.total);
+
+    /* الأرقام الأربعة تُحسب من نفس المصفوفة في كل رسم.
+       تركها ثابتة في الـ markup كان يجعلها تكذب بعد أول حذف أو تعليق اشتراك:
+       «اشتراكات سارية 26» تبقى 26 بينما القائمة تحتها تغيّرت. */
+    var live = OPERATORS.filter(function(o){ return o.status!=="deleted"; });
+    var subs   = live.filter(function(o){ return o.sub && o.sub.status==="active"; }).length;
+    var actives= live.filter(function(o){ return o.active; }).length;
+    var onlines= live.filter(function(o){ return o.online; }).length;
+    var voices = live.filter(function(o){ return o.online && o.voice; }).length;
+
+    $("figTotal").textContent   = fmt(live.length);
+    $("figFiltered").textContent= "النتائج المطابقة: "+fmt(out.total);
+    $("figSubs").textContent    = fmt(subs);
+    $("figSubsOf").textContent  = "من "+fmt(live.length)+" مستخدمًا";
+    $("figActive").textContent  = fmt(actives);
+    $("figOnline").textContent  = fmt(onlines);
+    $("figVoice").textContent   = fmt(voices)+" جلسات صوتية";
+  }
+
+  /* ══ الإشعار ══════════════════════════════════════════════════ */
+  function notify(message, tone){
+    var n = $("notice");
+    n.hidden = false;
+    n.className = "notice "+tone;
+    $("noticeText").textContent = message;
+  }
+  $("noticeClose").addEventListener("click", function(){ $("notice").hidden = true; });
+
+  /* ══ حوار التأكيد — نصوصه حرفية من OperatorsPage.tsx ═════════ */
+  function actionText(action){
+    if(state.archive && action.kind==="status" && action.status==="active")
+      return ["استعادة المستخدم","سيُعاد المستخدم إلى قائمة المستخدمين المفعّلين."];
+    if(action.kind==="reset-device")
+      return ["إعادة ربط الجهاز",
+        "سيُلغى الارتباط الدائم الحالي وتُبطل جميع الجلسات وتحديات التحقق النشطة. "+
+        "سيحتاج المستخدم إلى تسجيل الدخول وربط جهاز موثّق من جديد."];
+    if(action.kind==="remove")
+      return ["حذف المستخدمين","سيُمنع الدخول مع الاحتفاظ بكامل سجل الفحص السابق."];
+    var label = action.status==="active" ? "تفعيل" : action.status==="disabled" ? "إيقاف" : "تغيير حالة";
+    return [label+" المستخدمين","ستتغير حالة الحساب فقط، بينما تبقى حالة الاشتراك مستقلة."];
+  }
+
+  /* التطبيق الحقيقي يمرّر التاريخ عبر formatDateOnly قبل عرضه.
+     عرض «2026-09-29» خامًا داخل جملة عربية كان تسريبًا لشكل الـ API. */
+  var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+                "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  function formatDateOnly(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||"");
+    if(!m) return iso||"";
+    return String(+m[3])+" "+MONTHS[+m[2]-1]+" "+m[1];
+  }
+
+  function openDialog(pending){
+    state.pending = pending;
+    var total = results().length, count = selectionCount(total);
+    var title, body, danger=false, ok="تأكيد الإجراء";
+
+    if(pending==="start-subscription"){
+      title = "بدء اشتراك شهري"; ok = "بدء الاشتراك";
+      body = "سيبدأ الاشتراك في "+formatDateOnly($("subStart").value)+
+             " وينتهي في "+formatDateOnly($("subEnd").value)+
+             ". سيتأثر "+fmt(count)+" مستخدم.";
+    } else if(pending==="suspend-subscription"){
+      title = "تعليق الاشتراك"; ok = "تعليق الاشتراك"; danger = true;
+      body = "سيُمنع الدخول فورًا مع الحفاظ على تاريخ النهاية الحالي. سيتأثر "+fmt(count)+" مستخدم.";
+    } else {
+      var t = actionText(pending);
+      title = t[0];
+      body  = t[1]+" سيتأثر "+fmt(count)+" مستخدم.";
+      danger = pending.kind==="remove";
+      ok = pending.kind==="remove" ? "حذف المستخدمين"
+         : (state.archive && pending.kind==="status" && pending.status==="active") ? "استعادة المستخدم"
+         : "تأكيد الإجراء";
+    }
+
+    $("dlgTitle").textContent = title;
+    $("dlgBody").textContent  = body;
+    var okBtn = $("dlgOk");
+    okBtn.textContent = ok;
+    okBtn.className = danger ? "btn danger" : "btn primary";
+
+    var scrim = $("scrim");
+    lastFocus = document.activeElement;
+    scrim.classList.add("on");
+    /* الحوار مطلق داخل الجسم: يوضع عند موضع التمرير الحالي بدل position:fixed */
+    $("dlg").style.insetBlockStart = Math.round(window.scrollY + Math.min(120, innerHeight*0.16))+"px";
+    okBtn.focus();
+  }
+  /* aria-modal لا يحبس التركيز بنفسه: بدونه يخرج Tab إلى الصفحة تحت الغطاء
+     فيبقى المستخدم يتنقّل في واجهة يظنّها محجوبة. */
+  var lastFocus = null;
+  function closeDialog(){
+    state.pending = null;
+    $("scrim").classList.remove("on");
+    if(lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    lastFocus = null;
+  }
+  $("dlg").addEventListener("keydown", function(e){
+    if(e.key!=="Tab") return;
+    var f = this.querySelectorAll("button:not([disabled])");
+    if(!f.length) return;
+    var first = f[0], last = f[f.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  });
+
+  /* ══ تنفيذ الإجراء على الحالة المحلية ════════════════════════ */
+  function affected(){
+    var all = results();
+    if(state.selection.mode==="ids"){
+      var set = {}; state.selection.ids.forEach(function(i){ set[i]=1; });
+      return all.filter(function(o){ return set[o.id]; });
+    }
+    var ex = state.selection.excludedIds||[];
+    return all.filter(function(o){ return ex.indexOf(o.id)<0; });
+  }
+
+  function runAction(){
+    var pending = state.pending;
+    if(!pending) return;
+    var list = affected(), n = list.length;
+
+    if(pending==="start-subscription"){
+      var s = $("subStart").value, e = $("subEnd").value;
+      list.forEach(function(o){ o.sub = { status:"active", startDate:s, endDate:e }; });
+      notify("تم تحديث اشتراك "+fmt(n)+" مستخدم بنجاح.","success");
+    } else if(pending==="suspend-subscription"){
+      list.forEach(function(o){ if(o.sub) o.sub.status = "suspended"; });
+      notify("تم تحديث اشتراك "+fmt(n)+" مستخدم بنجاح.","success");
+    } else if(pending.kind==="reset-device"){
+      list.forEach(function(o){
+        o.deviceBound = false; o.deviceModel = null;
+        o.sec = { bindingVersion:null, securityLevel:null, attestationEligible:o.sec.attestationEligible };
+        o.online = false; o.onlineSince = null; o.voice = false;
+      });
+      notify("تم تعديل "+fmt(n)+" مستخدم بنجاح.","success");
+    } else if(pending.kind==="remove"){
+      list.forEach(function(o){ o.status = "deleted"; o.online=false; o.onlineSince=null; o.voice=false; });
+      notify("تم حذف "+fmt(n)+" مستخدم بنجاح.","success");
+    } else {
+      var wasArchive = state.archive;
+      list.forEach(function(o){ o.status = pending.status; });
+      notify(wasArchive && pending.status==="active"
+        ? "تم استعادة "+fmt(n)+" مستخدم بنجاح."
+        : "تم تعديل "+fmt(n)+" مستخدم بنجاح.","success");
+    }
+
+    clearSelection();
+    closeDialog();
+    render();
+  }
+  $("dlgOk").addEventListener("click", runAction);
+  $("dlgCancel").addEventListener("click", function(){ closeDialog(); });
+  $("scrim").addEventListener("click", function(e){ if(e.target===this) closeDialog(); });
+  addEventListener("keydown", function(e){
+    if(e.key==="Escape" && $("scrim").classList.contains("on")) closeDialog();
+  });
+
+  /* ══ التفاعلات ════════════════════════════════════════════════ */
+  /* 1) البحث والتصفية — يعيدان البناء من الحالة ويصفّران الصفحة والتحديد */
+  function updateParam(name, value){
+    if(state[name]===value) return;
+    state[name] = value;
+    if(name!=="page") state.page = 1;
+    clearSelection();
+    render();
+  }
+  var searchTimer = 0;
+  $("fq").addEventListener("input", function(){
+    var v = this.value.trim();
+    clearTimeout(searchTimer);
+    /* نفس تأخير 350ms في OperatorControls.tsx */
+    searchTimer = setTimeout(function(){ updateParam("q", v); }, 350);
+  });
+  $("fStatus").addEventListener("change", function(){ updateParam("status", this.value); });
+  $("fSub").addEventListener("change",    function(){ updateParam("subscription", this.value); });
+  $("fActive").addEventListener("change", function(){ updateParam("active", this.value); });
+  $("clearBtn").addEventListener("click", function(){
+    state.q=""; state.status="active"; state.subscription=""; state.active="";
+    state.page=1; clearSelection();
+    $("fq").value=""; $("fStatus").value="active"; $("fSub").value=""; $("fActive").value="";
+    render();
+  });
+
+  /* 2) تبديل الوضع: /operators ↔ /operators/archive */
+  function setArchive(on){
+    if(state.archive===on) return;
+    state.archive = on;
+    state.page = 1; clearSelection();
+    /* المسار الحقيقي يفرض status=deleted و includeDeleted=true في الأرشيف */
+    render();
+  }
+  $("viewSeg").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    setArchive(b.dataset.v==="archive");
+  });
+  $("backBtn").addEventListener("click", function(){
+    setArchive(false);
+    state.status = "active"; $("fStatus").value = "active";
+    render();
+  });
+
+  /* 3) الترقيم — خادمي في التطبيق، من الحالة هنا */
+  $("pg").addEventListener("click", function(e){
+    var b = e.target.closest("[data-page]"); if(!b || b.disabled) return;
+    jumpErr = false;
+    updateParam("page", Number(b.dataset.page));
+  });
+  $("pg").addEventListener("submit", function(e){
+    if(e.target.id!=="pgJumpForm") return;
+    e.preventDefault();
+    var pages = Math.max(1, Math.ceil(results().length/PAGE_SIZE));
+    var raw = ($("pgJumpInput").value||"").trim();
+    var target = /^[0-9]+$/.test(raw) ? Number(raw) : NaN;
+    if(!(target>=1 && target<=pages)){ jumpErr = true; render(); $("pgJumpInput").focus(); return; }
+    jumpErr = false;
+    updateParam("page", target);
+    var el = $("pgJumpInput"); if(el) el.focus();
+  });
+
+  /* 4) الفرز من ترويسة الجدول */
+  $("tbl").addEventListener("click", function(e){
+    var s = e.target.closest("[data-sort]");
+    if(s){
+      var key = s.dataset.sort;
+      if(state.sort===key) state.direction = state.direction==="asc" ? "desc" : "asc";
+      else { state.sort = key; state.direction = "asc"; }
+      state.page = 1; clearSelection(); render();
+      return;
+    }
+    var r = e.target.closest("[data-restore]");
+    if(r){
+      state.selection = { mode:"ids", ids:[r.dataset.restore] };
+      openDialog({ kind:"status", status:"active" });
+    }
+  });
+
+  /* 5) التحديد — مفرد ومدى بـ Shift وكل النتائج */
+  $("tbl").addEventListener("click", function(e){
+    var c = e.target.closest("[data-check]"); if(!c) return;
+    var ordered = results().slice((state.page-1)*PAGE_SIZE, state.page*PAGE_SIZE)
+                           .map(function(o){ return o.id; });
+    toggleOrdered(c.dataset.check, c.checked, e.shiftKey, ordered);
+    render();
+  });
+  $("bulkAll").addEventListener("click", function(){
+    var total = results().length;
+    state.selection = selectionCount(total)===total
+      ? { mode:"ids", ids:[] }
+      : { mode:"filter", filter:currentFilter(), excludedIds:[] };
+    state.anchor = null;
+    render();
+  });
+  $("bulkNone").addEventListener("click", function(){ clearSelection(); render(); });
+
+  /* 6) الإجراءات الجماعية — تفتح الحوار (خطوة ثانية) */
+  $("bulkStatus").addEventListener("change", function(){
+    if(!this.value) return;
+    openDialog({ kind:"status", status:this.value });
+    this.value = "";
+  });
+  $("bulkDevice").addEventListener("click", function(){ openDialog({ kind:"reset-device" }); });
+  $("bulkRemove").addEventListener("click", function(){ openDialog({ kind:"remove" }); });
+  $("subStartBtn").addEventListener("click", function(){ openDialog("start-subscription"); });
+  $("subSuspendBtn").addEventListener("click", function(){ openDialog("suspend-subscription"); });
+
+  /* نهاية الاشتراك تتبع البداية: نهاية الشهر التقويمي — calendarMonthEnd */
+  function calendarMonthEnd(startDate){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
+    if(!m) return "";
+    var y = +m[1], mo = +m[2], d = +m[3];
+    var ty = y + Math.floor(mo/12), tm = mo % 12;
+    var lastDay = new Date(Date.UTC(ty, tm+1, 0)).getUTCDate();
+    return [String(ty).padStart(4,"0"), String(tm+1).padStart(2,"0"),
+            String(Math.min(d,lastDay)).padStart(2,"0")].join("-");
+  }
+  $("subStart").addEventListener("change", function(){
+    $("subEnd").value = calendarMonthEnd(this.value);
+    render();
+  });
+  $("subEnd").addEventListener("change", function(){ render(); });
+
+  /* 7) إنشاء مستخدم — POST /v1/admin/operators */
+  $("createBtn").addEventListener("click", function(){
+    state.showCreate = !state.showCreate;
+    render();
+    if(state.showCreate) $("newName").focus();
+  });
+  $("createCancel").addEventListener("click", function(){
+    state.showCreate = false; $("newName").value=""; $("newPass").value=""; render();
+  });
+  $("createForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = $("newName").value.trim(), pass = $("newPass").value;
+    if(!name){ notify("اسم المستخدم مطلوب.","danger"); return; }
+    if(pass.length<12){ notify("كلمة المرور الأولية يجب ألا تقل عن 12 خانة.","danger"); return; }
+    if(OPERATORS.some(function(o){ return o.username===name; })){
+      notify("اسم المستخدم مستخدم بالفعل.","danger"); return;
+    }
+    OPERATORS.push({
+      id:"n"+(OPERATORS.length+1), username:name, status:"active", sub:null,
+      deviceBound:false, deviceModel:null,
+      sec:{ bindingVersion:null, securityLevel:null, attestationEligible:null },
+      appVersion:null, createdAt:TODAY, lastActivity:null,
+      active:false, online:false, onlineSince:null, voice:false
+    });
+    state.showCreate = false; $("newName").value=""; $("newPass").value="";
+    notify("تم إنشاء المستخدم بنجاح.","success");
+    render();
+  });
+
+  /* مفتاح مصادر البيانات */
+  $("srcTgl").addEventListener("click", function(){
+    var on = this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed", String(on));
+    document.documentElement.setAttribute("data-src", on?"1":"0");
+  });
+
+  /* ══ العدّادات — القيمة الحقيقية مكتوبة في الـ markup أصلاً ══ */
+  function countTo(el, target){
+    if(document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches){
+      el.textContent = fmt(target); return;
+    }
+    var t0 = performance.now(), dur = 900;
+    function step(now){
+      var p = Math.min((now-t0)/dur,1), e = 1-Math.pow(1-p,3);
+      el.textContent = fmt(Math.round(target*e));
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  render();
+  [].forEach.call(document.querySelectorAll("[data-count]"), function(el){
+    countTo(el, +el.dataset.count);
+  });
+})();
+</script>
+</body>
+</html>

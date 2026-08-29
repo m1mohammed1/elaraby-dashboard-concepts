@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-depth="all">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تفاصيل مشغّل — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   تفاصيل مشغّل — المسار /operators/:id
+   هذه الشاشة الوحيدة في النظام كله التي تقبل مدى تاريخين حرًّا
+   (from/to) بدل يوم واحد، فكل تقرير أسبوعي أو شهري يُنتَج من هنا.
+   المشهد والمادة والشريط والصف منقولة من gallery/overview.html.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c;
+  /* --ink-4 مرفوع من #5f6b65: القيمة القديمة تعطي 3.25:1 فقط فوق اللوحة
+     المركّبة (~#151d19) وهي تحمل نصًّا حقيقيًا (سطور «مصادر البيانات»،
+     عدّاد الصفحات، معرّف المشغّل، التذييل). #7a867f يعطي 4.76:1. */
+  --ink-4:#7a867f;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --unread:#e8b055;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  --far-a:.050;  --far-ink:1;
+  --mid-a:.058;  --mid-ink:1;
+  --near-a:.080; --near-ink:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-block-size:100%}
+body{
+  position:relative;
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+a{color:inherit}
+
+/* ── المشهد ───────────────────────────────────────── */
+/* مطلقة لا ثابتة — position:fixed يُركَّب في طبقة منفصلة لا يُعاد رسمها
+   بشكل موثوق مع التمرير، فيبدو أسفل الصفحة أفتح حتى أول إعادة رسم. */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── الشريط العلوي ────────────────────────────────── */
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.barIn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  inline-size:100%;max-inline-size:1560px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+.brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+.barSep{width:1px;height:22px;background:var(--line)}
+.barGrow{flex:1}
+
+/* التنقّل — روابط الصفحات السبع، النشط بخلفية .10 */
+.nav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.nav a{font-size:12.5px;font-weight:500;color:var(--ink-3);text-decoration:none;
+  padding:6px 11px;border-radius:8px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center}
+.tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+
+.who{display:flex;align-items:center;gap:9px;font-size:13px}
+.who .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  font-size:12px;font-weight:600}
+.who .rl{color:var(--ink-3);font-size:11.5px}
+
+/* ── المسرح والمادة ──────────────────────────────── */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+/* بلا backdrop-filter وبلا حركة على الزجاج — الخلفية وحدها تتغيّر بالعمق. */
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.far{opacity:var(--far-ink)}
+.mid .pane{background:rgba(255,255,255,var(--mid-a))}
+.mid{opacity:var(--mid-ink)}
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near{opacity:var(--near-ink)}
+
+/* ── العودة والعنوان ─────────────────────────────── */
+.back{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-3);
+  text-decoration:none;padding:4px 2px;border-radius:7px;
+  transition:color .16s var(--ease)}
+.back:hover{color:var(--ink)}
+.back svg{display:block;flex:none}
+.pageHead{margin-block:10px 18px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.pageHead h1{font-size:23px;font-weight:600;line-height:1.4}
+.pageHead .chips{display:flex;gap:7px;flex-wrap:wrap;padding-block-end:5px}
+.pageHead p{inline-size:100%;font-size:12.5px;color:var(--ink-3);margin-block-start:-2px}
+.chip{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7;white-space:nowrap}
+.cSuccess{color:var(--clean)} .cDanger{color:var(--wanted)}
+.cWarning{color:var(--unread)} .cInfo{color:var(--accent)} .cMuted{color:var(--ink-4)}
+
+/* ── الشبكة ──────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;gap:18px;align-items:start}
+@media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
+@media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
+.col{display:grid;gap:18px;align-content:start;min-inline-size:0}
+
+.paneHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:14px 18px 0}
+.paneTitle{font-size:14.5px;font-weight:600}
+.paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
+
+/* ── مدى التقرير — قلب الشاشة ────────────────────── */
+.rangeSec{position:relative;z-index:30}
+.rangeBody{padding:14px 18px 16px;display:grid;gap:13px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);flex-wrap:wrap}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.seg.segSm button{padding:4px 10px;font-size:11.5px}
+.segLbl{font-size:11.5px;color:var(--ink-4);margin-inline-end:8px}
+
+.dates{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.field{display:grid;gap:5px;font-size:11.5px;color:var(--ink-3)}
+.input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  color:var(--ink);border-radius:9px;padding:7px 11px;font-size:13px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  color-scheme:dark;min-inline-size:168px;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.input:hover{border-color:rgba(255,255,255,.2)}
+.input[aria-invalid="true"]{border-color:rgba(255,107,107,.6)}
+.swap{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  color:var(--ink-2);border-radius:9px;padding:7px 12px;font-size:12px;cursor:pointer;
+  transition:background .16s var(--ease),color .16s var(--ease)}
+.swap:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.rangeMeta{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:baseline;
+  font-size:12px;color:var(--ink-3);padding-block-start:2px;
+  border-block-start:1px solid var(--line-2)}
+.rangeMeta b{color:var(--ink);font-weight:600;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.rangeMeta .k{color:var(--ink-4)}
+.warn{display:none;gap:9px;align-items:flex-start;font-size:12px;line-height:1.75;
+  padding:9px 12px;border-radius:11px;color:var(--ink-2);
+  background:rgba(232,176,85,.08);border:1px solid rgba(232,176,85,.28)}
+.warn.on{display:flex}
+.warn b{color:var(--unread);font-weight:600}
+
+/* ── ملخّص العمل ─────────────────────────────────── */
+.ledger{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px 0}
+.fig{padding:15px 20px;border-inline-start:1px solid var(--line-2)}
+.fig:first-child{border-inline-start:0}
+.figL{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.figV{font-size:31px;font-weight:600;line-height:1.25;margin-block-start:3px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+.figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px}
+.fig.hot .figV{color:var(--wanted)}
+.fig.calm .figV{color:var(--clean)}
+.fig.small .figV{font-size:16px;font-weight:500;line-height:1.9;
+  direction:rtl;unicode-bidi:isolate}
+@media(max-width:900px){
+  .ledger{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(2n+1){border-inline-start:0}
+}
+
+/* ── الرسم اليومي ────────────────────────────────── */
+.chartBody{padding:10px 14px 6px}
+svg.dayc{display:block;inline-size:100%;block-size:186px}
+svg.dayc text{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:9px;fill:var(--ink-3)}
+svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
+.dCol .bar{transition:opacity .15s var(--ease)}
+.dCol .hit{fill:transparent}
+.dCol{cursor:pointer}
+.dCol:focus-visible{outline:none}
+.dCol:focus-visible .hit{fill:rgba(110,196,155,.16);stroke:rgba(110,196,155,.85);stroke-width:1}
+.dCol:hover .hit{fill:rgba(255,255,255,.05)}
+.dCol.sel .hit{fill:rgba(110,196,155,.14);stroke:rgba(110,196,155,.55);stroke-width:1}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:2px 18px 14px;font-size:11px;color:var(--ink-3)}
+.lgi{display:flex;align-items:center;gap:6px}
+.lgs{width:10px;height:10px;border-radius:3px;flex:none}
+
+/* ── المطلوبون في المدى ──────────────────────────── */
+/* أعمدة صريحة محجوزة — نفس قاعدة صف الجدول: لا flex إطلاقًا. */
+.wrow{display:grid;
+  grid-template-columns:112px 50px 118px minmax(0,1fr) 66px 98px;
+  align-items:center;gap:11px;padding:8px 18px;
+  border-block-end:1px solid var(--line-2);font-size:12.5px;
+  transition:background .14s var(--ease)}
+.wrow:hover{background:rgba(255,255,255,.045)}
+.wD{color:var(--ink-2);font-size:11.5px;
+  font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate}
+.wPage{border:1px solid var(--line);background:rgba(255,255,255,.04);
+  color:var(--ink-3);border-radius:8px;padding:3px 8px;font-size:10.5px;cursor:pointer;
+  white-space:nowrap;transition:background .15s var(--ease),color .15s var(--ease)}
+.wPage:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.wPage .n{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.wMore{padding:9px 18px 12px;font-size:11.5px;color:var(--ink-4)}
+@media(max-width:760px){
+  .wrow{grid-template-columns:minmax(0,1fr) 66px 98px;row-gap:6px}
+  .wrow .wD{grid-area:1/1/2/2}
+  .wrow .rT{grid-area:1/2/2/4;text-align:end}
+  .wrow .rP{grid-area:2/1/3/2}
+  /* لولا هذا السطر لورث ‎.rMeta‎ موضع صف السجل (‎2/1/3/5‎) أدناه فتراكبت
+     شارة «مطلوب» فوق اللوحة وزر الموقع وزر الصفحة تحت 760px. */
+  .wrow .rMeta{grid-area:3/1/4/4}
+  .wrow .locBtn{grid-area:2/2/3/3}
+  .wrow .wPage{grid-area:2/3/3/4}
+}
+
+/* ── إشعار مسح السجل ─────────────────────────────── */
+.clearNote{padding:13px 18px 15px;font-size:12.5px;color:var(--ink-2);line-height:1.85}
+.clearNote h2{font-size:13px;font-weight:600;color:var(--ink);margin-block-end:4px}
+.clearNote time{color:var(--ink);font-weight:500;
+  font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate}
+
+/* ── سجل الفحص ───────────────────────────────────── */
+.histTools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 18px 12px;border-block-end:1px solid var(--line-2)}
+.dayHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:11px 18px 6px;border-block-start:1px solid var(--line-2)}
+.work-groups > .work-day:first-child .dayHead{border-block-start:0}
+.dayHead h3{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.dayHead .dc{font-size:11px;color:var(--ink-4);
+  font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate}
+/* أعمدة ثابتة لا flex: عمود البيانات الوصفية (اسم المشغّل / شارة الإخفاء)
+   محجوز دائمًا حتى حين يكون فارغًا، وإلا تزحزح زر الموقع وشارة الحكم
+   بين صف وآخر. نفس عيب الشاشة المرجعية بالضبط. */
+.row{display:grid;
+  grid-template-columns:62px 118px 16px minmax(0,1fr) 66px 84px;
+  align-items:center;gap:11px;padding:9px 18px;
+  border-block-end:1px solid var(--line-2);font-size:12.5px;
+  transition:background .14s var(--ease)}
+.row:hover{background:rgba(255,255,255,.045)}
+.rT{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate}
+.rP{font-weight:600;direction:rtl;unicode-bidi:isolate;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.rSrc{color:var(--ink-4);display:grid;place-items:center}
+.rSrc svg{display:block}
+.rMeta{min-inline-size:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rBy{color:var(--ink-3);font-size:11px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.rBy.gone{color:var(--unread)}
+.hidBadge{font-size:10px;color:var(--unread);border:1px solid rgba(232,176,85,.4);
+  background:rgba(232,176,85,.07);border-radius:999px;padding:1px 8px;
+  line-height:1.8;white-space:nowrap}
+/* زر الموقع — منقول حرفيًا من WorkHistory.tsx (LocationAction) */
+.locBtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  font-size:11px;padding:3px 9px;border-radius:8px;text-decoration:none;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--ink-4);cursor:not-allowed;
+  transition:color .15s var(--ease),border-color .15s var(--ease),background .15s var(--ease)}
+.locBtn.available{color:var(--ink-2);cursor:pointer}
+.locBtn.available:hover{color:var(--ink);border-color:rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08)}
+.locBtn svg{display:block;flex:none}
+.locBtn[disabled]{opacity:.5}
+.rV{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap}
+.vw{color:var(--wanted)} .vs{color:var(--clean)}
+/* كل موضع هنا مقيّد بـ ‎.row‎ — الأصناف نفسها تُستعمل في ‎.wrow‎ بتخطيط آخر. */
+@media(max-width:760px){
+  .row{grid-template-columns:62px minmax(0,1fr) 66px 84px;row-gap:7px}
+  .row .rSrc{display:none}
+  .row .rT  {grid-area:1/1/2/2}
+  .row .rP  {grid-area:1/2/2/3}
+  .row .locBtn{grid-area:1/3/2/4}
+  .row .rV  {grid-area:1/4/2/5}
+  .row .rMeta{grid-area:2/1/3/5}
+}
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
+
+/* ترقيم الصفحات — نفس مكوّن Pagination.tsx */
+.pag{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 18px 14px;border-block-start:1px solid var(--line-2)}
+.pagPages{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pagBtn{min-inline-size:30px;block-size:30px;padding:0 8px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);
+  color:var(--ink-2);font-size:12px;cursor:pointer;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;
+  display:inline-grid;place-items:center;
+  transition:background .15s var(--ease),color .15s var(--ease)}
+.pagBtn:hover:not([disabled]){background:rgba(255,255,255,.1);color:var(--ink)}
+.pagBtn[disabled]{opacity:.35;cursor:default}
+.pagBtn[aria-current="page"]{background:rgba(255,255,255,.14);color:var(--ink);
+  border-color:rgba(255,255,255,.2);opacity:1;font-weight:600}
+.pagBtn svg{display:block}
+.pagEl{color:var(--ink-4);padding-inline:2px}
+.pagJump{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-3);
+  margin-inline-start:auto;flex-wrap:wrap}
+.pagJump input{inline-size:74px;padding:5px 9px;font-size:12px;border-radius:8px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;text-align:center}
+.pagJump input[aria-invalid="true"]{border-color:rgba(255,107,107,.6)}
+.pagJumpBtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  color:var(--ink-2);border-radius:8px;padding:5px 12px;font-size:11.5px;cursor:pointer;
+  transition:background .15s var(--ease)}
+.pagJumpBtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.pagErr{color:var(--wanted);font-size:11px;inline-size:100%}
+.pagTotal{font-size:11.5px;color:var(--ink-4)}
+/* كل مقطع رقمي يُبنى بـ JS داخل جملة عربية يلبس هذا الصنف.
+   «1–25»: الشرطة محايدة بين رقمين وفي فقرة RTL تأخذ اتجاه الفقرة فينقلب
+   المدى بصريًا إلى «25–1»؛ و«0.44%» تلتصق علامتها بالرقم فقط بعد العزل.
+   القاعدة عامة: أي رقم داخل نصّ مختلط يُعزل LTR. */
+.numi{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1}
+
+/* ── العمود الجانبي ──────────────────────────────── */
+/* يُرفع القسم كله لأن القائمة المنسدلة داخله؛ وإلا حبس سياق التكديس ترتيبها. */
+.idSec{position:relative;z-index:60}
+.pick{display:flex;align-items:center;gap:9px;inline-size:100%;text-align:start;
+  padding:12px 18px;background:transparent;border:0;cursor:pointer;
+  border-block-end:1px solid var(--line-2);
+  transition:background .16s var(--ease)}
+.pick:hover{background:rgba(255,255,255,.045)}
+.pick[aria-expanded="true"]{background:rgba(255,255,255,.06)}
+.pick .av3{inline-size:30px;block-size:30px;border-radius:50%;display:grid;place-items:center;
+  flex:none;font-size:13px;font-weight:600;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06)}
+.pick .pn{min-inline-size:0;flex:1}
+.pick .pn b{display:block;font-size:13.5px;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick .pn span{display:block;font-size:11px;color:var(--ink-4);
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+.pick .cv{color:var(--ink-3);flex:none}
+/* قائمة منسدلة: خلفية معتمة تمامًا و z-index عالٍ */
+.pickMenu{position:absolute;z-index:200;inset-inline:14px;inset-block-start:calc(100% - 4px);
+  border-radius:14px;overflow:hidden;background:#101b16;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 34px 70px -18px rgba(0,0,0,.9)}
+.pickMenu[hidden]{display:none}
+.pmHead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 14px;border-block-end:1px solid var(--line-2);font-size:12.5px;font-weight:600}
+/* أيقونة SVG مضمّنة لا محرف «✕» — لا خطوط أيقونات ولا إيموجي في الواجهة. */
+.pmClose{border:0;background:transparent;cursor:pointer;color:var(--ink-3);
+  line-height:1;padding:4px 6px;border-radius:6px;display:grid;place-items:center}
+.pmClose svg{display:block}
+.pmClose:hover{color:var(--ink);background:rgba(255,255,255,.08)}
+.pmList{max-block-size:320px;overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.16) transparent}
+.pmList::-webkit-scrollbar{width:7px}
+.pmList::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:99px}
+.pmItem{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;
+  inline-size:100%;text-align:start;padding:8px 14px;border:0;background:transparent;
+  cursor:pointer;font-size:12.5px;transition:background .14s var(--ease)}
+.pmItem:hover{background:rgba(255,255,255,.07)}
+.pmItem[aria-current="true"]{background:rgba(255,255,255,.1)}
+.pmItem .av2{inline-size:22px;block-size:22px;border-radius:50%;display:grid;place-items:center;
+  flex:none;font-size:10.5px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+.pmItem .nm{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmFoot{padding:9px 14px 11px;border-block-start:1px solid var(--line-2);
+  font-size:10.5px;color:var(--ink-4);line-height:1.7}
+.pmFoot b{color:var(--ink-3);font-weight:500;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+.dl{padding:6px 18px 14px;display:grid;gap:0}
+.dl > div{display:grid;grid-template-columns:minmax(0,118px) minmax(0,1fr);gap:10px;
+  align-items:baseline;padding:8px 0;border-block-end:1px solid var(--line-2)}
+.dl > div:last-child{border-block-end:0}
+.dl dt{font-size:11.5px;color:var(--ink-3)}
+.dl dd{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:7px;
+  flex-wrap:wrap;min-inline-size:0}
+.dl dd svg{color:var(--ink-3);flex:none}
+.dl dd .num{font-variant-numeric:tabular-nums;direction:rtl;unicode-bidi:isolate}
+
+/* تغيير كلمة المرور — تدفّق متعدّد الخطوات */
+.pw{padding:14px 18px 16px;display:grid;gap:11px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:500;cursor:pointer;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink-2);
+  transition:background .16s var(--ease),color .16s var(--ease)}
+.btn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.btn.primary{border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.14);color:var(--ink)}
+.btn.primary:hover{background:rgba(110,196,155,.22)}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn svg{display:block;flex:none}
+.pwForm{display:grid;gap:9px}
+.pwWrap{display:flex;gap:7px}
+.pwWrap .input{flex:1;min-inline-size:0}
+.reveal{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  color:var(--ink-3);border-radius:9px;padding:0 10px;cursor:pointer;font-size:11px}
+.reveal:hover{color:var(--ink)}
+.hintRow{font-size:11px;color:var(--ink-4);display:flex;justify-content:space-between;gap:10px}
+.hintRow .len{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.hintRow .ok{color:var(--clean)}
+/* خطوة التأكيد — إجراء لا رجعة فيه لا يُنفَّذ بضغطة واحدة */
+.pwConfirm{font-size:11.5px;line-height:1.85;border-radius:11px;padding:11px 13px;
+  color:var(--ink-2);background:rgba(232,176,85,.08);border:1px solid rgba(232,176,85,.3)}
+.pwConfirm[hidden]{display:none}
+.pwcT{display:block;color:var(--unread);font-size:12.5px;font-weight:600;margin-block-end:3px}
+.pwConfirm strong{color:var(--ink);font-weight:600}
+.pwcRow{display:flex;gap:8px;flex-wrap:wrap;margin-block-start:10px}
+.pwcRow .btn{font-size:12px;padding:7px 12px}
+.notice{font-size:11.5px;line-height:1.75;border-radius:10px;padding:8px 11px}
+.notice.success{color:var(--ink-2);background:rgba(61,220,151,.09);border:1px solid rgba(61,220,151,.3)}
+.notice.danger{color:var(--ink-2);background:rgba(255,107,107,.09);border:1px solid rgba(255,107,107,.32)}
+
+.ctx{padding:14px 18px 16px;font-size:12px;color:var(--ink-3);line-height:1.95}
+.ctx b{color:var(--ink);font-weight:600;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.ctx .r{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+
+/* ── مصادر البيانات ──────────────────────────────── */
+.src{display:none;font-size:10.5px;color:var(--ink-4);line-height:1.7;
+  padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.src .nw{color:var(--accent)}
+.src b{color:var(--ink-3);font-weight:500}
+:root[data-src="1"] .src{display:block}
+
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-4);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .bar{padding:12px 14px}
+  .figV{font-size:26px}
+  .input{min-inline-size:0;inline-size:100%}
+  .field{inline-size:100%}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="bar"><div class="barIn">
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · تفاصيل مشغّل</span></div>
+  <div class="barSep" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="أقسام لوحة الإدارة">
+    <a href="../gallery/overview.html">النظرة العامة</a>
+    <a href="operators.html">المستخدمون</a>
+    <a href="operator-detail.html" aria-current="page">تفاصيل مشغّل</a>
+    <a href="wanted-plates.html">قائمة المطلوبين</a>
+    <a href="admins.html">المشرفون</a>
+    <a href="versions.html">إصدارات التطبيق</a>
+    <a href="notifications.html">الإشعارات</a>
+  </nav>
+
+  <span class="barGrow"></span>
+
+  <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+    <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+  </button>
+
+  <div class="who">
+    <span class="av" aria-hidden="true">أ</span>
+    <span><span style="display:block">أحمد عماد</span><span class="rl">مدير النظام</span></span>
+  </div>
+</div></header>
+
+<main class="stage">
+
+  <a class="back" href="operators.html">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    العودة إلى المستخدمين
+  </a>
+
+  <div class="pageHead">
+    <h1 id="opTitle">خالد المطيري</h1>
+    <div class="chips" id="opChips"></div>
+    <p>تفاصيل الحساب والاشتراك وكامل سجل اللوحات التي فحصها المستخدم.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ═══ العمود الرئيسي ═══ -->
+    <div class="col">
+
+      <!-- ── مدى التقرير — الطبقة الأمامية ── -->
+      <section class="near rangeSec" aria-labelledby="rangeTitle">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle" id="rangeTitle">مدى التقرير</span>
+            <span class="paneNote">الشاشة الوحيدة التي تقبل مدى حرًّا — كل تقرير أسبوعي أو شهري يُنتج من هنا</span>
+          </div>
+          <div class="rangeBody">
+            <div class="presets">
+              <span class="segLbl">مدى جاهز</span>
+              <div class="seg segSm" role="group" aria-label="مدى جاهز" id="presetSeg">
+                <button type="button" data-p="d1"  aria-pressed="false">اليوم</button>
+                <button type="button" data-p="d7"  aria-pressed="true">آخر 7 أيام</button>
+                <button type="button" data-p="d30" aria-pressed="false">آخر 30 يومًا</button>
+                <button type="button" data-p="m0"  aria-pressed="false">هذا الشهر</button>
+                <button type="button" data-p="m1"  aria-pressed="false">الشهر الماضي</button>
+              </div>
+            </div>
+
+            <div class="dates">
+              <label class="field" for="fromInput">من تاريخ
+                <input class="input" id="fromInput" type="date" value="2026-08-23">
+              </label>
+              <label class="field" for="toInput">إلى تاريخ
+                <input class="input" id="toInput" type="date" value="2026-08-29">
+              </label>
+              <button class="swap" type="button" id="swapBtn">تبديل الطرفين</button>
+            </div>
+
+            <div class="warn" id="rangeWarn" role="status">
+              <span>
+                <b>مدى معكوس.</b>
+                <span id="rangeWarnText"></span>
+              </span>
+            </div>
+
+            <div class="rangeMeta">
+              <span><span class="k">طول المدى</span> <b id="rmDays">7</b> <span class="k">أيام</span></span>
+              <span><span class="k">من</span> <b id="rmFrom">2026-08-23</b></span>
+              <span><span class="k">إلى</span> <b id="rmTo">2026-08-29</b></span>
+              <span><span class="k">السجلات في المدى</span> <b id="rmTotal">8,918</b></span>
+            </div>
+          </div>
+          <div class="src">
+            <code>GET /v1/admin/operators/:id/work?from=&amp;to=&amp;page=&amp;pageSize=</code> —
+            هذا هو المسار الوحيد في النظام كله الذي يقبل طرفَي مدى؛ بقية التقارير تأخذ
+            <code>date</code> ليوم واحد.
+            الطلب الحالي: <code id="srcUrl"></code>.
+            <br>
+            الطرفان يُحوَّلان في <b>work-reporting.ts</b> إلى
+            <code>dateStart(from)</code> و <code>nextDateStart(to)</code>، أي أن
+            <code>to</code> <b>يوم شامل</b> والمقارنة في المستودع
+            <code>createdAt: {$gte: from, $lt: to}</code>.
+            <br>
+            <span class="nw">فجوة حقيقية:</span> بخلاف <code>wantedMatches</code> الذي يرمي
+            <code>INVALID_INPUT</code> عند <code>from &gt;= to</code>، لا يتحقّق
+            <code>operatorWork</code> من ترتيب الطرفين إطلاقًا — المدى المعكوس يعيد
+            <code>200</code> بنتيجة فارغة بلا أي رسالة. الحارس أعلاه <b>واجهة فقط</b>،
+            ويحتاج تحققًا مماثلاً في الخادم.
+            <br>
+            <span class="nw">يحتاج بناءً:</span> «المدى الجاهز» و«تبديل الطرفين» ليس لهما أثر
+            في الخادم — يُحسبان في المتصفّح ثم يُرسلان كتاريخين عاديين، تمامًا كما يفعل
+            <code>OperatorDetailPage.tsx</code> بـ <code>calendarDateOffset(to,-6)</code>.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ملخّص العمل ── -->
+      <section class="mid" aria-label="ملخّص العمل في المدى">
+        <div class="pane">
+          <!-- القيم الحقيقية للمدى الافتراضي (op-1042 · آخر 7 أيام) مكتوبة في
+               الـ markup، والعدّ التصاعدي يجري فوقها — التبويب المخفي يخنق
+               requestAnimationFrame فتبقى الأرقام صحيحة بلا حركة. -->
+          <div class="ledger">
+            <div class="fig">
+              <div class="figL">إجمالي الفحص</div>
+              <div class="figV" id="sumTotal" data-count="8918">8,918</div>
+              <div class="figM" id="sumPerDay">متوسط <span class="numi">1,274</span> في اليوم</div>
+            </div>
+            <div class="fig hot">
+              <div class="figL">مطلوب</div>
+              <div class="figV" id="sumWanted" data-count="39">39</div>
+              <div class="figM" id="sumRate">نسبة الإصابة <span class="numi">0.44%</span></div>
+            </div>
+            <div class="fig calm">
+              <div class="figL">غير مطلوبة</div>
+              <div class="figV" id="sumSafe" data-count="8879">8,879</div>
+              <div class="figM" id="sumSafePct"><span class="numi">99.56%</span> من الفحص</div>
+            </div>
+            <div class="fig small">
+              <div class="figL">آخر نشاط في المدى</div>
+              <div class="figV" id="sumLast">29 أغسطس 2026، 22:49</div>
+              <div class="figM">من <code style="font-size:10px">summary.lastActivity</code></div>
+            </div>
+          </div>
+          <div class="src">
+            الثلاثة الأولى من <code>summary</code> في نفس استجابة
+            <code>/operators/:id/work</code>: تجميعة <code>$group</code> على
+            <code>plate_check_records</code> بمرشّح المدى، مع
+            <code>$sum</code> شرطي لـ <code>result:'wanted'</code> و
+            <code>result:'safe'</code>، و<code>total</code> من
+            <code>countDocuments</code> على نفس المرشّح.
+            <b>«غير مطلوبة»</b> هي <code>summary.safe</code> — و<code>result</code>
+            محصور في <code>safe | wanted</code> فقط، فلا حالة ثالثة.
+            «آخر نشاط» من <code>$max: '$createdAt'</code> داخل المدى نفسه.
+            <br>
+            <span class="nw">قيد صامت:</span> المرشّح يحمل
+            <code>ownerAccountEpoch: operator.personalAccountEpoch</code> —
+            فحوصات ما قبل آخر تصفير للحساب لا تدخل في أي رقم هنا، ولا تشرح الواجهة ذلك للمشرف.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── الرسم اليومي — الطبقة الخلفية ── -->
+      <section class="far" aria-labelledby="chartTitle">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle" id="chartTitle">الفحص اليومي عبر المدى</span>
+            <span class="paneNote" id="chartNote">رسمان بمحور أيام مشترك — كل واحد بمقياسه الصحيح، بلا أي تكبير</span>
+          </div>
+          <div class="chartBody">
+            <svg class="dayc" id="chart" viewBox="0 0 1000 186" preserveAspectRatio="none" role="img"
+                 aria-label="الفحص لكل يوم، وتحته المركبات المطلوبة بنفس محور الأيام"></svg>
+          </div>
+          <div class="legend">
+            <span class="lgi"><span class="lgs" style="background:rgba(255,255,255,.5)"></span>إجمالي الفحص</span>
+            <span class="lgi"><span class="lgs" style="background:#ff6b6b"></span>مركبات مطلوبة</span>
+            <span class="lgi" style="color:var(--ink-4)">اضغط أي يوم لقصر المدى عليه</span>
+          </div>
+          <div class="src">
+            <span class="nw">يحتاج بناءً:</span> الاستجابة الحالية تعطي مجموع المدى فقط، لا
+            توزيعًا يوميًا. المطلوب تجميعة
+            <code>$group</code> بـ <code>$dateTrunc:{unit:'day', timezone}</code> على
+            <code>createdAt</code> مع <code>$sum</code> شرطي لـ <code>wanted</code> —
+            نفس نمط تجميعة الملخّص القائمة في
+            <code>work-report-mongo-repository.ts</code> بتغيير <code>_id</code> من
+            <code>null</code> إلى تاريخ مقتطع.
+            <br>
+            <span class="nw">تحذير أداء:</span> مدى شهر لمشغّل نشط يمسح عشرات الآلاف من
+            السجلات؛ يلزم فهرس مركّب <code>{operatorId:1, createdAt:1}</code> قبل الإطلاق.
+            <br>
+            الضغط على عمود يضبط <code>from</code> و<code>to</code> على اليوم نفسه — تصرّف واجهة
+            بحت يعيد استدعاء المسار ذاته.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── المطلوبون في المدى ── -->
+      <section class="mid" aria-labelledby="wantTitle">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle" id="wantTitle">المطلوبون في هذا المدى</span>
+            <span class="paneNote" id="wantNote">—</span>
+          </div>
+          <div id="wantList"></div>
+          <div class="src">
+            <span class="nw">يحتاج بناءً — لا وجود لهذه اللوحة اليوم:</span>
+            <code>/operators/:id/work</code> لا يقبل مُعامل <code>result</code>، ويرجع
+            صفحة من <b>كل</b> السجلات مرتّبة بالوقت. عند نسبة إصابة حقيقية قدرها
+            <code id="wantRate">—</code> قد يمرّ المشرف على عشرات الصفحات دون أن يرى إصابة
+            واحدة — وهي بالضبط ما جاء يبحث عنه.
+            الحل الأقل كلفة: <code>result=wanted</code> على نفس المسار (سطر في المرشّح).
+            البديل <code>/v1/admin/wanted-matches</code> موجود فعلاً ويحمل اسم الجهة، لكنه
+            يقبل <code>date</code> ليوم واحد فقط، فلا يخدم مدى.
+            <br>
+            «الصفحة N» أعلاه محسوبة من <code>skip/limit</code>:
+            <code>floor(index / 25) + 1</code> على نفس الترتيب
+            <code>createdAt: -1</code> — لا حاجة لمسار جديد لها.
+            <br>
+            <span class="nw">حقل ناقص هنا أيضًا:</span> <code>match.organization</code>
+            مُسقَط في تجميعة <code>operatorWork</code> لكن
+            <code>screeningView()</code> لا يمرّره، ولا يعرّفه
+            <code>ScreeningAdminView</code> — لذلك <b>اسم الجهة المطلوبة غير معروض هنا</b>
+            رغم أنه معروض في شاشة المطلوبين. لم نخترعه.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── مسح سجل المستخدم ── -->
+      <section class="mid" id="clearSec" aria-labelledby="clearTitle" hidden>
+        <div class="pane">
+          <div class="clearNote">
+            <h2 id="clearTitle">مسح سجل المستخدم</h2>
+            <p id="clearText"></p>
+          </div>
+          <div class="src">
+            <code>historyVisibility</code> في نفس الاستجابة، من مجموعة
+            <code>operator_history_visibility</code> بحقلَي
+            <code>lastClearedAt</code> و<code>clearedThrough</code>.
+            اللوحة تظهر فقط حين يكون الحقل غير <code>null</code>، تمامًا كما في
+            <code>OperatorDetailPage.tsx</code>.
+            السجلات نفسها <b>لا تُحذف</b> — تبقى ظاهرة للإدارة وتحمل شارة إخفاء في السطر.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── سجل الفحص ── -->
+      <section class="mid" aria-labelledby="histTitle">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle" id="histTitle">سجل الفحص</span>
+            <span class="paneNote" id="histNote">مجمَّع حسب اليوم · الأحدث أولًا</span>
+          </div>
+          <div class="histTools">
+            <button class="tgl" type="button" id="showOpTgl" aria-pressed="false">
+              <span class="tglBox" aria-hidden="true"></span><span>إظهار اسم المشغّل في الصفوف</span>
+            </button>
+            <span class="pagTotal" id="histRange">—</span>
+          </div>
+          <div id="hist"></div>
+          <nav class="pag" id="pag" aria-label="صفحات النتائج" dir="rtl"></nav>
+          <div class="src">
+            <code>items</code> في نفس الاستجابة: <code>find(filter)</code> مع
+            <code>sort({createdAt:-1})</code> ثم <code>skip</code> و<code>limit</code> —
+            الترقيم من الخادم، و<code>OperatorDetailPage.tsx</code> يرسل
+            <code>pageSize: 25</code> (الافتراضي في المسار <code>50</code> والسقف <code>100</code>).
+            التجميع حسب اليوم <b>واجهة فقط</b>: <code>WorkHistory.tsx</code> يبني
+            <code>Map</code> بمفتاح <code>instantDateKey(screenedAt, timeZone)</code> على
+            العناصر <b>المعادة في هذه الصفحة وحدها</b> — لذلك قد ينقسم اليوم الواحد بين صفحتين،
+            وهو سلوك المكوّن الحالي بالضبط.
+            <br>
+            حقول الصف: <code>createdAt</code> · <code>plate.letters</code> +
+            <code>plate.digits</code> · <code>location</code> · <code>result</code> ·
+            <code>operatorVisibility</code>.
+            <br>
+            <span class="nw">يحتاج بناءً — عمود المصدر:</span> <code>source</code> موجود فعلاً في
+            <code>plate_check_records</code> بقيمتين <code>manual | voice</code>، ومُسقَط في
+            <code>project</code> داخل <code>operatorWork</code>، لكن
+            <code>screeningView()</code> لا يمرّره إلى الاستجابة و<code>ScreeningRecord</code>
+            في الواجهة لا يعرّفه. إظهاره = سطر واحد في المستودع وحقل في نوعين.
+            <br>
+            <span class="nw">ملاحظة صدق:</span> «إظهار اسم المشغّل» هو الخاصية
+            <code>showOperator</code> في <code>WorkHistory.tsx</code>، وهي
+            <code>false</code> على هذا المسار. البديل <code>'حساب محذوف'</code> مكتوب في
+            <code>work-report-mongo-repository.ts</code>، لكنه <b>لا يمكن أن يظهر هنا</b>:
+            المسار يقرأ المشغّل أولًا ويرمي <code>NOT_FOUND</code> فيعرض العميل
+            «المستخدم غير موجود.»، ثم يمرّر اسمه لكل سجل. يظهر البديل في شاشات
+            <code>showOperator=true</code> فقط.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ العمود الجانبي ═══ -->
+    <div class="col">
+
+      <section class="mid idSec" aria-labelledby="idTitle">
+        <div class="pane">
+          <button class="pick" type="button" id="pickBtn" aria-expanded="false" aria-controls="pickMenu">
+            <span class="av3" id="pickAv" aria-hidden="true">خ</span>
+            <span class="pn"><b id="pickName">خالد المطيري</b><span id="pickId">op-1042</span></span>
+            <svg class="cv" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="pickMenu" id="pickMenu" role="dialog" aria-label="اختيار مشغّل" hidden>
+            <div class="pmHead"><span>الانتقال إلى مشغّل</span>
+              <button class="pmClose" type="button" id="pickClose" aria-label="إغلاق">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+            <div class="pmList" id="pickList"></div>
+            <div class="pmFoot">
+              <b>26</b> اشتراكًا ساريًا من <b>31</b> مشغّلاً — الانتقال هنا يعني تغيير
+              <code>:id</code> في نفس المسار.
+            </div>
+          </div>
+          <h2 id="idTitle" style="font-size:13px;font-weight:600;padding:12px 18px 0">بيانات المستخدم</h2>
+          <dl class="dl" id="detailList"></dl>
+          <div class="src">
+            <code>work.operator</code> في نفس الاستجابة — <code>operatorAdminResponse()</code>
+            فوق وثيقة <code>operators</code>.
+            التسميات منقولة حرفيًا من <code>OperatorRow.tsx</code>:
+            حالة المستخدم <code>مفعّل / موقوف / منتهي / محذوف</code>،
+            حالة الاشتراك <code>ساري / يبدأ لاحقًا / معلّق / منتهي / بدون اشتراك</code>،
+            أمان الارتباط <code>موثّق StrongBox / موثّق TEE / ارتباط قديم / مؤهل للربط الآمن / غير مرتبط</code>.
+            «حالة الاتصال» و«الجلسة الصوتية» من <code>operator_presence</code> و
+            <code>active_voice_sessions</code> — <b>لحظيتان فقط</b>، عليهما
+            <code>TTL</code> بدقيقتين ولا تتبعان المدى المختار إطلاقًا.
+            تاريخا الاشتراك من <code>subscription.startDate</code> و<code>endDate</code>
+            (مفتاحا تاريخ بلا وقت، تُعرض بـ <code>formatDateOnly</code>).
+            <br>
+            <span class="nw">فرق مقصود عن التطبيق:</span> التطبيق يعرض التواريخ بـ
+            <code>Intl 'ar-EG'</code> فتخرج بأرقام هندية (٢٩)، ونظام التصميم يفرض أرقامًا
+            غربية — فالتنسيق هنا يدوي. توحيدهما قرار منتج لم يُتخذ بعد.
+          </div>
+        </div>
+      </section>
+
+      <section class="mid" aria-labelledby="pwTitle">
+        <div class="pane">
+          <div class="pw">
+            <h2 id="pwTitle" style="font-size:13px;font-weight:600">كلمة المرور</h2>
+            <button class="btn" type="button" id="pwToggle"
+                    aria-expanded="false" aria-controls="pwForm">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 8.3-8.3"/>
+                <path d="m17 6 3 3"/><path d="m15 8 3 3"/></svg>
+              <span id="pwToggleLbl">تغيير كلمة المرور</span>
+            </button>
+            <div id="pwNotice"></div>
+            <form class="pwForm" id="pwForm" autocomplete="off" hidden>
+              <label class="field" for="pwInput">كلمة المرور الجديدة
+                <span class="pwWrap">
+                  <input class="input" id="pwInput" type="password" autocomplete="new-password"
+                         minlength="12" required aria-describedby="pwHint">
+                  <button class="reveal" type="button" id="pwReveal" aria-pressed="false"
+                          aria-label="إظهار كلمة المرور">إظهار</button>
+                </span>
+              </label>
+              <div class="hintRow" id="pwHint">
+                <span>12 محرفًا على الأقل</span>
+                <span class="len" id="pwLen">0 / 12</span>
+              </div>
+              <button class="btn primary" type="submit" id="pwSave">حفظ</button>
+            </form>
+            <div class="pwConfirm" id="pwConfirm" role="group"
+                 aria-labelledby="pwConfirmTitle" hidden>
+              <span class="pwcT" id="pwConfirmTitle">تأكيد تغيير كلمة المرور</span>
+              <p>ستُستبدل كلمة مرور <strong id="pwConfirmName">—</strong> فورًا،
+                و<strong>تُنهى كل جلساته النشطة</strong> فيُخرَج من التطبيق على جهازه
+                ويلزمه تسجيل دخول جديد بالكلمة الجديدة.
+                العملية <strong>لا رجعة فيها</strong>، والنظام لا يحتفظ بالكلمة القديمة
+                ولا يعرضها.</p>
+              <div class="pwcRow">
+                <button class="btn primary" type="button" id="pwConfirmYes">
+                  تأكيد التغيير وإنهاء الجلسات</button>
+                <button class="btn" type="button" id="pwConfirmNo">تراجع</button>
+              </div>
+            </div>
+          </div>
+          <div class="src">
+            <code>POST /v1/admin/operators/:id/password</code> — يعيد
+            <code>204</code> بلا جسم. الحد الأدنى <code>12</code> محرفًا مأخوذ من
+            <code>minLength</code> في <code>PasswordField</code> داخل
+            <code>OperatorDetailPage.tsx</code>.
+            نصّ النجاح هو نصّ التطبيق حرفيًا: «تم تغيير كلمة مرور المستخدم وإنهاء جلساته النشطة.»
+            <br>
+            <span class="nw">فرق مقصود عن التطبيق:</span> التطبيق ينفّذ
+            <code>resetOperatorPassword()</code> بضغطة «حفظ» مباشرة. الإجراء لا رجعة فيه
+            ويُنهي جلسات المستخدم، فأُضيفت هنا <b>خطوة تأكيد</b> تسمّي الأثر قبل الإرسال.
+            الخطوة <b>واجهة فقط</b> ولا تغيّر المسار ولا جسم الطلب —
+            <code>{ password }</code> كما هو.
+            <br>
+            الزر يظهر في التطبيق فقط حين يكون
+            <code>auth.account.role === 'admin'</code> — والمشرف الحالي «أحمد عماد» مدير نظام،
+            فيظهر. حساب <code>mod</code> لا يراه.
+          </div>
+        </div>
+      </section>
+
+      <section class="far" aria-label="سياق الفحص">
+        <div class="pane">
+          <div class="ctx">
+            <div class="r"><span>قائمة المطلوبين النشطة</span><b>48,392</b></div>
+            <div class="r"><span>اشتراكات سارية</span><b>26</b></div>
+            <div class="r"><span>إجمالي المشغّلين</span><b>31</b></div>
+            <div class="r"><span>حجم الصفحة في هذا المسار</span><b>25</b></div>
+          </div>
+          <div class="src">
+            حجم قائمة المطلوبين من <code>wanted_plate_dataset_state</code> عبر
+            <code>GET /v1/admin/wanted-plates</code> — رقم لحظي بحت، فكل استيراد يستبدل
+            المجموعة بالكامل ولا يوجد أرشيف لحجمها عبر الزمن. لذلك <b>لا يمكن</b> عرض
+            «حجم القائمة وقت كل فحص» ولو بدا مفيدًا في تقرير مدى.
+            الاشتراكات السارية وعدد المشغّلين من <code>GET /v1/admin/operators</code>،
+            ولا يتبعان المدى.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>لا يعرض النظام بوابات ولا مواقع فروع ولا زمن معالجة ولا دقة تعرّف — هذه الحقول غير موجودة في قاعدة البيانات</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ══════════════════════════════════════════════════
+     1. المشغّلون — الحقول مطابقة لـ Operator في lib/types.ts
+        status · subscription · deviceBound · deviceModel ·
+        deviceSecurity · appVersion · createdAt · online · activeVoiceSession
+     ══════════════════════════════════════════════════ */
+  var OPERATORS = [
+    { id:"op-1042", seed:11, name:"خالد المطيري", status:"active",  sub:"active",
+      base:1412, hit:0.0042, createdAt:"2025-11-04", model:"Samsung SM-S928B",
+      bind:2, level:"strongbox", cap:"eligible", boundAt:"2026-02-11",
+      verified:"2026-08-29", secEvent:null, app:"3.4.1",
+      online:true, onlineMin:47, voice:true, cleared:null },
+    { id:"op-1188", seed:23, name:"نورة السبيعي", status:"active",  sub:"active",
+      base:1268, hit:0.0038, createdAt:"2025-12-19", model:"Xiaomi 2311DRK48G",
+      bind:2, level:"trusted_environment", cap:"eligible", boundAt:"2026-03-02",
+      verified:"2026-08-29", secEvent:null, app:"3.4.1",
+      online:true, onlineMin:112, voice:true, cleared:null },
+    { id:"op-0917", seed:37, name:"فهد القحطاني", status:"active",  sub:"active",
+      base:1104, hit:0.0035, createdAt:"2025-09-28", model:"Samsung SM-A546E",
+      bind:1, level:null, cap:"attestation_not_present", boundAt:"2025-10-01",
+      verified:"2026-08-24", secEvent:null, app:"3.2.7",
+      online:false, onlineMin:0, voice:false, cleared:null },
+    { id:"op-1260", seed:53, name:"ريم الدوسري",  status:"active",  sub:"future",
+      base:986,  hit:0.0031, createdAt:"2026-06-14", model:null,
+      bind:null, level:null, cap:"attestation_not_present", boundAt:null,
+      verified:null, secEvent:null, app:"3.4.1",
+      online:false, onlineMin:0, voice:false, cleared:null },
+    { id:"op-0733", seed:67, name:"سعود العتيبي", status:"disabled", sub:"suspended",
+      base:902,  hit:0.0044, createdAt:"2025-07-09", model:"Oppo CPH2557",
+      bind:null, level:null, cap:"software_only", boundAt:null,
+      verified:null, secEvent:"2026-08-21", app:"3.3.0",
+      online:false, onlineMin:0, voice:false, cleared:null,
+      attempt:{ reason:"software_only", at:"2026-08-21" } },
+    { id:"op-1401", seed:79, name:"لطيفة الحربي", status:"active",  sub:"active",
+      base:847,  hit:0.0026, createdAt:"2026-01-22", model:"Samsung SM-S921B",
+      bind:2, level:"trusted_environment", cap:"eligible", boundAt:"2026-01-25",
+      verified:"2026-08-28", secEvent:null, app:"3.4.1",
+      online:true, onlineMin:9, voice:false,
+      cleared:{ through:"2026-08-24", throughTime:"18:40", at:"2026-08-25", atTime:"07:12" } },
+    { id:"op-0654", seed:97, name:"ماجد الشمري",  status:"expired", sub:"expired",
+      base:793,  hit:0.0029, createdAt:"2025-04-17", model:"Samsung SM-A346E",
+      bind:2, level:"strongbox", cap:"eligible", boundAt:"2025-05-02",
+      verified:"2026-07-30", secEvent:null, app:"3.1.4",
+      online:false, onlineMin:0, voice:false, cleared:null },
+    { id:"op-1509", seed:113, name:"هند الزهراني", status:"deleted", sub:null,
+      base:748,  hit:0.0024, createdAt:"2026-02-06", model:null,
+      bind:null, level:null, cap:null, boundAt:null,
+      verified:null, secEvent:"2026-08-11", app:"3.3.0",
+      online:false, onlineMin:0, voice:false, cleared:null }
+  ];
+  var SUBS = {
+    "op-1042":{s:"2026-01-01",e:"2026-12-31"}, "op-1188":{s:"2026-01-15",e:"2026-12-31"},
+    "op-0917":{s:"2025-10-01",e:"2026-09-30"}, "op-1260":{s:"2026-09-01",e:"2027-08-31"},
+    "op-0733":{s:"2026-02-01",e:"2026-12-31"}, "op-1401":{s:"2026-02-01",e:"2027-01-31"},
+    "op-0654":{s:"2025-05-01",e:"2026-04-30"}, "op-1509":null
+  };
+
+  /* ══ التسميات — منقولة من OperatorRow.tsx حرفيًا ══ */
+  var STATUS = { active:["مفعّل","cSuccess"], disabled:["موقوف","cWarning"],
+                 expired:["منتهي","cMuted"], deleted:["محذوف","cDanger"] };
+  var SUBSTATUS = { active:["ساري","cSuccess"], future:["يبدأ لاحقًا","cInfo"],
+                    suspended:["معلّق","cWarning"], expired:["منتهي","cMuted"] };
+  /* deviceSecurityStatus() */
+  function deviceSecurity(o){
+    if(o.bind===2) return o.level==="strongbox" ? ["موثّق StrongBox","cSuccess"] : ["موثّق TEE","cSuccess"];
+    if(o.bind===1) return ["ارتباط قديم","cWarning"];
+    if(o.cap && o.cap!=="software_only") return ["مؤهل للربط الآمن","cInfo"];
+    return ["غير مرتبط","cMuted"];
+  }
+  /* deviceCapabilityLabel() — القاموس كامل كما في OperatorDetailPage.tsx */
+  var CAP = {
+    eligible:"مؤهل",
+    attestation_not_present:"لم يرسل التطبيق تحققًا عتاديًا بعد",
+    attestation_unavailable:"خدمة التحقق غير متاحة مؤقتًا",
+    attestation_invalid:"تعذر اعتماد التحقق العتادي",
+    software_only:"المفتاح برمجي وغير مؤهل",
+    untrusted_root:"سلسلة الثقة غير معتمدة",
+    certificate_revoked:"شهادة التحقق ملغاة",
+    app_identity_mismatch:"هوية التطبيق غير مطابقة",
+    device_integrity_failed:"سلامة إقلاع الجهاز غير مستوفاة"
+  };
+
+  /* ══════════════════════════════════════════════════
+     2. تواريخ — أرقام غربية إجبارًا (نظام التصميم §4)
+     ══════════════════════════════════════════════════ */
+  var MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+                "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  var TODAY = "2026-08-29";              /* «اليوم» في هذه البيانات التوضيحية */
+  function pad(n){ return (n<10?"0":"")+n; }
+  function toUTC(key){ var p=key.split("-"); return Date.UTC(+p[0],+p[1]-1,+p[2]); }
+  function keyOf(ms){ var d=new Date(ms);
+    return d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate()); }
+  function offset(key,days){ return keyOf(toUTC(key)+days*86400000); }
+  function daysBetween(a,b){ return Math.round((toUTC(b)-toUTC(a))/86400000); }
+  /* نظير formatHumanInstant / formatDateOnly بأرقام غربية */
+  function humanDate(key){ var p=key.split("-");
+    return (+p[2])+" "+MONTHS[+p[1]-1]+" "+p[0]; }
+  function weekdayOf(key){ return new Date(toUTC(key)).getUTCDay(); }  /* 0=الأحد */
+  function monthStart(key){ return key.slice(0,7)+"-01"; }
+  function monthEnd(key){ var p=key.split("-"),
+    last=new Date(Date.UTC(+p[0],+p[1],0)).getUTCDate();
+    return p[0]+"-"+p[1]+"-"+pad(last); }
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+
+  /* ══════════════════════════════════════════════════
+     3. توليد السجلات — قيم ثابتة مشتقّة من بذرة واحدة
+        الشكل مطابق لـ ScreeningRecord:
+        letters · numbers · result · location · screenedAt · operatorVisibility
+     ══════════════════════════════════════════════════ */
+  function hash32(a,b,c){
+    var h=2166136261>>>0;
+    h=Math.imul(h^(a>>>0),16777619); h=Math.imul(h^(b>>>0),16777619);
+    h=Math.imul(h^(c>>>0),16777619);
+    h^=h>>>15; h=Math.imul(h,2246822507); h^=h>>>13;
+    return h>>>0;
+  }
+  function frac(a,b,c){ return hash32(a,b,c)/4294967296; }
+
+  var LETTERS = ["أ","ب","ح","د","ر","س","ص","ط","ع","ق","ك","ل","م","ن","ه","و","ي"];
+  var CITIES = [[24.7136,46.6753],[21.4858,39.1925],[26.4207,50.0888],
+                [24.4672,39.6111],[21.3891,39.8579],[26.3927,50.1911]];
+  /* الأسبوع السعودي: الجمعة والسبت أخفّ */
+  var WEEK = [1.02,1.06,1.04,1.0,0.98,0.44,0.62];   /* الأحد … السبت */
+
+  function dayIndexOf(op,key){ return Math.round(toUTC(key)/86400000) + op.seed; }
+
+  /* عدد الفحوصات في يوم — ثابت لكل (مشغّل، يوم) */
+  function dayTotal(op,key){
+    if(key < op.createdAt) return 0;              /* قبل إنشاء الحساب: لا سجل */
+    if(key > TODAY) return 0;                     /* المستقبل: لا سجل */
+    if(op.status==="deleted" && key > "2026-08-11") return 0;
+    if(op.status==="expired" && key > "2026-04-30") return 0;
+    if(op.status==="disabled" && key > "2026-08-21") return 0;
+    var di = dayIndexOf(op,key);
+    var f = WEEK[weekdayOf(key)];
+    return Math.max(0, Math.round(op.base * f * (0.80 + 0.40*frac(op.seed,di,11))));
+  }
+  function dayWanted(op,key){
+    var t = dayTotal(op,key);
+    if(!t) return 0;
+    var di = dayIndexOf(op,key);
+    return Math.max(0, Math.round(t*op.hit*(0.55+0.95*frac(op.seed,di,29))));
+  }
+
+  /* سجل واحد داخل يوم — k=0 هو الأحدث. توزيع «مطلوب» بتوزيع منتظم مُزاح،
+     فيخرج عددها في اليوم مساويًا تمامًا لما يقوله dayWanted والرسم. */
+  function record(op,key,k){
+    var di=dayIndexOf(op,key), T=dayTotal(op,key), W=dayWanted(op,key);
+    var phase = hash32(op.seed,di,7) % Math.max(T,1);
+    var kk = (k+phase) % Math.max(T,1);
+    var wanted = W>0 && Math.floor(kk*W/T) !== Math.floor((kk+1)*W/T);
+
+    /* الوقت: نافذة 06:40–22:50، تنازلي بدقّة مع k */
+    var startMin=400, span=970;
+    var mins = startMin + span - ((k + frac(op.seed,di*131+k,3))*span/T);
+    mins = Math.max(startMin, Math.min(startMin+span, mins));
+    var hh=Math.floor(mins/60), mm=Math.floor(mins%60);
+
+    var l1=LETTERS[hash32(di,k,41)%17], l2=LETTERS[hash32(di,k,43)%17],
+        l3=LETTERS[hash32(di,k,47)%17];
+    var digits = 1000 + hash32(di,k,53)%9000;
+
+    var loc=null;
+    if(frac(di,k,59) >= 0.22){
+      var c=CITIES[hash32(di,k,61)%6];
+      loc=[ (c[0]+(frac(di,k,67)-0.5)*0.16).toFixed(4),
+            (c[1]+(frac(di,k,71)-0.5)*0.16).toFixed(4) ];
+    }
+    /* operatorVisibility — نفس منطق screeningView() في المستودع:
+       operatorHiddenAt ⇒ 'selected'، وإلا createdAt <= clearedThrough ⇒ 'clear_all' */
+    var hidden=null;
+    if(frac(di,k,73) < 0.045) hidden="selected";
+    else if(op.cleared && (key < op.cleared.through ||
+            (key === op.cleared.through && pad(hh)+":"+pad(mm) <= op.cleared.throughTime)))
+      hidden="clear_all";
+
+    return { time:pad(hh)+":"+pad(mm), letters:l1+" "+l2+" "+l3, numbers:String(digits),
+             result: wanted ? "wanted" : "safe",
+             source: frac(di,k,79) < 0.68 ? "voice" : "manual",
+             location: loc, hidden: hidden, day:key };
+  }
+
+  /* ══════════════════════════════════════════════════
+     4. الحالة
+     ══════════════════════════════════════════════════ */
+  var state = {
+    opId: OPERATORS[0].id,
+    from: offset(TODAY,-6),   /* نفس افتراضي OperatorDetailPage: calendarDateOffset(to,-6) */
+    to: TODAY,
+    page: 1,
+    showOperator: false,
+    pwOpen: false, pwNotice: null
+  };
+  var PAGE_SIZE = 25;
+  function op(){ for(var i=0;i<OPERATORS.length;i++) if(OPERATORS[i].id===state.opId) return OPERATORS[i];
+                 return OPERATORS[0]; }
+  function inverted(){ return state.from > state.to; }
+
+  /* أيام المدى، من الأحدث إلى الأقدم — نفس ترتيب sort({createdAt:-1}) */
+  var cache = {};
+  function rangeDays(){
+    var ck = state.opId+"|"+state.from+"|"+state.to;
+    if(cache.k===ck) return cache.v;
+    var out=[], o=op();
+    if(!inverted()){
+      var n = daysBetween(state.from,state.to);
+      for(var i=n;i>=0;i--){
+        var key=offset(state.from,i), t=dayTotal(o,key);
+        out.push({ key:key, total:t, wanted:dayWanted(o,key) });
+      }
+    }
+    cache.k=ck; cache.v=out; return out;
+  }
+  function summary(){
+    var d=rangeDays(), t=0, w=0, last=null;
+    for(var i=0;i<d.length;i++){
+      t+=d[i].total; w+=d[i].wanted;
+      if(!last && d[i].total>0) last=d[i];
+    }
+    var lastLabel="—";
+    if(last) lastLabel = humanDate(last.key)+"، "+record(op(),last.key,0).time;
+    return { total:t, wanted:w, safe:t-w, lastLabel:lastLabel };
+  }
+  /* شريحة الصفحة: نمشي على الأيام تنازليًا كما يفعل skip/limit في الخادم */
+  function pageItems(){
+    var days=rangeDays(), start=(state.page-1)*PAGE_SIZE, want=PAGE_SIZE, o=op();
+    var seen=0, out=[];
+    for(var i=0;i<days.length && out.length<want;i++){
+      var T=days[i].total; if(!T){ continue; }
+      if(seen+T <= start){ seen+=T; continue; }
+      var k = Math.max(0, start-seen);
+      for(; k<T && out.length<want; k++) out.push(record(o,days[i].key,k));
+      seen+=T;
+    }
+    return out;
+  }
+
+  /* ══════════════════════════════════════════════════
+     5. أيقونات — MapPin نفسها المستخدمة في WorkHistory.tsx
+     ══════════════════════════════════════════════════ */
+  var IC_PIN='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
+  var IC_VOICE='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3v10"/><path d="M8.5 6.5v3"/><path d="M15.5 6.5v3"/><path d="M5 16.5a7 7 0 0 0 14 0"/><path d="M12 20.5v0"/></svg>';
+  var IC_MANUAL='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>';
+  var IC_LINK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></svg>';
+  var IC_SHIELD='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>';
+  var IC_ALERT='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>';
+  var IC_PREV='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+  var IC_NEXT='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
+
+  /* زر الموقع — LocationAction من WorkHistory.tsx حرفيًا:
+     رابط خرائط عند وجود الإحداثيات، وزر disabled عند غيابها. */
+  function locationAction(r){
+    var plate = r.letters+" "+r.numbers;
+    if(!r.location)
+      return '<button class="locBtn" type="button" disabled '+
+             'aria-label="موقع اللوحة غير متاح">'+IC_PIN+'<span>الموقع</span></button>';
+    var q=encodeURIComponent(r.location[0]+","+r.location[1]);
+    return '<a class="locBtn available" target="_blank" rel="noreferrer" '+
+           'href="https://www.google.com/maps/search/?api=1&query='+q+'" '+
+           'aria-label="فتح موقع اللوحة '+plate+'">'+IC_PIN+'<span>الموقع</span></a>';
+  }
+
+  /* ══════════════════════════════════════════════════
+     6. الرسم اليومي — رسمان بمحور أيام مشترك، بلا مقياس مزدوج
+     ══════════════════════════════════════════════════ */
+  var NS="http://www.w3.org/2000/svg";
+  function mk(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+  function niceTop(v){
+    if(v<=0) return 1;
+    var e=Math.pow(10,Math.floor(Math.log10(v))), f=v/e;
+    return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;
+  }
+  var PAD={t:16,r:16,b:26,l:16}, GAP=16;
+  var W=1000,H=186,SLOT=40,BW=20,HA=90,HB=34,lastW=0,lastH=0;
+
+  function measure(n){
+    var r=document.getElementById("chart").getBoundingClientRect();
+    W=Math.max(320,Math.round(r.width)||1000);
+    H=Math.max(120,Math.round(r.height)||186);
+    SLOT=(W-PAD.l-PAD.r)/Math.max(n,1);
+    BW=Math.max(3,Math.min(24,SLOT*0.5));
+    var avail=H-PAD.t-PAD.b-GAP;
+    HA=Math.round(avail*0.72); HB=avail-HA;
+  }
+  /* المحور الزمني بالعربي يُعكس بالبيانات، لأن viewBox اتجاهه LTR دائمًا */
+  function xOf(i,n){ return W-PAD.r-(i+0.5)*SLOT; }
+
+  function drawChart(){
+    var svg=document.getElementById("chart");
+    var days=rangeDays().slice().reverse();     /* الأقدم أولًا على المحور */
+    var n=days.length;
+    measure(n); lastW=W; lastH=H;
+    svg.innerHTML="";
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+
+    if(!n){
+      var t0=mk("text",{x:W/2,y:H/2,"text-anchor":"middle"});
+      t0.textContent="لا يوجد مدى صالح للرسم";
+      svg.appendChild(t0);
+      return;
+    }
+    document.getElementById("chartNote").innerHTML =
+      n===1 ? "يوم واحد — العمود يمثّل اليوم كله؛ التوزيع بالساعة غير متاح في هذا المسار"
+            : 'رسمان بمحور أيام مشترك (<span class="numi">'+n+
+              "</span> يومًا) — كل واحد بمقياسه الصحيح، بلا أي تكبير";
+
+    var maxT=0,maxW2=0,i;
+    for(i=0;i<n;i++){ if(days[i].total>maxT) maxT=days[i].total;
+                      if(days[i].wanted>maxW2) maxW2=days[i].wanted; }
+    var topA=niceTop(maxT), topB=niceTop(maxW2), y0=PAD.t+HA+GAP;
+
+    var lblA=mk("text",{x:W-PAD.r,y:PAD.t-3,"text-anchor":"end"});
+    lblA.setAttribute("class","ax"); lblA.textContent=String(topA); svg.appendChild(lblA);
+    var lblB=mk("text",{x:W-PAD.r,y:y0-3,"text-anchor":"end"});
+    lblB.setAttribute("class","ax"); lblB.textContent=String(topB); svg.appendChild(lblB);
+
+    var single = (state.from===state.to);
+    for(i=0;i<n;i++){
+      var d=days[i], x=xOf(i,n)-BW/2;
+      var g=mk("g",{ "class":"dCol"+(single && d.key===state.from ? " sel":""),
+        tabindex:"0", role:"button",
+        "aria-label":humanDate(d.key)+" — "+fmt(d.total)+" فحصًا و"+d.wanted+" مطلوبًا. اضغط لقصر المدى على هذا اليوم" });
+      g.dataset.k=d.key;
+      var hA=d.total/topA*HA;
+      g.appendChild(mk("rect",{ "class":"bar", x:x, y:PAD.t+HA-hA, width:BW,
+        height:Math.max(hA,d.total?1.5:0), rx:2.5, fill:"rgba(255,255,255,.44)" }));
+      if(d.wanted>0){
+        var hB=d.wanted/topB*HB;
+        g.appendChild(mk("rect",{ "class":"bar", x:x, y:y0+HB-hB, width:BW,
+          height:Math.max(hB,2), rx:2.5, fill:"#ff6b6b" }));
+      }
+      g.appendChild(mk("rect",{ "class":"hit", x:xOf(i,n)-SLOT/2, y:PAD.t-6,
+        width:SLOT, height:(y0+HB)-PAD.t+10, rx:4 }));
+      svg.appendChild(g);
+    }
+    svg.appendChild(mk("line",{x1:PAD.l,y1:PAD.t+HA,x2:W-PAD.r,y2:PAD.t+HA,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+    svg.appendChild(mk("line",{x1:PAD.l,y1:y0+HB,x2:W-PAD.r,y2:y0+HB,
+      stroke:"rgba(255,255,255,.14)","stroke-width":1}));
+
+    var step=Math.max(1,Math.ceil(n/9));
+    for(i=0;i<n;i+=step){
+      var tx=mk("text",{x:xOf(i,n),y:H-9,"text-anchor":"middle"});
+      tx.setAttribute("class","ax");
+      tx.textContent=days[i].key.slice(8);
+      svg.appendChild(tx);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
+     6ب. المطلوبون في المدى
+     مواضع «مطلوب» داخل اليوم قابلة للحساب مباشرةً بلا مسح كل السجلات:
+     هي معكوس نفس التوزيع المنتظم المُزاح المستخدم في record().
+     ودليل ذلك أن الأرقام هنا تطابق أعمدة الرسم والملخّص تمامًا.
+     ══════════════════════════════════════════════════ */
+  var WANT_CAP = 30;
+  function wantedInRange(){
+    var days=rangeDays(), o=op(), out=[], before=0;
+    for(var i=0;i<days.length;i++){
+      var d=days[i], T=d.total, W=d.wanted;
+      if(T && W && out.length<WANT_CAP){
+        var di=dayIndexOf(o,d.key), phase=hash32(o.seed,di,7)%T, ks=[];
+        for(var j=0;j<W;j++){
+          var kk=Math.ceil((j+1)*T/W)-1;
+          ks.push(((kk-phase)%T+T)%T);
+        }
+        ks.sort(function(a,b){ return a-b; });
+        for(var m=0;m<ks.length && out.length<WANT_CAP;m++){
+          var r=record(o,d.key,ks[m]);
+          r.page=Math.floor((before+ks[m])/PAGE_SIZE)+1;
+          out.push(r);
+        }
+      }
+      before+=T;
+    }
+    return out;
+  }
+  function drawWanted(){
+    var s=summary(), rows=wantedInRange(), host=document.getElementById("wantList");
+    var rate = s.total ? (s.wanted/s.total*100).toFixed(2)+"%" : "0.00%";
+    document.getElementById("wantRate").textContent=rate;
+    document.getElementById("wantNote").innerHTML =
+      s.wanted ? ('<span class="numi">'+fmt(s.wanted)+'</span> إصابة من <span class="numi">'+
+                  fmt(s.total)+'</span> فحص · نسبة الإصابة <span class="numi">'+rate+"</span>")
+               : "لا إصابات في هذا المدى";
+    if(!s.wanted){
+      host.innerHTML='<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
+        'لم تُطابق أي لوحة في هذا المدى قائمة المطلوبين. وسّع المدى لرؤية إصابات أقدم.</div>';
+      return;
+    }
+    host.innerHTML = rows.map(function(r){
+      return '<article class="wrow">'+
+        '<span class="wD">'+humanDate(r.day)+'</span>'+
+        '<span class="rT">'+r.time+'</span>'+
+        '<span class="rP">'+r.letters+' '+r.numbers+'</span>'+
+        '<span class="rMeta"><span class="rV vw">مطلوب</span></span>'+
+        locationAction(r)+
+        '<button class="wPage" type="button" data-page="'+r.page+'" '+
+          'aria-label="عرض هذا السجل في السجل الكامل، الصفحة '+r.page+'">'+
+          'الصفحة <span class="n">'+r.page+'</span></button>'+
+      '</article>';
+    }).join("") +
+    (s.wanted>rows.length
+      ? '<div class="wMore">و <span class="numi">'+fmt(s.wanted-rows.length)+
+        '</span> إصابة أخرى في هذا المدى — القائمة مقصورة على أول <span class="numi">'+
+        WANT_CAP+'</span> لعرضها بلا ترقيم.</div>'
+      : "");
+  }
+
+  /* ══════════════════════════════════════════════════
+     7. السجل — تجميع WorkHistory.tsx نفسه
+     ══════════════════════════════════════════════════ */
+  function drawHistory(){
+    var host=document.getElementById("hist"), items=pageItems(), o=op();
+    var s=summary();
+
+    if(inverted()){
+      host.innerHTML='<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
+        'تاريخ البداية بعد تاريخ النهاية — صحّح المدى أو اضغط «تبديل الطرفين».</div>';
+      document.getElementById("pag").innerHTML="";
+      document.getElementById("histRange").textContent="—";
+      return;
+    }
+    if(!items.length){
+      /* نصّ EmptyState الحقيقي في WorkHistory.tsx */
+      host.innerHTML='<div class="empty"><b>لا يوجد سجل فحص</b>'+
+        'ستظهر اللوحات هنا بعد أول عملية فحص.</div>';
+      document.getElementById("pag").innerHTML="";
+      document.getElementById("histRange").innerHTML=
+        '<span class="numi">0</span> سجل في هذا المدى';
+      return;
+    }
+
+    /* Map بمفتاح اليوم على عناصر الصفحة وحدها — نفس سلوك المكوّن */
+    var groups=[], byKey={};
+    items.forEach(function(r){
+      if(!byKey[r.day]){ byKey[r.day]={key:r.day,rows:[]}; groups.push(byKey[r.day]); }
+      byKey[r.day].rows.push(r);
+    });
+
+    host.innerHTML='<div class="work-groups">'+groups.map(function(g){
+      var dayCount = dayTotal(o,g.key);
+      return '<section class="work-day">'+
+        '<div class="dayHead"><h3>'+humanDate(g.key)+'</h3>'+
+          '<span class="dc"><span class="numi">'+g.rows.length+
+            '</span> من <span class="numi">'+fmt(dayCount)+'</span> في هذا اليوم</span></div>'+
+        g.rows.map(function(r){
+          var w = r.result==="wanted";
+          var meta="";
+          if(state.showOperator)
+            meta += '<span class="rBy'+(o.name?"":" gone")+'">بواسطة '+
+                    (o.name || "حساب محذوف")+'</span>';
+          if(r.hidden)
+            meta += '<span class="hidBadge">'+
+              (r.hidden==="selected" ? "أزالها المستخدم من سجله" : "ضمن مسح السجل")+'</span>';
+          return '<article class="row">'+
+            '<span class="rT">'+r.time+'</span>'+
+            '<span class="rP">'+r.letters+' '+r.numbers+'</span>'+
+            '<span class="rSrc" role="img" aria-label="'+
+              (r.source==="voice"?"إدخال صوتي":"إدخال يدوي")+'">'+
+              (r.source==="voice"?IC_VOICE:IC_MANUAL)+'</span>'+
+            /* العمود محجوز دائمًا حتى حين يكون فارغًا */
+            '<span class="rMeta">'+meta+'</span>'+
+            locationAction(r)+
+            '<span class="rV '+(w?"vw":"vs")+'">'+(w?"مطلوب":"غير مطلوبة")+'</span>'+
+          '</article>';
+        }).join("")+
+      '</section>';
+    }).join("")+'</div>';
+
+    var first=(state.page-1)*PAGE_SIZE+1, last=first+items.length-1;
+    document.getElementById("histRange").innerHTML =
+      'السجلات <span class="numi">'+fmt(first)+"–"+fmt(last)+
+      '</span> من <span class="numi">'+fmt(s.total)+"</span>";
+    drawPagination(s.total);
+  }
+
+  /* ترقيم الصفحات — pageTokens() من Pagination.tsx */
+  function pageTokens(cur,count){
+    if(count<=5){ var a=[]; for(var i=1;i<=count;i++) a.push(i); return a; }
+    if(cur<=3) return [1,2,3,"e",count];
+    if(cur>=count-2) return [1,"e",count-2,count-1,count];
+    return [1,"e",cur-1,cur,cur+1,"e",count];
+  }
+  function drawPagination(total){
+    var pages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+    if(state.page>pages) state.page=pages;
+    var cur=Math.min(Math.max(state.page,1),pages);
+    var html='<div class="pagPages">'+
+      '<button class="pagBtn" type="button" data-go="'+(cur-1)+'" aria-label="السابق"'+
+        (cur<=1?" disabled":"")+'>'+IC_PREV+'</button>';
+    pageTokens(cur,pages).forEach(function(t){
+      if(t==="e"){ html+='<span class="pagEl" aria-hidden="true">…</span>'; return; }
+      html+='<button class="pagBtn" type="button" data-go="'+t+'"'+
+        (t===cur?' aria-current="page" disabled aria-label="الصفحة الحالية، '+t+'"'
+                :' aria-label="الصفحة '+t+'"')+'>'+t+'</button>';
+    });
+    html+='<button class="pagBtn" type="button" data-go="'+(cur+1)+'" aria-label="التالي"'+
+      (cur>=pages?" disabled":"")+'>'+IC_NEXT+'</button></div>'+
+      '<form class="pagJump" id="jumpForm">'+
+        '<label for="jumpIn">رقم الصفحة</label>'+
+        '<input id="jumpIn" inputmode="numeric" autocomplete="off" value="">'+
+        '<button class="pagJumpBtn" type="submit" aria-label="انتقال إلى الصفحة">انتقال</button>'+
+        '<span class="pagErr" id="jumpErr" role="alert" hidden>أدخل رقم صفحة من '+
+          '<span class="numi">1</span> إلى <span class="numi">'+fmt(pages)+'</span></span>'+
+      '</form>'+
+      '<span class="pagTotal"><span class="numi">'+fmt(pages)+
+        '</span> صفحة · <span class="numi">'+fmt(total)+'</span> سجل</span>';
+    document.getElementById("pag").innerHTML=html;
+  }
+
+  /* ══════════════════════════════════════════════════
+     8. الهوية والملخّص والمدى
+     ══════════════════════════════════════════════════ */
+  function chip(pair){ return '<span class="chip '+pair[1]+'">'+pair[0]+'</span>'; }
+
+  function drawIdentity(){
+    var o=op(), sub=SUBS[o.id];
+    document.getElementById("opTitle").textContent=o.name;
+    document.getElementById("pickName").textContent=o.name;
+    document.getElementById("pickId").textContent=o.id;
+    document.getElementById("pickAv").textContent=o.name.charAt(0);
+
+    var chips = chip(STATUS[o.status]) +
+      chip(o.sub ? SUBSTATUS[o.sub] : ["بدون اشتراك","cMuted"]) +
+      (o.online ? chip(["نشط الآن","cSuccess"]) : chip(["غير متصل","cMuted"])) +
+      (o.voice ? chip(["جلسة صوتية نشطة","cInfo"]) : "");
+    document.getElementById("opChips").innerHTML=chips;
+
+    var ds=deviceSecurity(o), rows=[];
+    function row(dt,dd){ rows.push("<div><dt>"+dt+"</dt><dd>"+dd+"</dd></div>"); }
+    row("حالة المستخدم", chip(STATUS[o.status]));
+    row("حالة الاشتراك", chip(o.sub ? SUBSTATUS[o.sub] : ["بدون اشتراك","cMuted"]));
+    row("الجهاز", IC_LINK+"<span>"+(o.model ? o.model : "غير مرتبط")+"</span>");
+    row("أمان الارتباط", IC_SHIELD+chip(ds));
+    if(o.cap) row("توافق التحقق العتادي", IC_ALERT+"<span>"+CAP[o.cap]+"</span>");
+    if(o.boundAt)  row("تاريخ ربط الجهاز", '<span class="num">'+humanDate(o.boundAt)+"</span>");
+    if(o.verified) row("آخر تحقق أمني",
+      '<span class="num">'+(o.verified===TODAY?"اليوم":humanDate(o.verified))+"</span>");
+    if(o.secEvent) row("آخر حدث أمني", '<span class="num">'+humanDate(o.secEvent)+"</span>");
+    if(o.attempt)  row("آخر محاولة تحقق مرفوضة",
+      IC_ALERT+'<span class="num">'+CAP[o.attempt.reason]+" — "+humanDate(o.attempt.at)+"</span>");
+    row("إصدار التطبيق", '<span class="num">'+(o.app||"غير معروف")+"</span>");
+    var s=summary();
+    row("آخر نشاط", '<span class="num">'+(s.total? s.lastLabel : "لا يوجد نشاط")+"</span>");
+    row("تاريخ الإنشاء", '<span class="num">'+humanDate(o.createdAt)+"</span>");
+    row("حالة الاتصال", chip(o.online?["نشط الآن","cSuccess"]:["غير متصل","cMuted"]));
+    if(o.online) row("وقت النشاط", '<span class="num">'+
+      (o.onlineMin<60 ? o.onlineMin+" دقيقة" : Math.floor(o.onlineMin/60)+" ساعة")+"</span>");
+    if(o.voice) row("الجلسة", chip(["جلسة صوتية نشطة","cInfo"]));
+    if(sub){
+      row("بداية الاشتراك", '<span class="num">'+humanDate(sub.s)+"</span>");
+      row("نهاية الاشتراك", '<span class="num">'+humanDate(sub.e)+"</span>");
+    }
+    document.getElementById("detailList").innerHTML=rows.join("");
+
+    /* مسح سجل المستخدم — يظهر فقط عند وجود historyVisibility */
+    var sec=document.getElementById("clearSec");
+    if(o.cleared){
+      sec.hidden=false;
+      document.getElementById("clearText").innerHTML =
+        "نفّذ المستخدم المسح في <time>"+humanDate(o.cleared.at)+"، "+o.cleared.atTime+
+        "</time>، وأخفى سجله الظاهر حتى <time>"+humanDate(o.cleared.through)+"، "+
+        o.cleared.throughTime+"</time>. تظل السجلات محفوظة هنا للإدارة.";
+    } else sec.hidden=true;
+  }
+
+  function drawSummary(){
+    var s=summary(), days=rangeDays().length||1;
+    countTo(document.getElementById("sumTotal"), s.total);
+    countTo(document.getElementById("sumWanted"), s.wanted);
+    countTo(document.getElementById("sumSafe"), s.safe);
+    document.getElementById("sumLast").textContent = s.total ? s.lastLabel : "لا يوجد نشاط";
+    /* كل رقم داخل جملة عربية معزول LTR — وإلا هاجرت «%» إلى يسار الرقم */
+    document.getElementById("sumPerDay").innerHTML =
+      s.total ? ('متوسط <span class="numi">'+fmt(Math.round(s.total/days))+"</span> في اليوم")
+              : "لا فحص في هذا المدى";
+    var rate = s.total ? (s.wanted/s.total*100) : 0;
+    document.getElementById("sumRate").innerHTML =
+      'نسبة الإصابة <span class="numi">'+rate.toFixed(2)+"%</span>";
+    document.getElementById("sumSafePct").innerHTML =
+      '<span class="numi">'+(s.total ? (100-rate).toFixed(2) : "0.00")+"%</span> من الفحص";
+    document.getElementById("rmTotal").textContent = fmt(s.total);
+  }
+
+  function drawRange(){
+    document.getElementById("fromInput").value=state.from;
+    document.getElementById("toInput").value=state.to;
+    var bad=inverted();
+    document.getElementById("fromInput").setAttribute("aria-invalid",String(bad));
+    document.getElementById("toInput").setAttribute("aria-invalid",String(bad));
+    document.getElementById("rangeWarn").classList.toggle("on",bad);
+    if(bad) document.getElementById("rangeWarnText").innerHTML =
+      'المسار لا يرفض هذا المدى — يعيد <span class="numi">200</span> بقائمة فارغة '+
+      "وملخّص أصفار. الرسالة هنا حارس واجهة فقط.";
+    var n = bad ? 0 : daysBetween(state.from,state.to)+1;
+    document.getElementById("rmDays").textContent = n;
+    document.getElementById("rmFrom").textContent = state.from;
+    document.getElementById("rmTo").textContent = state.to;
+    document.getElementById("srcUrl").textContent =
+      "/v1/admin/operators/"+state.opId+"/work?from="+state.from+"&to="+state.to+
+      "&page="+state.page+"&pageSize="+PAGE_SIZE;
+
+    /* أي زر «مدى جاهز» يطابق الحالة الراهنة؟ */
+    var match = presetOf(state.from,state.to);
+    [].forEach.call(document.querySelectorAll("#presetSeg button"),function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.p===match));
+    });
+  }
+  function presetOf(f,t){
+    if(f===TODAY && t===TODAY) return "d1";
+    if(t===TODAY && f===offset(TODAY,-6)) return "d7";
+    if(t===TODAY && f===offset(TODAY,-29)) return "d30";
+    if(f===monthStart(TODAY) && t===TODAY) return "m0";
+    var pm=offset(monthStart(TODAY),-1);
+    if(f===monthStart(pm) && t===monthEnd(pm)) return "m1";
+    return "";
+  }
+  function applyPreset(p){
+    if(p==="d1"){ state.from=TODAY; state.to=TODAY; }
+    else if(p==="d7"){ state.from=offset(TODAY,-6); state.to=TODAY; }
+    else if(p==="d30"){ state.from=offset(TODAY,-29); state.to=TODAY; }
+    else if(p==="m0"){ state.from=monthStart(TODAY); state.to=TODAY; }
+    else if(p==="m1"){ var pm=offset(monthStart(TODAY),-1);
+      state.from=monthStart(pm); state.to=monthEnd(pm); }
+  }
+
+  /* عدّاد الأرقام — القيمة الحقيقية تُكتب فورًا في العنصر قبل الحركة */
+  function countTo(el,target){
+    el.dataset.count=target;
+    if(document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches){
+      el.textContent=fmt(target); return;
+    }
+    var from=0, t0=performance.now(), dur=900, token=(el._t=(el._t||0)+1);
+    el.textContent=fmt(target);
+    function step(now){
+      if(el._t!==token) return;
+      var p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3);
+      el.textContent=fmt(Math.round(from+(target-from)*e));
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ══════════════════════════════════════════════════
+     9. إعادة الرسم والتفاعلات
+     ══════════════════════════════════════════════════ */
+  function rerenderAll(){
+    cache.k=null; drawRange(); drawSummary(); drawChart(); drawWanted(); drawHistory();
+  }
+  function rerenderRange(){ state.page=1; rerenderAll(); }
+
+  document.getElementById("presetSeg").addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    applyPreset(b.dataset.p); rerenderRange();
+  });
+  document.getElementById("fromInput").addEventListener("change",function(){
+    if(!this.value) return; state.from=this.value; rerenderRange();
+  });
+  document.getElementById("toInput").addEventListener("change",function(){
+    if(!this.value) return; state.to=this.value; rerenderRange();
+  });
+  document.getElementById("swapBtn").addEventListener("click",function(){
+    var f=state.from; state.from=state.to; state.to=f; rerenderRange();
+  });
+
+  /* الرسم: ضغط يوم يقصر المدى عليه، وضغطه ثانيةً يعيد آخر 7 أيام */
+  function pickDay(key){
+    if(state.from===key && state.to===key){ applyPreset("d7"); }
+    else { state.from=key; state.to=key; }
+    rerenderRange();
+  }
+  document.getElementById("chart").addEventListener("click",function(e){
+    var g=e.target.closest(".dCol"); if(!g) return; pickDay(g.dataset.k);
+  });
+  document.getElementById("chart").addEventListener("keydown",function(e){
+    if(e.key!=="Enter" && e.key!==" ") return;
+    var g=e.target.closest(".dCol"); if(!g) return;
+    e.preventDefault(); pickDay(g.dataset.k);
+  });
+
+  /* «الصفحة N» — ينقل السجل الكامل إلى الصفحة التي تحوي هذه الإصابة فعلاً */
+  document.getElementById("wantList").addEventListener("click",function(e){
+    var b=e.target.closest("[data-page]"); if(!b) return;
+    state.page=+b.dataset.page; drawHistory(); drawRange();
+    document.getElementById("histTitle").scrollIntoView({block:"start",behavior:"smooth"});
+  });
+
+  /* الترقيم */
+  document.getElementById("pag").addEventListener("click",function(e){
+    var b=e.target.closest("[data-go]"); if(!b) return;
+    var n=+b.dataset.go; if(!n || n<1) return;
+    state.page=n; drawHistory(); drawRange();
+    document.getElementById("histRange").scrollIntoView({block:"nearest"});
+  });
+  document.getElementById("pag").addEventListener("submit",function(e){
+    if(e.target.id!=="jumpForm") return;
+    e.preventDefault();
+    var input=document.getElementById("jumpIn"), err=document.getElementById("jumpErr");
+    var total=summary().total, pages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+    /* normalizePageNumber: يقبل الأرقام الهندية والفارسية كما في Pagination.tsx */
+    var norm=input.value.trim().replace(/[٠-٩]/g,function(c){ return String(c.charCodeAt(0)-1632); })
+                                .replace(/[۰-۹]/g,function(c){ return String(c.charCodeAt(0)-1776); });
+    var n=/^[0-9]+$/.test(norm)?+norm:NaN;
+    if(!n || n<1 || n>pages){
+      input.setAttribute("aria-invalid","true"); err.hidden=false; input.focus(); return;
+    }
+    state.page=n; drawHistory(); drawRange();
+    var again=document.getElementById("jumpIn"); if(again) again.focus();
+  });
+
+  /* showOperator — الخاصية نفسها في WorkHistory.tsx */
+  document.getElementById("showOpTgl").addEventListener("click",function(){
+    var on=this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed",String(on));
+    state.showOperator=on; drawHistory();
+  });
+
+  /* مفتاح مصادر البيانات */
+  document.getElementById("srcTgl").addEventListener("click",function(){
+    var on=this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed",String(on));
+    document.documentElement.setAttribute("data-src", on?"1":"0");
+  });
+
+  /* ── قائمة اختيار المشغّل ── */
+  (function(){
+    var btn=document.getElementById("pickBtn"), menu=document.getElementById("pickMenu"),
+        list=document.getElementById("pickList"), close=document.getElementById("pickClose");
+    function paint(){
+      list.innerHTML=OPERATORS.map(function(o){
+        var st=STATUS[o.status];
+        return '<button class="pmItem" type="button" data-id="'+o.id+'" '+
+          'aria-current="'+(o.id===state.opId)+'">'+
+          '<span class="av2" aria-hidden="true">'+o.name.charAt(0)+'</span>'+
+          '<span class="nm">'+o.name+'</span>'+
+          '<span class="chip '+st[1]+'">'+st[0]+'</span></button>';
+      }).join("");
+    }
+    function setOpen(on){ menu.hidden=!on; btn.setAttribute("aria-expanded",String(on));
+      if(on){ paint(); close.focus(); } }
+    btn.addEventListener("click",function(e){ e.stopPropagation(); setOpen(menu.hidden); });
+    close.addEventListener("click",function(){ setOpen(false); btn.focus(); });
+    menu.addEventListener("click",function(e){
+      e.stopPropagation();
+      var b=e.target.closest(".pmItem"); if(!b) return;
+      state.opId=b.dataset.id; state.page=1;
+      resetPassword();
+      setOpen(false); btn.focus();
+      drawIdentity(); rerenderAll();
+    });
+    addEventListener("click",function(){ if(!menu.hidden) setOpen(false); });
+    addEventListener("keydown",function(e){
+      if(e.key==="Escape" && !menu.hidden){ setOpen(false); btn.focus(); }
+    });
+    paint();
+  })();
+
+  /* ── تغيير كلمة المرور — تدفّق من ثلاث خطوات ── */
+  var pwForm=document.getElementById("pwForm"), pwInput=document.getElementById("pwInput"),
+      pwNotice=document.getElementById("pwNotice"), pwToggle=document.getElementById("pwToggle"),
+      pwSave=document.getElementById("pwSave"), pwConfirm=document.getElementById("pwConfirm");
+  /* إخفاء خطوة التأكيد كلما تغيّر شيء تحتها — لا تأكيد «معلّق» على قيمة قديمة */
+  function closeConfirm(){ pwConfirm.hidden=true; }
+  function resetPassword(){
+    state.pwOpen=false; pwForm.hidden=true; pwInput.value=""; pwInput.type="password";
+    pwToggle.setAttribute("aria-expanded","false");
+    document.getElementById("pwToggleLbl").textContent="تغيير كلمة المرور";
+    document.getElementById("pwReveal").setAttribute("aria-pressed","false");
+    document.getElementById("pwReveal").textContent="إظهار";
+    pwNotice.innerHTML=""; closeConfirm(); pwLen();
+  }
+  function pwLen(){
+    var n=pwInput.value.length, el=document.getElementById("pwLen");
+    el.textContent=n+" / 12";
+    el.classList.toggle("ok", n>=12);
+    pwSave.disabled = n<12 || !pwConfirm.hidden;
+  }
+  pwToggle.addEventListener("click",function(){
+    state.pwOpen=!state.pwOpen;
+    pwForm.hidden=!state.pwOpen;
+    this.setAttribute("aria-expanded",String(state.pwOpen));
+    document.getElementById("pwToggleLbl").textContent =
+      state.pwOpen ? "إلغاء تغيير كلمة المرور" : "تغيير كلمة المرور";
+    pwInput.value=""; pwNotice.innerHTML=""; closeConfirm(); pwLen();
+    if(state.pwOpen) pwInput.focus();
+  });
+  pwInput.addEventListener("input",function(){ closeConfirm(); pwLen(); });
+  document.getElementById("pwReveal").addEventListener("click",function(){
+    var on=this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed",String(on));
+    /* نفس نصوص PasswordField.tsx */
+    this.textContent = on ? "إخفاء" : "إظهار";
+    this.setAttribute("aria-label", on ? "إخفاء كلمة المرور" : "إظهار كلمة المرور");
+    pwInput.type = on ? "text" : "password";
+  });
+  /* «حفظ» لا ينفّذ شيئًا — يفتح خطوة تأكيد تسمّي الأثر (إنهاء الجلسات، بلا رجعة).
+     التنفيذ الفعلي في «تأكيد التغيير» وحده. */
+  pwForm.addEventListener("submit",function(e){
+    e.preventDefault();
+    if(pwInput.value.length<12){
+      pwNotice.innerHTML='<div class="notice danger">كلمة المرور أقصر من 12 محرفًا.</div>';
+      pwInput.focus(); return;
+    }
+    pwNotice.innerHTML="";
+    document.getElementById("pwConfirmName").textContent=op().name;
+    pwConfirm.hidden=false; pwLen();
+    document.getElementById("pwConfirmYes").focus();
+  });
+  document.getElementById("pwConfirmNo").addEventListener("click",function(){
+    closeConfirm(); pwLen(); pwInput.focus();
+  });
+  document.getElementById("pwConfirmYes").addEventListener("click",function(){
+    closeConfirm();
+    pwSave.disabled=true; pwSave.textContent="جارٍ الحفظ…";
+    setTimeout(function(){
+      pwSave.textContent="حفظ";
+      /* نصّ النجاح كما في OperatorDetailPage.tsx حرفيًا */
+      pwNotice.innerHTML='<div class="notice success">'+
+        'تم تغيير كلمة مرور المستخدم وإنهاء جلساته النشطة.</div>';
+      state.pwOpen=false; pwForm.hidden=true; pwInput.value="";
+      pwToggle.setAttribute("aria-expanded","false");
+      document.getElementById("pwToggleLbl").textContent="تغيير كلمة المرور";
+      pwLen(); pwToggle.focus();
+    }, 520);
+  });
+  pwLen();
+
+  /* إعادة رسم الرسم عند تغيّر المقاس — متزامنة ومحروسة، بلا حلقة */
+  (function(){
+    var svg=document.getElementById("chart");
+    function onResize(){
+      var r=svg.getBoundingClientRect();
+      var w=Math.round(r.width), h=Math.round(r.height);
+      if((w && Math.abs(w-lastW)>=2) || (h && Math.abs(h-lastH)>=2)) drawChart();
+    }
+    if(window.ResizeObserver) new ResizeObserver(onResize).observe(svg);
+    addEventListener("resize",onResize,{passive:true});
+  })();
+
+  drawIdentity();
+  rerenderAll();
+})();
+</script>
+</body>
+</html>

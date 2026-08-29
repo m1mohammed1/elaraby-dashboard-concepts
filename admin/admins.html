@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-depth="all">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المشرفون — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   المشرفون — /admins
+   أصغر شاشة في اللوحة وأعلاها صلاحية. كل حقل وإجراء هنا مأخوذ من
+   AdminsPage.tsx و features/admins/api.ts و routes/admin.ts.
+   ما لا يوجد له مسار في الواجهة الخلفية مُعلَّم «مقترح» ومشروح في
+   «مصادر البيانات» بدل أن يُعرض كأنه يعمل.
+   المشهد والمادة والشريط والصفوف منقولة من gallery/overview.html.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --unread:#e8b055;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  --far-a:.050;  --far-ink:1;
+  --mid-a:.058;  --mid-ink:1;
+  --near-a:.080; --near-ink:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-block-size:100%}
+body{
+  position:relative;
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ── المشهد — منقول كما هو ────────────────────────── */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── الشريط العلوي ────────────────────────────────── */
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.barIn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  inline-size:100%;max-inline-size:1560px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
+.brand .mk{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
+.barSep{width:1px;height:22px;background:var(--line)}
+.barGrow{flex:1}
+
+.nav{display:flex;gap:2px;flex-wrap:wrap}
+.nav a{font-size:12.5px;color:var(--ink-3);text-decoration:none;padding:6px 11px;border-radius:8px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.nav a:hover{color:var(--ink-2);background:rgba(255,255,255,.05)}
+.nav a[aria-current="page"]{background:rgba(255,255,255,.10);color:var(--ink)}
+
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.seg.segSm button{padding:4px 10px;font-size:11.5px}
+/* --ink-4 يبقى للرسوميات فقط (أيقونة البحث، حلقة الاختيار) حيث يكفي 3:1.
+   كل ما يُقرأ رُفع إلى --ink-3. */
+.segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
+
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center}
+.tglBox::after{content:"";width:7px;height:7px;border-radius:1.5px;background:var(--accent);
+  transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+
+.who{display:flex;align-items:center;gap:9px;font-size:13px}
+.who .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  font-size:12px;font-weight:600}
+.who .rl{color:var(--ink-3);font-size:11.5px}
+
+/* ── المسرح والمادة ──────────────────────────────── */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.plane{opacity:var(--pl-ink,1)}
+.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.mid .pane{background:rgba(255,255,255,var(--mid-a))}
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+
+/* ── مصادر البيانات ──────────────────────────────── */
+/* نصّ متن حقيقي، لا زخرفة: --ink-4 على اللوحة المركَّبة (#151d19) يعطي 3.1:1
+   وهو دون 4.5:1، فالمتن هنا --ink-3 (5.4:1) والشيفرة --ink-2 فوقه لتبقى
+   الهرمية قائمة. */
+.src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
+  padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;
+  overflow-wrap:anywhere}
+.src .nw{color:var(--accent)}
+.src b{color:var(--ink-2);font-weight:500}
+:root[data-src="1"] .src{display:block}
+
+/* اسم مستخدم لاتيني داخل نصّ عربي — عزل صريح وإلا التصقت الأقواس
+   والنقاط المجاورة بالطرف الخطأ من الاسم. */
+.u{direction:ltr;unicode-bidi:isolate;font-weight:600}
+
+/* ── دفتر الأرقام ────────────────────────────────── */
+.ledgerSec{position:relative;z-index:60}
+.ledger{display:grid;gap:0;padding:4px 0;overflow:hidden;
+  grid-template-columns:repeat(6,minmax(0,1fr))}
+.fig{padding:15px 20px;border-inline-start:1px solid var(--line-2);position:relative}
+.fig:first-child{border-inline-start:0}
+.figL{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.figV{font-size:31px;font-weight:600;line-height:1.25;margin-block-start:3px;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+.figM{font-size:11.5px;color:var(--ink-3);margin-block-start:2px;display:flex;gap:7px;align-items:baseline}
+.fig.hero .figV{color:var(--ink)}
+.fig.warn .figV{color:var(--unread)}
+/* لا شارة «لحظي» هنا: في هذا النظام «لحظي» محجوزة لحضور المشغّلين
+   (TTL دقيقتان). الاشتراكات وحجم قائمة المطلوبين لقطتان من تقرير اللوحة،
+   لا قياس لحظي، فوسمهما بذلك كان ادّعاءً لا يقابله شيء. */
+
+/* ── التخطيط ─────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;
+  gap:18px;margin-block-start:18px;align-items:start}
+@media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
+@media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
+@media(max-width:1279px){
+  .ledger{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(3n+1){border-inline-start:0}
+}
+@media(max-width:760px){
+  .ledger{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fig{border-inline-start:1px solid var(--line-2)}
+  .fig:nth-child(2n+1){border-inline-start:0}
+}
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .bar{padding:12px 14px}
+  .figV{font-size:26px}
+}
+.stack > * + *{margin-block-start:18px}
+
+/* ── رؤوس اللوحات ────────────────────────────────── */
+.paneHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px 12px;
+  border-block-end:1px solid var(--line-2)}
+.paneTitle{font-size:14.5px;font-weight:600}
+.paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
+.paneSub{font-size:11.5px;color:var(--ink-3);padding:10px 18px 0}
+.paneBody{padding:14px 18px 16px}
+
+/* ── حقل البحث ───────────────────────────────────── */
+.find{display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.035);border-radius:9px;padding:4px 10px;
+  transition:border-color .16s var(--ease)}
+.find:focus-within{border-color:rgba(110,196,155,.4)}
+.find svg{flex:none;color:var(--ink-4)}
+.find input{border:0;background:transparent;outline:0;font-size:12.5px;
+  inline-size:150px;color:var(--ink);padding:2px 0}
+/* outline:0 أعلاه كان يبتلع حلقة التركيز العامة (نفس النوعية، وترتيبه
+   لاحق) فلم يكن للحقل أثر تركيز بلوحة المفاتيح سوى تلوين الحدّ. */
+.find input:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+/* النائب هنا هو التسمية المرئية الوحيدة للحقل، فلا يصلح عند 3.1:1. */
+.find input::placeholder{color:var(--ink-3)}
+
+/* ── صفوف الجدول ─────────────────────────────────── */
+/* أعمدة صريحة لا flex: عمود «حسابك» اختياري وفارغ في معظم الصفوف،
+   ومع flex كانت أزرار الإجراءات تتزحزح بين صف وآخر. العمود محجوز دائمًا. */
+.rowH,.row{display:grid;
+  grid-template-columns:32px minmax(0,1fr) 132px 148px 66px 188px;
+  align-items:center;gap:11px;padding:9px 18px;
+  border-block-end:1px solid var(--line-2)}
+.rowH{padding-block:8px;font-size:10.5px;color:var(--ink-3);
+  border-block-end:1px solid var(--line)}
+.row{font-size:12.5px;transition:background .14s var(--ease)}
+.row:last-child{border-block-end:0}
+.row:hover{background:rgba(255,255,255,.045)}
+.row.isSelf{background:rgba(110,196,155,.045)}
+.av2{inline-size:26px;block-size:26px;border-radius:50%;display:grid;place-items:center;
+  flex:none;font-size:10.5px;font-weight:600;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);direction:ltr;unicode-bidi:isolate}
+.uName{font-weight:600;direction:ltr;unicode-bidi:isolate;text-align:start;
+  min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.chip{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;
+  border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap;
+  display:inline-block}
+.cAdmin{color:var(--accent)}
+.cMod{color:var(--ink-3)}
+.pwd{font-size:11.5px;color:var(--ink-3)}
+.pwd.due{color:var(--unread)}
+.selfTag{font-size:10.5px;color:var(--accent);white-space:nowrap}
+.acts{display:flex;gap:5px;justify-content:flex-end}
+.iBtn{inline-size:30px;block-size:30px;border-radius:8px;display:grid;place-items:center;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--ink-3);
+  cursor:pointer;position:relative;
+  transition:color .15s var(--ease),border-color .15s var(--ease),background .15s var(--ease)}
+.iBtn:hover:not([disabled]){color:var(--ink);border-color:rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08)}
+.iBtn[disabled]{opacity:.34;cursor:not-allowed}
+.iBtn.danger:hover:not([disabled]){color:var(--wanted);border-color:rgba(255,107,107,.4)}
+.iBtn svg{display:block}
+.iBtn.spec::after{content:"";position:absolute;inset-block-start:-3px;inset-inline-start:-3px;
+  inline-size:7px;block-size:7px;border-radius:50%;background:var(--unread)}
+@media(max-width:760px){
+  .rowH{display:none}
+  /* العمود الثالث 110px لا 66px: «مطلوب عند الدخول» كان ينكسر سطرين.
+     عرض ثابت لا auto — كل صفّ شبكة مستقلّة، و auto كان يعطي كل صفّ عرضًا
+     مختلفًا بحسب نصّه فتفقد الأعمدة اصطفافها بين الصفوف. */
+  .row{grid-template-columns:32px minmax(0,1fr) 110px;row-gap:8px}
+  .av2  {grid-area:1/1/2/2}
+  .uName{grid-area:1/2/2/3}
+  .selfTag{grid-area:1/3/2/4;text-align:end}
+  .chip {grid-area:2/1/3/3;justify-self:start}
+  .pwd  {grid-area:2/3/3/4;text-align:end}
+  .acts {grid-area:3/1/4/4;justify-content:flex-start}
+}
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
+.tableFoot{padding:10px 18px;border-block-start:1px solid var(--line-2);
+  font-size:11.5px;color:var(--ink-3);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+/* كلا الطرفين عربي مختلط بأرقام: direction:rtl لا ltr — الطرف الثاني جملة
+   عربية كاملة، وإجبارها على ltr كان يقلب موضع الشرطة والنقطة في طرفها. */
+.tableFoot span{direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.tableFoot .v{color:var(--ink-2)}
+
+/* ── الإشعار ─────────────────────────────────────── */
+.notice{display:none;align-items:flex-start;gap:11px;padding:11px 16px;margin-block-end:14px;
+  border-radius:12px;font-size:12.5px;line-height:1.75}
+.notice.on{display:flex}
+.notice.success{background:rgba(61,220,151,.07);border:1px solid rgba(61,220,151,.24);color:var(--ink-2)}
+.notice.danger{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.26);color:var(--ink-2)}
+.notice .w{flex:1;min-inline-size:120px}
+.notice code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
+  font-size:11px;color:var(--ink-3);overflow-wrap:anywhere}
+.notice b{color:var(--ink);font-weight:600}
+.xBtn{border:0;background:transparent;cursor:pointer;color:var(--ink-3);
+  line-height:1;padding:5px;border-radius:6px;display:grid;place-items:center;flex:none}
+.xBtn svg{display:block}
+.xBtn:hover{color:var(--ink);background:rgba(255,255,255,.08)}
+
+/* ── معالج الإنشاء ───────────────────────────────── */
+.steps{display:flex;gap:6px;padding:0 18px 12px}
+.stp{flex:1;font-size:10.5px;color:var(--ink-3);text-align:center;line-height:1.6}
+.stp .bd{block-size:3px;border-radius:99px;background:rgba(255,255,255,.08);margin-block-end:5px}
+.stp.on{color:var(--ink-2)}
+.stp.on .bd{background:var(--accent)}
+.stp.done .bd{background:rgba(110,196,155,.45)}
+.field{display:block;margin-block-end:12px}
+.field > span{display:block;font-size:11.5px;color:var(--ink-3);margin-block-end:5px}
+.inp{inline-size:100%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);
+  border-radius:9px;padding:8px 11px;font-size:13px;outline:0;
+  direction:ltr;unicode-bidi:isolate;text-align:start;
+  transition:border-color .16s var(--ease)}
+.inp:focus{border-color:rgba(110,196,155,.45)}
+/* نفس فخّ حقل البحث: outline:0 في .inp يلغي الحلقة العامة، فتُعاد صراحةً. */
+.inp:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.inp.bad{border-color:rgba(255,107,107,.5)}
+/* تلميح الحقل نصّ يقرؤه المستخدم ليعرف لماذا الزر معطّل — لا يصلح --ink-4. */
+.hint{font-size:10.5px;color:var(--ink-3);margin-block-start:5px;line-height:1.7}
+.hint.bad{color:var(--wanted)}
+.hint.ok{color:var(--clean)}
+.radios{display:grid;gap:7px}
+.rad{display:flex;align-items:flex-start;gap:9px;border:1px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.03);border-radius:10px;padding:9px 11px;cursor:pointer;
+  text-align:start;inline-size:100%;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.rad:hover{background:rgba(255,255,255,.06)}
+.rad[aria-pressed="true"]{border-color:rgba(110,196,155,.42);background:rgba(110,196,155,.07)}
+.rad .mark{inline-size:14px;block-size:14px;border-radius:50%;flex:none;margin-block-start:4px;
+  border:1.5px solid var(--ink-4);display:grid;place-items:center}
+.rad[aria-pressed="true"] .mark{border-color:var(--accent)}
+.rad .mark::after{content:"";inline-size:7px;block-size:7px;border-radius:50%;
+  background:var(--accent);transform:scale(0);transition:transform .16s var(--ease)}
+.rad[aria-pressed="true"] .mark::after{transform:scale(1)}
+.rad .t{font-size:12.5px;font-weight:600;line-height:1.5}
+.rad .d{font-size:10.5px;color:var(--ink-3);line-height:1.65}
+.btnRow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-block-start:14px}
+.btn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  padding:7px 15px;border-radius:9px;font-size:12.5px;cursor:pointer;color:var(--ink-2);
+  transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
+.btn:hover:not([disabled]){background:rgba(255,255,255,.1);color:var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.primary{border-color:rgba(110,196,155,.4);background:rgba(110,196,155,.14);color:var(--ink)}
+.btn.primary:hover:not([disabled]){background:rgba(110,196,155,.22)}
+.btn.danger{border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.13);color:#ffd9d9}
+.btn.danger:hover:not([disabled]){background:rgba(255,107,107,.2)}
+.review{border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:11px 13px;
+  background:rgba(255,255,255,.03);font-size:12px;line-height:1.85;color:var(--ink-2)}
+.review li{margin-inline-start:16px;margin-block-start:4px}
+/* لا direction:ltr هنا: نفس الوسم يلفّ اسم مستخدم لاتيني ويلفّ «مدير النظام»
+   العربية، وإجبار العربية على ltr يزيح ما يجاورها. العزل على .u وحده. */
+.review b{color:var(--ink);font-weight:600}
+.review .k{color:var(--ink-3);font-size:10.5px;font-family:ui-monospace,Menlo,monospace;
+  direction:ltr;unicode-bidi:isolate;overflow-wrap:anywhere}
+
+/* ── مصفوفة الصلاحيات ────────────────────────────── */
+/* جدول حقيقي لا شبكة من spans: الخلايا هنا «نعم»/«لا» ولا معنى لها بلا
+   عمودها، وشبكةُ عناصر عارية تُقرأ صوتيًا كسلسلة بلا رؤوس. الجدول الأصلي
+   يعطي الربط مجّانًا، و table-layout:fixed يحجز العمودين فلا يزحزحهما طول
+   النصّ في عمود القدرة. */
+.mx{inline-size:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+.mx th,.mx td{padding:7px 12px;border-block-end:1px solid var(--line-2);
+  font-weight:400;vertical-align:top}
+.mx thead th{font-size:10.5px;color:var(--ink-3);text-align:center;font-weight:400}
+.mx thead th.f{text-align:start}
+.mx col.narrow{inline-size:74px}
+.mx td.c{text-align:center;font-weight:600;white-space:nowrap}
+.mx .yes{color:var(--clean)}
+.mx .no{color:var(--ink-3)}
+.mx th.lbl{color:var(--ink-2);line-height:1.6;text-align:start}
+/* text-align:end داخل صندوق ltr = الحافة اليمنى، وهي نفسها حافة بداية
+   العنوان العربي فوقه. بدونها كان اسم الملف يهرب إلى الطرف الأقصى من عمود
+   عريض فينفصل عمّا يصفه. */
+.mx th.lbl small{display:block;color:var(--ink-3);font-size:10px;
+  direction:ltr;unicode-bidi:isolate;text-align:end;
+  font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+.mx tbody tr:last-child th,.mx tbody tr:last-child td{border-block-end:0}
+
+/* ── القوائم الشخصية ─────────────────────────────── */
+.wRow{display:grid;grid-template-columns:minmax(0,1fr) 74px 58px;gap:9px;align-items:center;
+  inline-size:100%;text-align:start;border:0;background:transparent;cursor:pointer;
+  padding:9px 18px;border-block-end:1px solid var(--line-2);
+  transition:background .14s var(--ease)}
+.wRow:hover{background:rgba(255,255,255,.045)}
+.wRow[aria-expanded="true"]{background:rgba(255,255,255,.07)}
+.wName{font-size:12.5px;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wId{font-size:10px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+  font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+/* «412 صفًا» شوط مختلط (رقم + عربية): direction:rtl مع عزل، لا ltr —
+   §5 من العقد. text-align:start يُبقيه على الحافة نفسها التي كان عليها. */
+.wNum{font-size:12px;text-align:start;font-variant-numeric:tabular-nums;
+  direction:rtl;unicode-bidi:isolate;color:var(--ink-2)}
+.wSt{font-size:10px;padding:1px 7px;border-radius:999px;border:1px solid currentColor;
+  text-align:center;white-space:nowrap}
+.sActive{color:var(--clean)} .sMissing{color:var(--ink-3)}
+.sDisabled{color:var(--unread)} .sExpired{color:var(--wanted)} .sDeleted{color:var(--wanted)}
+.wOpen{padding:11px 18px 13px;border-block-end:1px solid var(--line-2);
+  background:rgba(0,0,0,.16);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+.plate{display:inline-block;font-weight:600;color:var(--ink);
+  direction:rtl;unicode-bidi:isolate;font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;margin-inline-end:12px}
+.auditLine{margin-block-start:8px;padding-block-start:8px;
+  border-block-start:1px dashed rgba(255,255,255,.1);color:var(--ink-3);font-size:10.5px}
+.auditLine code{direction:ltr;unicode-bidi:isolate;color:var(--unread);
+  font-family:ui-monospace,Menlo,monospace;font-size:10px;overflow-wrap:anywhere}
+
+/* ── قائمة القواعد ───────────────────────────────── */
+.rules{font-size:12px;line-height:1.85;color:var(--ink-2)}
+.rules li{list-style:none;padding-block:7px;border-block-end:1px solid var(--line-2);
+  display:grid;grid-template-columns:16px minmax(0,1fr);gap:9px;align-items:start}
+.rules li:last-child{border-block-end:0}
+/* أيقونات SVG مضمَّنة لا محارف «✕/✓»: تلك تُرسَم بخط النظام فتختلف من جهاز
+   لآخر وتُقرأ صوتيًا كنصّ. ولونان لا لون واحد — كان الرفض والضمان بنفس
+   الأخضر، فبدا كلّ السطور تأكيدات. */
+.rules .g{display:grid;place-items:center;margin-block-start:4px}
+.rules .g svg{display:block}
+.rules .no{color:var(--wanted)}
+.rules .ok{color:var(--clean)}
+.rules code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
+  font-family:ui-monospace,Menlo,monospace;font-size:10.5px;overflow-wrap:anywhere}
+
+/* ── حوار التأكيد — عنصر dialog أصلي كما في ConfirmDialog.tsx ── */
+/* margin:auto صريح: التصفير الشامل *{margin:0} في أعلى الملف يلغي هامش
+   المتصفّح التلقائي لعنصر dialog، وهو ما يُوسِّطه. بدونه كان الحوار يلتصق
+   بحافة البداية (اليمين في RTL) بلا فجوة — 38..390 على شاشة 390px. */
+.dlg{margin:auto;border:1px solid rgba(255,255,255,.16);padding:0;border-radius:16px;
+  background:#101b16;color:var(--ink);
+  inline-size:min(480px,calc(100vw - 32px));
+  max-block-size:calc(100dvh - 32px);overflow-y:auto;
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 40px 80px -20px rgba(0,0,0,.9)}
+.dlg::backdrop{background:rgba(3,10,8,.66)}
+.dlgIn{padding:18px 20px 18px}
+.dlgT{font-size:15px;font-weight:600;line-height:1.6}
+.dlgT.bad{color:var(--wanted)}
+.dlgD{font-size:12.5px;color:var(--ink-2);line-height:1.85;margin-block-start:9px}
+.dlgD ul{margin-block-start:8px}
+.dlgD li{margin-inline-start:17px;margin-block-start:4px}
+.dlgD code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
+  font-family:ui-monospace,Menlo,monospace;font-size:11px;overflow-wrap:anywhere}
+.dlgD b{color:var(--ink);font-weight:600}
+.typeBox{margin-block-start:13px}
+.blocked{margin-block-start:12px;border:1px solid rgba(232,176,85,.3);
+  background:rgba(232,176,85,.08);border-radius:11px;padding:10px 12px;
+  font-size:11.5px;color:var(--ink-2);line-height:1.8}
+.blocked b{color:var(--unread)}
+.blocked code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
+  font-size:10.5px;overflow-wrap:anywhere}
+
+/* ── منع الوصول (معاينة بدور مشرف عمليات) ────────── */
+.deny{max-inline-size:760px;margin-inline:auto;margin-block-start:8px}
+.denyBody{padding:26px 24px 22px;text-align:start}
+.denyIco{inline-size:38px;block-size:38px;border-radius:11px;display:grid;place-items:center;
+  border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);color:var(--wanted)}
+.denyT{font-size:17px;font-weight:600;margin-block-start:13px}
+.denyD{font-size:12.5px;color:var(--ink-2);line-height:1.9;margin-block-start:9px}
+/* overflow-wrap:anywhere ضروري هنا: بطاقة المنع تحمل سطرًا برمجيًا كاملًا،
+   وعند 390px كان يمتدّ خارج البطاقة. */
+.denyD code{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);
+  font-family:ui-monospace,Menlo,monospace;font-size:11px;overflow-wrap:anywhere}
+.denyD b{color:var(--ink);font-weight:600}
+.denyGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));
+  gap:11px;margin-block-start:16px}
+.denyCard{border:1px solid var(--line);border-radius:12px;padding:11px 13px;
+  background:rgba(255,255,255,.03)}
+.denyCard .t{font-size:11.5px;color:var(--ink-3);margin-block-end:4px}
+.denyCard .v{font-size:12px;color:var(--ink-2);line-height:1.75}
+.denyCard .v code{font-size:10.5px}
+
+/* --ink-3 لا --ink-4: السطر الثاني هنا تصريحُ صدقٍ عن حقول غير معروضة،
+   وهو أهمّ من أن يُترك عند 3.1:1. */
+.foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-3);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+[hidden]{display:none !important}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ═══ الشريط العلوي ═══ -->
+<header class="bar"><div class="barIn">
+  <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · المشرفون</span></div>
+  <div class="barSep" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="أقسام اللوحة">
+    <a href="../gallery/overview.html">النظرة العامة</a>
+    <a href="operators.html">المشغّلون</a>
+    <a href="operator-detail.html">ملف مشغّل</a>
+    <a href="wanted-plates.html">المطلوبون</a>
+    <a href="admins.html" aria-current="page">المشرفون</a>
+    <a href="versions.html">الإصدارات</a>
+    <a href="notifications.html">الإشعارات</a>
+  </nav>
+
+  <div class="barSep" aria-hidden="true"></div>
+
+  <div style="display:flex;align-items:center">
+    <span class="segLbl">معاينة بدور</span>
+    <div class="seg" role="group" aria-label="معاينة الصفحة بدور" id="roleSeg">
+      <button type="button" data-role="admin" aria-pressed="true">مدير النظام</button>
+      <button type="button" data-role="mod" aria-pressed="false">مشرف عمليات</button>
+    </div>
+  </div>
+
+  <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+    <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+  </button>
+
+  <span class="barGrow"></span>
+
+  <div class="who">
+    <span class="av" aria-hidden="true">أ</span>
+    <span><span style="display:block">أحمد عماد</span><span class="rl" id="whoRole">مدير النظام</span></span>
+  </div>
+</div></header>
+
+<main class="stage">
+
+  <!-- ═══════════ العرض بدور مدير النظام ═══════════ -->
+  <div id="adminView">
+
+    <div class="notice" id="notice" role="status">
+      <span class="w" id="noticeText"></span>
+      <button class="xBtn" type="button" id="noticeClose" aria-label="إغلاق الإشعار">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg>
+      </button>
+    </div>
+
+    <!-- ── دفتر الأرقام ── -->
+    <section class="plane mid ledgerSec" aria-label="أرقام حسابات الإدارة">
+      <div class="pane">
+        <div class="ledger">
+          <div class="fig hero">
+            <div class="figL">حسابات الإدارة</div>
+            <div class="figV" id="fTotal" data-count="6">6</div>
+            <div class="figM"><span id="mTotal">تشمل حسابك</span></div>
+          </div>
+          <div class="fig">
+            <div class="figL">مديرو النظام</div>
+            <div class="figV" id="fAdmin" data-count="2">2</div>
+            <div class="figM"><span>صلاحية كاملة</span></div>
+          </div>
+          <div class="fig">
+            <div class="figL">مشرفو عمليات</div>
+            <div class="figV" id="fMod" data-count="4">4</div>
+            <div class="figM"><span>بلا وصول لهذه الصفحة</span></div>
+          </div>
+          <div class="fig warn">
+            <div class="figL">بانتظار تغيير كلمة المرور</div>
+            <div class="figV" id="fPend" data-count="2">2</div>
+            <div class="figM"><span id="mPend">يُطلب عند أول دخول</span></div>
+          </div>
+          <div class="fig">
+            <div class="figL">اشتراكات سارية</div>
+            <div class="figV" data-count="26">26</div>
+            <div class="figM"><span>من 31 مشغّلاً</span></div>
+          </div>
+          <div class="fig">
+            <div class="figL">سجلات المطلوبين النشطة</div>
+            <div class="figV" data-count="48392">48,392</div>
+            <div class="figM"><span>آخر استيراد: أمس 09:14</span></div>
+          </div>
+        </div>
+        <div class="src">
+          الأربعة الأولى محسوبة من <code>GET /v1/admin/admins</code> — المسار يعيد
+          <code>{ items }</code> وكل عنصر فيه <b>أربعة حقول فقط</b>:
+          <code>id</code> · <code>username</code> · <code>role</code> ·
+          <code>mustChangePassword</code>. لا يوجد عدّاد جاهز على الخادم، فالأرقام
+          هنا طول المصفوفة وتصنيفها في المتصفّح — وهذا كافٍ لأن العدد صغير
+          والقائمة غير مرقَّمة أصلًا.
+          الخانتان الأخيرتان من خارج هذه الشاشة، وهما سياق لا حسابات إدارة:
+          «اشتراكات سارية» هي <code>activeSubscriptions</code> من
+          <code>GET /v1/admin/dashboard</code> و«من 31 مشغّلاً» هي
+          <code>operators</code> من الاستجابة نفسها؛ وعدد سجلات المطلوبين هو
+          <code>wantedPlates</code> منها كذلك، بينما «آخر استيراد» وحده من
+          <code>GET /v1/admin/wanted-plates/latest-update</code>.
+          <b>ولا واحدة منها لحظية:</b> «لحظي» في هذا النظام محجوزة لحضور
+          المشغّلين بمهلة دقيقتين، فلم توسَم بها أي خانة هنا.
+          <span class="nw">غير موجود:</span> لا <code>createdAt</code> ولا آخر دخول
+          ولا محاولات دخول فاشلة — المسار لا يعيدها، ولا تُعرض هنا بأي صيغة.
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+
+      <!-- ═══ العمود الرئيسي ═══ -->
+      <div class="stack">
+
+        <!-- ── جدول الحسابات ── -->
+        <section class="plane near" aria-label="حسابات الإدارة">
+          <div class="pane">
+            <div class="paneHead">
+              <span class="paneTitle">حسابات الإدارة</span>
+              <div class="seg segSm" role="group" aria-label="تصفية حسب الدور" id="filterSeg">
+                <button type="button" data-f="all" aria-pressed="true">الكل</button>
+                <button type="button" data-f="admin" aria-pressed="false">مديرو النظام</button>
+                <button type="button" data-f="mod" aria-pressed="false">مشرفو عمليات</button>
+              </div>
+              <span class="barGrow"></span>
+              <label class="find">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                <input type="search" id="findInput" placeholder="اسم المستخدم" aria-label="بحث باسم المستخدم">
+              </label>
+            </div>
+
+            <div class="rowH" aria-hidden="true">
+              <span></span>
+              <span>اسم المستخدم</span>
+              <span>الدور</span>
+              <span>تغيير كلمة المرور</span>
+              <span></span>
+              <span style="text-align:end">الإجراء</span>
+            </div>
+
+            <div id="rows"></div>
+
+            <div class="tableFoot">
+              <span id="rowsCount">6 حسابات</span>
+              <span class="v" id="rowsNote">القائمة كاملة — بلا ترقيم صفحات</span>
+            </div>
+
+            <div class="src">
+              <code>GET /v1/admin/admins</code> — الصف يعرض <code>username</code> و
+              <code>role</code> (<code>admin</code> → «مدير النظام»، <code>mod</code> →
+              «مشرف عمليات») و <code>mustChangePassword</code> («مطلوب عند الدخول» /
+              «مكتمل»)، وعلامة «حسابك» عند تطابق <code>id</code> مع
+              <code>auth.account.id</code> — كلها من <code>AdminsPage.tsx</code>.
+              الترتيب من الخادم على <code>usernameNormalized</code> تصاعديًا.
+              <span class="nw">لا ترقيم:</span> <code>accounts.list()</code> يعيد كل
+              المستندات دفعةً واحدة بلا <code>page</code> ولا <code>pageSize</code>.
+              <b>الأزرار:</b> «كلمة المرور» →
+              <code>POST /v1/admin/admins/:id/password</code> · «حذف» →
+              <code>DELETE /v1/admin/admins/:id</code>. كلاهما <code>disabled</code>
+              على حسابك في الكود الحقيقي.
+              <span class="nw">يحتاج بناءً:</span> «تغيير الدور» و«تعطيل الحساب»
+              (المعلَّمان بنقطة برتقالية) <b>لا مسار لهما إطلاقًا</b> —
+              عمليات <code>AdminAccountRepository</code> الثماني هي
+              <code>hasAny</code> · <code>findById</code> ·
+              <code>findByNormalizedUsername</code> · <code>list</code> ·
+              <code>create</code> · <code>updatePassword</code> ·
+              <code>resetPassword</code> · <code>deleteGuarded</code>،
+              <b>وليس فيها تعديل دور</b>، ولا يوجد حقل حالة على
+              <code>admin_accounts</code>. أقرب موجود اليوم: الحذف (يمحو
+              الجلسات) وإعادة تعيين كلمة المرور (تمحو الجلسات وتفرض تغييرًا).
+              <span class="nw">ملاحظة تنفيذ:</span> رسائل الخطأ تصل من الخادم
+              بالإنجليزية في الحقل <code>title</code> وتُعرض كما هي في اللوحة الحالية
+              (<code>lib/api.ts</code>) — معروضة هنا كما تصل، مع شرح عربي تحتها.
+            </div>
+          </div>
+        </section>
+
+        <!-- ── مصفوفة الصلاحيات ── -->
+        <section class="plane far" aria-label="الأدوار والصلاحيات">
+          <div class="pane">
+            <div class="paneHead">
+              <span class="paneTitle">ما الذي يفصل الدورين</span>
+              <span class="paneNote">مقروءة من مواضع استدعاء <code style="font-size:11px">assertAdminRole</code> في الخادم — لا تخمين</span>
+            </div>
+            <table class="mx">
+              <colgroup><col><col class="narrow"><col class="narrow"></colgroup>
+              <thead>
+                <tr>
+                  <th class="f" scope="col">القدرة</th>
+                  <th scope="col">مدير</th>
+                  <th scope="col">مشرف</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th class="lbl" scope="row">حسابات الإدارة: عرض وإنشاء وحذف وكلمة مرور
+                    <small>admin-account-administration.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c no">لا</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">القوائم الشخصية للمشغّلين (ستة مسارات)
+                    <small>admin-personal-watchlists.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c no">لا · يُدوَّن</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">إعادة ربط أجهزة المشغّلين
+                    <small>operators.resetDevices</small></th>
+                  <td class="c yes">نعم</td><td class="c no">لا</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">تغيير كلمة مرور مشغّل
+                    <small>operators.resetPassword</small></th>
+                  <td class="c yes">نعم</td><td class="c no">لا</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">إصدارات التطبيق: عرض وسماح ومنع
+                    <small>app-version-administration.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c no">لا</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">إرسال إشعار للمشغّلين
+                    <small>notification-administration.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c no">لا</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">المشغّلون: عرض وإنشاء وتغيير الحالة والاشتراكات
+                    <small>operator-administration.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c yes">نعم</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">المطلوبون: عرض وحذف واستيراد
+                    <small>wanted-plate-administration.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c yes">نعم</td>
+                </tr>
+                <tr>
+                  <th class="lbl" scope="row">اللوحة والتقارير
+                    <small>work-reporting.ts</small></th>
+                  <td class="c yes">نعم</td><td class="c yes">نعم</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="src">
+              صفوف «لا» ليست حارسًا واحدًا. ستة منها استدعاء
+              <code>assertAdminRole(actor)</code> صريح في الملف المذكور تحتها، يرمي
+              <code>DomainError('FORBIDDEN', 'Administrator role required')</code> →
+              <code>403</code>.
+              <b>أما صفّ القوائم الشخصية فحارس آخر:</b>
+              <code>assertAdminAccess</code> في
+              <code>admin-personal-watchlists.ts</code> — يكتب حدث الرفض في سجل التدقيق
+              <b>ثم</b> يرمي
+              <code>DomainError('FORBIDDEN', 'Administrator role required for personal watchlists')</code>
+              بسبب <code>personal_watchlist_admin_forbidden</code>. لذلك كُتب «لا · يُدوَّن»
+              في خانته وحده. الصفوف الثلاثة الأخيرة بلا أي حارس دور، ولذلك يصل إليها
+              <code>mod</code> فعليًا.
+              <span class="nw">تحذير:</span> هذا الجدول <b>مكتوب يدويًا من قراءة الكود</b>،
+              لا يعيده أي مسار. لو أردته حيًّا فهو مسار جديد يصف الصلاحيات
+              (<code>GET /v1/admin/capabilities</code>) — غير موجود اليوم.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══ العمود الجانبي ═══ -->
+      <div class="stack">
+
+        <!-- ── معالج إنشاء حساب ── -->
+        <section class="plane mid" aria-label="إنشاء حساب إدارة">
+          <div class="pane">
+            <div class="paneHead">
+              <span class="paneTitle">إنشاء حساب</span>
+              <span class="paneNote" id="wizNote">ثلاث خطوات، والأخيرة مراجعة</span>
+            </div>
+
+            <div id="wizClosed">
+              <div class="paneBody">
+                <p style="font-size:12px;color:var(--ink-3);line-height:1.85">
+                  الحساب الجديد يبدأ دائمًا وعليه
+                  <span style="color:var(--unread)">تغيير كلمة مرور إلزامي</span>،
+                  وكلمة المرور الأولية لا تقلّ عن 12 محرفًا.
+                </p>
+                <div class="btnRow">
+                  <button class="btn primary" type="button" id="wizStart">إنشاء حساب جديد</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="wizOpen" hidden>
+              <div class="steps" id="steps">
+                <div class="stp" data-s="1"><div class="bd"></div>الهوية والدور</div>
+                <div class="stp" data-s="2"><div class="bd"></div>كلمة المرور</div>
+                <div class="stp" data-s="3"><div class="bd"></div>المراجعة</div>
+              </div>
+              <div class="paneBody" style="padding-block-start:0" id="wizBody"></div>
+            </div>
+
+            <div class="src">
+              <code>POST /v1/admin/admins</code> بجسم
+              <code>{ username, password, role }</code> — من
+              <code>features/admins/api.ts</code>. الخادم يفرض:
+              <code>role ∈ {admin, mod}</code> وإلا <code>INVALID_INPUT</code>، وطول
+              كلمة المرور ≥ 12 (<code>assertPasswordPolicy</code>)، ويضبط
+              <code>mustChangePassword: true</code> دائمًا للحساب الجديد.
+              تكرار الاسم يرتدّ بـ <code>CONFLICT</code> من فهرس
+              <code>usernameNormalized</code> الفريد.
+              الاستجابة <code>201</code> بأربعة حقول، ثم تُكتب في سجل التدقيق
+              <code>admin.created</code> مع <code>metadata.role</code>.
+              <span class="nw">فرق عن الواقع:</span> اللوحة الحالية نموذج من صفّ واحد بلا
+              خطوات؛ التقسيم إلى ثلاث خطوات هنا اقتراح واجهة لا يغيّر شيئًا في المسار.
+            </div>
+          </div>
+        </section>
+
+        <!-- ── القوائم الشخصية ── -->
+        <section class="plane mid" aria-label="القوائم الشخصية للمشغّلين">
+          <div class="pane">
+            <div class="paneHead">
+              <span class="paneTitle">القوائم الشخصية</span>
+              <span class="paneNote">مقصورة على مدير النظام · الرفض نفسه يُدوَّن</span>
+            </div>
+            <div class="paneSub">اضغط أي صف لعرض عيّنة — القراءة تُكتب في سجل التدقيق</div>
+            <div id="watchList"></div>
+            <div class="src">
+              <code>GET /v1/admin/personal-watchlists</code> — ترقيم بالمؤشّر
+              (<code>cursor</code> و <code>limit</code>، بحدّ 200) ولا يعيد إجماليًا
+              إطلاقًا، فلا يوجد رقم «مجموع القوائم» ولم يُعرض.
+              الحالات الخمس من <code>PersonalWatchlistStatusSchema</code>:
+              <code>active · missing · disabled · deleted · expired</code>،
+              والأعداد من <code>counts</code>:
+              <code>total · active · forbiddenLetters · invalidFormat</code>.
+              <span class="nw">تنبيه دقّة:</span> المسار يعيد <code>operatorId</code>
+              فقط — أسماء المشغّلين هنا موصولة يدويًا؛ وصلها فعليًا يحتاج
+              <code>$lookup</code> أو نداءً ثانيًا إلى <code>/v1/admin/operators</code>.
+              <b>التدقيق:</b> فتح صفّ يستدعي
+              <code>GET /v1/admin/personal-watchlists/:operatorId/plates</code> فيكتب
+              <code>personal_watchlist.content_read</code>؛ ومحاولة
+              <code>mod</code> تكتب <code>personal_watchlist.admin_access_denied</code>
+              مع <code>metadata.surface</code> ثم ترمي <code>403</code>.
+            </div>
+          </div>
+        </section>
+
+        <!-- ── قواعد الحماية ── -->
+        <section class="plane mid" aria-label="قواعد الحماية">
+          <div class="pane">
+            <div class="paneHead"><span class="paneTitle">ما يرفضه الخادم</span></div>
+            <div class="paneBody">
+              <ul class="rules">
+                <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>حذف حسابك أنت —
+                  <code>CONFLICT · admin_self_delete</code></span></li>
+                <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>حذف آخر مدير نظام متبقٍّ —
+                  <code>CONFLICT · final_admin</code>، بقفل حذف على مستوى قاعدة البيانات</span></li>
+                <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>تغيير كلمة مرور حسابك من هنا —
+                  <code>CONFLICT · admin_self_password_reset</code>، لها مسار
+                  <code>/auth/password</code> يطلب كلمتك الحالية</span></li>
+                <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>كلمة مرور أقصر من 12 محرفًا —
+                  <code>INVALID_INPUT</code></span></li>
+                <li><span class="g no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="يرفضه الخادم"><path d="M5.5 5.5 18.5 18.5"/><path d="M18.5 5.5 5.5 18.5"/></svg></span><span>اسم مستخدم مكرّر —
+                  <code>CONFLICT</code></span></li>
+                <li><span class="g ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="يضمنه الخادم"><path d="m5 12.6 4.6 4.6L19 7.2"/></svg></span><span>الحذف وإعادة تعيين كلمة المرور
+                  يمحوان جلسات ذلك الحساب فورًا —
+                  <code>sessions.deleteByAdmin(id)</code></span></li>
+                <li><span class="g ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="يضمنه الخادم"><path d="m5 12.6 4.6 4.6L19 7.2"/></svg></span><span>أي مشرف عليه
+                  <code>mustChangePassword</code> يُمنع من كل المسارات عدا الجلسة
+                  وكلمة المرور والخروج — <code>admin_password_change_required</code></span></li>
+              </ul>
+            </div>
+            <div class="src">
+              الأولى والثالثة من <code>admin-account-administration.ts</code>،
+              والثانية من <code>deleteGuarded</code> في
+              <code>admin-auth-mongo-repository.ts</code> (يعدّ مستندات
+              <code>role:'admin'</code> داخل قفل قبل الحذف).
+              الرابعة من <code>assertPasswordPolicy</code>، والخامسة من فهرس فريد
+              على <code>usernameNormalized</code>.
+              الأخيرة من <code>protectedRoute</code> في <code>routes/admin.ts</code>.
+              <span class="nw">لا يوجد عرض لسجل التدقيق:</span> الأحداث
+              <code>admin.created</code> و <code>admin.deleted</code> و
+              <code>admin.password.reset</code> تُكتب ولا يقرؤها أي مسار — القراءة
+              الوحيدة على سجل التدقيق في النظام كله هي آخر استيراد لقائمة المطلوبين.
+              شاشة «سجل التدقيق» تحتاج مسارًا جديدًا كاملًا.
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ العرض بدور مشرف عمليات ═══════════ -->
+  <div id="modView" hidden>
+    <section class="plane near deny" aria-label="لا صلاحية">
+      <div class="pane">
+        <div class="denyBody">
+          <div class="denyIco" aria-hidden="true">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>
+          </div>
+          <div class="denyT">هذه الصفحة مقصورة على مدير النظام</div>
+          <div class="denyD">
+            حساب <b>مشرف عمليات</b> لا يرى شاشة المشرفين إطلاقًا. الرفض يقع في مكانين
+            مستقلّين، ولا يعتمد أحدهما على الآخر:
+          </div>
+          <div class="denyGrid">
+            <div class="denyCard">
+              <div class="t">في المتصفّح</div>
+              <div class="v"><code>AdminsPage.tsx</code> يخرج فورًا:
+                <code>if (auth.account.role !== 'admin') return &lt;Navigate replace to="/" /&gt;</code>
+                — تحويل إلى اللوحة الرئيسية قبل أي طلب شبكة.</div>
+            </div>
+            <div class="denyCard">
+              <div class="t">على الخادم</div>
+              <div class="v">كل دوال <code>AdminAccountAdministration</code> تبدأ بـ
+                <code>assertAdminRole(actor)</code> →
+                <code>403 FORBIDDEN</code> بعنوان
+                <code>Administrator role required</code>. تعطيلُ الحارس في الواجهة
+                لا يفتح شيئًا.</div>
+            </div>
+            <div class="denyCard">
+              <div class="t">القوائم الشخصية — وهنا الفرق</div>
+              <div class="v">الرفض نفسه <b>حدث مُدوَّن</b>: يُكتب
+                <code>personal_watchlist.admin_access_denied</code> مع
+                <code>surface</code> و <code>targetIds</code> و
+                <code>eventId</code> <b>قبل</b> رمي الخطأ. المحاولة الفاشلة تترك أثرًا،
+                لا الناجحة وحدها.</div>
+            </div>
+            <div class="denyCard">
+              <div class="t">ما يبقى متاحًا له</div>
+              <div class="v">المشغّلون وحالاتهم واشتراكاتهم · المطلوبون واستيرادهم ·
+                اللوحة والتقارير. هذه المسارات بلا
+                <code>assertAdminRole</code> فعليًا.</div>
+            </div>
+          </div>
+          <div class="denyD" style="margin-block-start:16px">
+            أعِد المفتاح في الشريط العلوي إلى «مدير النظام» للعودة إلى الشاشة.
+          </div>
+        </div>
+        <div class="src">
+          مصدر السلوك: <code>AdminsPage.tsx</code> السطران الأولان بعد
+          <code>useEffect</code>، و <code>domain/admin/admin.ts</code>
+          (<code>assertAdminRole</code>)، و
+          <code>admin-personal-watchlists.ts</code> (<code>assertAdminAccess</code>).
+          <span class="nw">ملاحظة:</span> هذا المفتاح <b>معاينة تصميم فقط</b> ولا يوجد
+          في اللوحة الحقيقية — الدور يأتي من الجلسة
+          (<code>GET /v1/admin/auth/session</code>) ولا يمكن تبديله من الواجهة.
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>لا يعرض المسار تاريخ إنشاء الحساب ولا آخر دخول ولا محاولات دخول فاشلة — هذه الحقول لا تصل إلى اللوحة</span>
+</footer>
+
+<!-- ═══ حوار التأكيد — عنصر dialog أصلي، نفس نمط ConfirmDialog.tsx ═══ -->
+<dialog class="dlg" id="dlg" aria-labelledby="dlgT">
+  <div class="dlgIn">
+    <div class="dlgT" id="dlgT"></div>
+    <div class="dlgD" id="dlgD"></div>
+    <div class="typeBox" id="dlgType" hidden>
+      <label class="field" style="margin-block-end:0">
+        <span id="dlgTypeLbl">اكتب اسم المستخدم للتأكيد</span>
+        <input class="inp" id="dlgTypeInput" autocomplete="off" spellcheck="false">
+      </label>
+    </div>
+    <div class="btnRow">
+      <button class="btn" type="button" id="dlgCancel">إلغاء</button>
+      <button class="btn danger" type="button" id="dlgOk">تأكيد</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ══ الحسابات — بشكل PanelAccount الحقيقي ══════════
+     الحقول الأربعة فقط التي يعيدها GET /v1/admin/admins:
+     id · username · role · mustChangePassword.
+     لا اسم معروض ولا تاريخ إنشاء ولا آخر دخول — لأنها لا تصل. */
+  var ACCOUNTS = [
+    { id:"ad_01", username:"ahmed.emad",   role:"admin", must:false },
+    { id:"ad_02", username:"sara.ghamdi",  role:"admin", must:false },
+    { id:"ad_03", username:"bandar.omari", role:"mod",   must:false },
+    { id:"ad_04", username:"mona.shehri",  role:"mod",   must:true  },
+    { id:"ad_05", username:"tariq.salem",  role:"mod",   must:false },
+    { id:"ad_06", username:"abeer.najjar", role:"mod",   must:true  }
+  ];
+  var ME = "ad_01";                       /* auth.account.id */
+  /* المعرّف يولّده الخادم (IdGenerator)؛ هنا عدّاد لا يعيد استخدام رقم محذوف */
+  var seq = ACCOUNTS.length;
+  function nextId(){ seq += 1; return "ad_" + String(seq).padStart(2,"0"); }
+
+  /* القوائم الشخصية — شكل AdminPersonalWatchlistMetadataPage */
+  var WATCH = [
+    { op:"op_7f21", name:"خالد المطيري", status:"active",
+      counts:{ total:412, active:396, forbiddenLetters:9, invalidFormat:7 },
+      rev:"rev_7f21c4", updated:"أمس 21:40",
+      sample:["ر ن ب 4582","ك ط د 9046","ص ع ه 1187"] },
+    { op:"op_3c05", name:"نورة السبيعي", status:"active",
+      counts:{ total:158, active:158, forbiddenLetters:0, invalidFormat:0 },
+      rev:"rev_3c0518", updated:"اليوم 08:12",
+      sample:["ب ي و 6350","د ر ق 2708","ه م ن 5419"] },
+    { op:"op_91ba", name:"لطيفة الحربي", status:"disabled",
+      counts:{ total:74, active:71, forbiddenLetters:2, invalidFormat:1 },
+      rev:"rev_91ba07", updated:"قبل 3 أيام",
+      sample:["ط س ل 8264","و ح أ 3095"] },
+    { op:"op_52de", name:"ماجد الشمري", status:"expired",
+      counts:{ total:203, active:199, forbiddenLetters:3, invalidFormat:1 },
+      rev:"rev_52de33", updated:"قبل 9 أيام",
+      sample:["ق ب ع 7731","ل د ص 4426","ن أ ط 6802"] },
+    { op:"op_0000", name:"ريم الدوسري", status:"missing",
+      counts:{ total:0, active:0, forbiddenLetters:0, invalidFormat:0 },
+      rev:null, updated:null, sample:[] }
+  ];
+
+  var WSTATUS = {
+    active:  { t:"نشطة",   c:"sActive"  },
+    missing: { t:"لا توجد", c:"sMissing" },
+    disabled:{ t:"معطّلة",  c:"sDisabled"},
+    expired: { t:"منتهية",  c:"sExpired" },
+    deleted: { t:"محذوفة",  c:"sDeleted" }
+  };
+
+  var state = {
+    view:"admin",            /* admin | mod — معاينة الدور */
+    filter:"all",            /* all | admin | mod */
+    q:"",
+    wiz:null,                /* {step, username, role, password} */
+    watchOpen:null
+  };
+
+  var $  = function(id){ return document.getElementById(id); };
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+  var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); };
+
+  /* ══ الأيقونات — نفس أيقونات lucide المستخدمة في اللوحة ══ */
+  var IC_KEY = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 8.3-8.3"/><path d="m17 6 2.5 2.5"/><path d="m14.5 8.5 2.5 2.5"/></svg>';
+  var IC_ROLE= '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5.5c0 4 3 7.6 7 9.5 4-1.9 7-5.5 7-9.5V6z"/><path d="m9.2 12 2 2 3.6-3.8"/></svg>';
+  var IC_BAN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg>';
+  var IC_DEL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16"/><path d="M9.5 6.5V4.8h5v1.7"/><path d="M6.5 6.5 7.4 20h9.2l.9-13.5"/><path d="M10.3 10v6"/><path d="M13.7 10v6"/></svg>';
+
+  /* ══ الإشعار — نفس نغمتَي Notice.tsx ══════════════ */
+  function notice(html, tone){
+    var box = $("notice");
+    box.className = "notice on " + (tone || "success");
+    $("noticeText").innerHTML = html;
+  }
+  function clearNotice(){ $("notice").className = "notice"; }
+  $("noticeClose").addEventListener("click", clearNotice);
+
+  /* ══ الأرقام ═════════════════════════════════════ */
+  function countTo(el, target){
+    if(document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches){
+      el.textContent = fmt(target); return;
+    }
+    var t0 = performance.now(), from = 0, dur = 900;
+    function step(now){
+      var p = Math.min((now-t0)/dur,1), e = 1-Math.pow(1-p,3);
+      el.textContent = fmt(Math.round(from+(target-from)*e));
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function paintLedger(animate){
+    var total = ACCOUNTS.length,
+        admins = ACCOUNTS.filter(function(a){ return a.role==="admin"; }).length,
+        mods = total-admins,
+        pend = ACCOUNTS.filter(function(a){ return a.must; }).length,
+        set = function(id,v){
+          var el=$(id); el.dataset.count=v;
+          if(animate) countTo(el,v); else el.textContent=fmt(v);
+        };
+    set("fTotal",total); set("fAdmin",admins); set("fMod",mods); set("fPend",pend);
+    $("mPend").textContent = pend ? "يُطلب عند أول دخول" : "لا شيء معلّق";
+  }
+
+  /* ══ جدول الحسابات ═══════════════════════════════ */
+  function visible(){
+    var q = state.q.trim().toLowerCase();
+    return ACCOUNTS.filter(function(a){
+      if(state.filter!=="all" && a.role!==state.filter) return false;
+      if(q && a.username.toLowerCase().indexOf(q)===-1) return false;
+      return true;
+    });
+  }
+  function drawRows(){
+    var list = visible(), host = $("rows");
+
+    if(!list.length){
+      host.innerHTML = '<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
+        'جرّب «الكل» أو امسح نصّ البحث — القائمة كلها '+ACCOUNTS.length+' حسابات.</div>';
+    } else {
+      host.innerHTML = list.map(function(a){
+        var self = a.id===ME,
+            adm  = a.role==="admin";
+        return '<div class="row'+(self?" isSelf":"")+'">'+
+          '<span class="av2" aria-hidden="true">'+esc(a.username.charAt(0).toUpperCase())+'</span>'+
+          '<span class="uName">'+esc(a.username)+'</span>'+
+          '<span class="chip '+(adm?"cAdmin":"cMod")+'">'+(adm?"مدير النظام":"مشرف عمليات")+'</span>'+
+          '<span class="pwd'+(a.must?" due":"")+'">'+(a.must?"مطلوب عند الدخول":"مكتمل")+'</span>'+
+          /* عمود محجوز دائمًا — فارغ في كل الصفوف عدا حسابك */
+          '<span class="selfTag">'+(self?"حسابك":"")+'</span>'+
+          '<span class="acts">'+
+            btn("pwd", a, IC_KEY,  "تغيير كلمة مرور "+a.username, self, false)+
+            btn("role",a, IC_ROLE, "تغيير دور "+a.username,       false, true )+
+            btn("off", a, IC_BAN,  "تعطيل حساب "+a.username,      self,  true )+
+            btn("del", a, IC_DEL,  "حذف "+a.username,             self,  false)+
+          '</span>'+
+        '</div>';
+      }).join("");
+    }
+
+    $("rowsCount").textContent = list.length===ACCOUNTS.length
+      ? ACCOUNTS.length+" حسابات"
+      : list.length+" من "+ACCOUNTS.length+" حسابات";
+    $("rowsNote").textContent = state.filter==="all" && !state.q
+      ? "القائمة كاملة — بلا ترقيم صفحات"
+      : "تصفية في المتصفّح — المسار لا يقبل بحثًا";
+  }
+  function btn(kind, a, icon, label, disabled, proposed){
+    /* النقطة البرتقالية وحدها كانت تحمل معنى «مقترح، بلا مسار» — وهي بصرية
+       بحتة. الاسم المتاح يقوله صراحةً حتى لا يبدو الزر منفَّذًا لقارئ الشاشة. */
+    var full = label + (proposed ? " — مقترح، لا مسار له في الواجهة الخلفية" : "");
+    return '<button class="iBtn'+(kind==="del"?" danger":"")+(proposed?" spec":"")+'" '+
+      'type="button" data-act="'+kind+'" data-id="'+a.id+'" '+
+      (disabled?'disabled ':'')+'aria-label="'+esc(full)+'" title="'+esc(full)+'">'+
+      icon+'</button>';
+  }
+
+  /* ══ الحوار — خطوة تأكيد صريحة تسمّي ما سيحدث ══════ */
+  var dlg = $("dlg"), pending = null;
+
+  function openDialog(o){
+    pending = o;
+    $("dlgT").textContent = o.title;
+    $("dlgT").className = "dlgT" + (o.danger ? " bad" : "");
+    $("dlgD").innerHTML = o.body;
+    $("dlgOk").textContent = o.confirmLabel || "تأكيد";
+    $("dlgOk").className = "btn " + (o.danger ? "danger" : "primary");
+    $("dlgOk").hidden = !o.onConfirm;
+    $("dlgCancel").textContent = o.onConfirm ? "إلغاء" : "إغلاق";
+    var wantType = Boolean(o.typeToConfirm);
+    $("dlgType").hidden = !wantType;
+    if(wantType){
+      $("dlgTypeLbl").textContent = 'اكتب "'+o.typeToConfirm+'" للتأكيد';
+      $("dlgTypeInput").value = "";
+      $("dlgOk").disabled = true;
+    } else {
+      $("dlgOk").disabled = false;
+    }
+    dlg.showModal();
+    if(wantType) $("dlgTypeInput").focus(); else $("dlgCancel").focus();
+    if(o.after) o.after();
+  }
+  $("dlgTypeInput").addEventListener("input", function(){
+    if(!pending || !pending.typeToConfirm) return;
+    $("dlgOk").disabled = this.value.trim() !== pending.typeToConfirm;
+  });
+  $("dlgCancel").addEventListener("click", function(){ pending = null; dlg.close(); });
+  /* لا نُفرغ pending في حدث close: المتصفّح يطلقه بشكل غير متزامن، فكان يمسح
+     الحوار التالي حين تفتح خطوةٌ خطوةً بعدها (تغيير كلمة المرور خطوتان). */
+  $("dlgOk").addEventListener("click", function(){
+    var act = pending && pending.onConfirm;
+    pending = null;
+    dlg.close();
+    if(act) act();
+  });
+
+  /* ══ الإجراءات على صفّ ═══════════════════════════ */
+  $("rows").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-act]");
+    if(!b || b.disabled) return;
+    var a = ACCOUNTS.filter(function(x){ return x.id===b.dataset.id; })[0];
+    if(!a) return;
+    ({ pwd:askReset, role:askRole, off:askDisable, del:askDelete })[b.dataset.act](a);
+  });
+
+  /* حذف — تأكيد بالكتابة، ثم الحارسان الحقيقيان */
+  function askDelete(a){
+    var admins = ACCOUNTS.filter(function(x){ return x.role==="admin"; }).length,
+        final  = a.role==="admin" && admins<=1;
+    openDialog({
+      title:"حذف "+a.username,
+      danger:true,
+      confirmLabel:"حذف الحساب",
+      typeToConfirm:a.username,
+      body:
+        "سيؤدّي هذا إلى ما يلي، بهذا الترتيب:"+
+        "<ul>"+
+          "<li>حذف مستند الحساب <b class='u'>"+esc(a.username)+"</b> ("+
+            (a.role==="admin"?"مدير النظام":"مشرف عمليات")+") نهائيًا من "+
+            "<code>admin_accounts</code>.</li>"+
+          "<li>إنهاء كل جلساته المفتوحة فورًا — <code>sessions.deleteByAdmin(id)</code>؛ "+
+            "من كان داخلًا يُخرَج عند أول طلب.</li>"+
+          "<li>كتابة <code>admin.deleted</code> في سجل التدقيق مع "+
+            "<code>metadata.role</code>.</li>"+
+        "</ul>"+
+        "<p style='margin-block-start:9px'>لا تراجع عن هذه الخطوة، ولا يوجد سلّة "+
+        "محذوفات لحسابات الإدارة."+(final
+          ? " <b>وهذا آخر مدير نظام</b> — الخادم سيرفض."
+          : "")+"</p>",
+      onConfirm:function(){
+        if(a.id===ME){
+          return notice("<b>Cannot delete current admin</b> — <code>CONFLICT · admin_self_delete</code>"+
+            "<br>الخادم يرفض حذف الحساب الذي تعمل به. اطلب من مدير آخر تنفيذه.","danger");
+        }
+        if(a.role==="admin" && ACCOUNTS.filter(function(x){ return x.role==="admin"; }).length<=1){
+          return notice("<b>Cannot delete final admin</b> — <code>CONFLICT · final_admin</code>"+
+            "<br>لا يمكن أن يبقى النظام بلا مدير. أنشئ مديرًا آخر أولًا.","danger");
+        }
+        ACCOUNTS = ACCOUNTS.filter(function(x){ return x.id!==a.id; });
+        rerender(true);
+        notice("تم حذف حساب الإدارة. <span style='color:var(--ink-3)'>"+
+          "<span class='u'>"+esc(a.username)+"</span> · أُنهيت جلساته · دُوّن "+
+          "<code>admin.deleted</code></span>","success");
+      }
+    });
+  }
+
+  /* إعادة تعيين كلمة المرور — خطوتان: إدخال ثم مراجعة */
+  function askReset(a){
+    openDialog({
+      title:"تغيير كلمة مرور "+a.username,
+      confirmLabel:"متابعة",
+      body:
+        "<p>كلمة المرور الجديدة لا تقلّ عن <b>12</b> محرفًا. أدخلها ثم راجع الأثر "+
+        "قبل التنفيذ.</p>"+
+        "<label class='field' style='margin-block-start:12px;margin-block-end:0'>"+
+          "<span>كلمة المرور الجديدة</span>"+
+          "<input class='inp' type='password' id='rsInput' autocomplete='new-password'>"+
+          "<span class='hint' id='rsHint'>0 من 12 محرفًا</span>"+
+        "</label>",
+      onConfirm:function(){
+        var v = ($("rsInput") && $("rsInput").value) || "";
+        if(v.length < 12){
+          return notice("<b>Password must contain at least 12 characters</b> — "+
+            "<code>INVALID_INPUT</code><br>"+
+            "الحارس <code>assertPasswordPolicy</code> يرفض قبل أي كتابة في قاعدة البيانات.","danger");
+        }
+        confirmReset(a);
+      },
+      after:function(){
+        var i = $("rsInput"), h = $("rsHint");
+        if(!i) return;
+        i.addEventListener("input", function(){
+          h.textContent = this.value.length+" من 12 محرفًا";
+          h.className = "hint " + (this.value.length>=12 ? "ok" : (this.value.length ? "bad" : ""));
+        });
+        i.focus();
+      }
+    });
+  }
+  function confirmReset(a){
+    openDialog({
+      title:"تأكيد تغيير كلمة مرور "+a.username,
+      confirmLabel:"حفظ كلمة المرور",
+      body:
+        "عند التأكيد:"+
+        "<ul>"+
+          "<li>تُستبدل بصمة كلمة المرور لحساب <b class='u'>"+esc(a.username)+"</b>.</li>"+
+          "<li>يُضبط <code>mustChangePassword: true</code> — سيُطلب منه تعيين كلمة "+
+            "جديدة عند دخوله التالي، ويُمنع من كل المسارات حتى يفعل.</li>"+
+          "<li>تُنهى جلساته المفتوحة كلها فورًا.</li>"+
+          "<li>يُكتب <code>admin.password.reset</code> في سجل التدقيق.</li>"+
+        "</ul>"+
+        "<p style='margin-block-start:9px'>لن تُعرض كلمة المرور بعد الحفظ — سلّمها "+
+        "له بقناة خارج النظام.</p>",
+      onConfirm:function(){
+        a.must = true;
+        rerender(false);
+        notice("تم تغيير كلمة المرور، وسيُطلب من المشرف تعيين كلمة جديدة عند دخوله التالي."+
+          " <span style='color:var(--ink-3)'><span class='u'>"+esc(a.username)+"</span> · أُنهيت جلساته</span>","success");
+      }
+    });
+  }
+
+  /* تغيير الدور — لا مسار له. الحوار يقول ذلك صراحةً ولا يغيّر شيئًا. */
+  function askRole(a){
+    var to = a.role==="admin" ? "مشرف عمليات" : "مدير النظام";
+    openDialog({
+      title:"تغيير دور "+a.username,
+      body:
+        "<p>الأثر المقصود: نقل <b class='u'>"+esc(a.username)+"</b> من "+
+        (a.role==="admin"?"<b>مدير النظام</b>":"<b>مشرف عمليات</b>")+
+        " إلى <b>"+to+"</b>"+(a.role==="mod"
+          ? " — أي فتح حسابات الإدارة والقوائم الشخصية وإصدارات التطبيق والإشعارات وإعادة ربط الأجهزة أمامه."
+          : " — أي إغلاق كل ما سبق أمامه، مع إبقاء المشغّلين والمطلوبين والتقارير.")+"</p>"+
+        "<div class='blocked'>"+
+          "<b>غير منفَّذ في الواجهة الخلفية.</b> لا يوجد مسار لتعديل الدور: "+
+          "عمليات <code>AdminAccountRepository</code> الكتابية هي "+
+          "<code>create</code> و <code>updatePassword</code> و <code>resetPassword</code> و "+
+          "<code>deleteGuarded</code> — ولا واحدة منها تمسّ <code>role</code>، و "+
+          "<code>routes/admin.ts</code> لا يسجّل أي "+
+          "<code>PATCH</code> على <code>/admins/:id</code>. الدور يُحدَّد مرة واحدة عند "+
+          "الإنشاء.<br>"+
+          "المطلوب لبنائه: <code>PATCH /v1/admin/admins/:id</code> بجسم "+
+          "<code>{ role }</code>، مع حارس «لا تُنزِل آخر مدير» مطابق لمنطق "+
+          "<code>deleteGuarded</code>، وإنهاء جلسات الحساب بعد التغيير، وحدث تدقيق "+
+          "<code>admin.role.changed</code>."+
+        "</div>"+
+        "<p style='margin-block-start:10px;color:var(--ink-3);font-size:11.5px'>"+
+        "الحلّ المتاح اليوم: أنشئ حسابًا جديدًا بالدور المطلوب ثم احذف القديم.</p>",
+      confirmLabel:null,
+      onConfirm:null
+    });
+  }
+
+  /* تعطيل الحساب — لا حقل حالة على حسابات الإدارة أصلًا */
+  function askDisable(a){
+    openDialog({
+      title:"تعطيل حساب "+a.username,
+      body:
+        "<p>الأثر المقصود: منع <b class='u'>"+esc(a.username)+"</b> من الدخول مع الإبقاء على "+
+        "المستند وسجلّ تدقيقه، بحيث يمكن إعادة تفعيله لاحقًا.</p>"+
+        "<div class='blocked'>"+
+          "<b>غير منفَّذ في الواجهة الخلفية.</b> مستند "+
+          "<code>admin_accounts</code> يحمل <code>username</code> و "+
+          "<code>usernameNormalized</code> و <code>passwordHash</code> و "+
+          "<code>role</code> و <code>mustChangePassword</code> و "+
+          "<code>createdAt</code> و <code>updatedAt</code> — <b>ولا حقل حالة</b>. "+
+          "حالة <code>disabled</code> موجودة للمشغّلين فقط "+
+          "(<code>OperatorStatus</code>) لا للمشرفين.<br>"+
+          "المطلوب لبنائه: حقل <code>status</code> على المستند، وترحيل، وفحصه في "+
+          "<code>authenticate</code>، ومسار <code>POST /v1/admin/admins/:id/status</code>، "+
+          "وحارس «لا تعطّل آخر مدير»."+
+        "</div>"+
+        "<p style='margin-block-start:10px;color:var(--ink-3);font-size:11.5px'>"+
+        "الأقرب المتاح اليوم: <b>الحذف</b> (نهائي، ويمحو الجلسات) أو "+
+        "<b>إعادة تعيين كلمة المرور</b> (تمحو الجلسات وتحجب الحساب خلف تغيير إجباري "+
+        "حتى تُسلَّم الكلمة الجديدة).</p>",
+      confirmLabel:null,
+      onConfirm:null
+    });
+  }
+
+  /* ══ معالج الإنشاء — ثلاث خطوات ══════════════════ */
+  function startWizard(){
+    state.wiz = { step:1, username:"", role:"mod", password:"" };
+    drawWizard();
+  }
+  function closeWizard(){ state.wiz = null; drawWizard(); }
+
+  function drawWizard(){
+    var w = state.wiz;
+    $("wizClosed").hidden = Boolean(w);
+    $("wizOpen").hidden   = !w;
+    if(!w) { $("wizNote").textContent = "ثلاث خطوات، والأخيرة مراجعة"; return; }
+
+    $("wizNote").textContent = "الخطوة "+w.step+" من 3";
+    [].forEach.call($("steps").children, function(el){
+      var n = +el.dataset.s;
+      el.className = "stp" + (n===w.step ? " on" : (n<w.step ? " done" : ""));
+    });
+
+    var body = $("wizBody"), taken;
+    if(w.step===1){
+      taken = ACCOUNTS.some(function(a){
+        return a.username.toLowerCase() === w.username.trim().toLowerCase(); });
+      body.innerHTML =
+        '<label class="field"><span>اسم المستخدم</span>'+
+          '<input class="inp'+(taken?" bad":"")+'" id="wUser" autocomplete="off" '+
+            'spellcheck="false" value="'+esc(w.username)+'">'+
+          '<span class="hint'+(taken?" bad":"")+'">'+
+            (taken ? "هذا الاسم مستخدم — الخادم يردّ CONFLICT من الفهرس الفريد."
+                   : "يُطبَّع على الخادم قبل الحفظ (normalizeUsername).")+'</span>'+
+        '</label>'+
+        '<div class="field"><span>الدور</span><div class="radios">'+
+          radio("mod",  "مشرف عمليات",
+            "المشغّلون والاشتراكات · المطلوبون والاستيراد · اللوحة والتقارير.", w.role)+
+          radio("admin","مدير النظام",
+            "كل ما سبق، زائد حسابات الإدارة والقوائم الشخصية وإصدارات التطبيق "+
+            "والإشعارات وإعادة ربط الأجهزة.", w.role)+
+        '</div></div>'+
+        '<div class="btnRow">'+
+          '<button class="btn" type="button" data-w="cancel">إلغاء</button>'+
+          '<button class="btn primary" type="button" data-w="next"'+
+            ((!w.username.trim()||taken)?" disabled":"")+'>التالي</button>'+
+        '</div>';
+    } else if(w.step===2){
+      var n = w.password.length, ok = n>=12;
+      body.innerHTML =
+        '<label class="field"><span>كلمة المرور الأولية</span>'+
+          '<input class="inp'+(n&&!ok?" bad":"")+'" id="wPass" type="password" '+
+            'autocomplete="new-password" value="'+esc(w.password)+'">'+
+          '<span class="hint'+(ok?" ok":(n?" bad":""))+'">'+n+' من 12 محرفًا — '+
+            (ok?"مقبولة":"assertPasswordPolicy يرفض ما دونها")+'</span>'+
+        '</label>'+
+        '<div class="review">لن تُخزَّن هذه الكلمة كما هي؛ يُحفَظ تجزيؤها فقط، '+
+          'ولن تعرضها اللوحة مرة أخرى بعد الإنشاء.</div>'+
+        '<div class="btnRow">'+
+          '<button class="btn" type="button" data-w="back">رجوع</button>'+
+          '<button class="btn primary" type="button" data-w="next"'+
+            (ok?"":" disabled")+'>مراجعة</button>'+
+        '</div>';
+    } else {
+      var isAdmin = w.role==="admin";
+      body.innerHTML =
+        '<div class="review">'+
+          'عند التأكيد يُرسَل <span class="k">POST /v1/admin/admins</span> وينتج عنه:'+
+          '<ul>'+
+            '<li>حساب باسم <b class="u">'+esc(w.username.trim())+'</b> بدور '+
+              (isAdmin?'<b>مدير النظام</b>':'<b>مشرف عمليات</b>')+'.</li>'+
+            '<li><span class="k">mustChangePassword: true</span> — يُطلب منه تعيين '+
+              'كلمة جديدة عند أول دخول، ولا يصل لأي مسار قبلها.</li>'+
+            '<li>حدث تدقيق <span class="k">admin.created</span> مع '+
+              '<span class="k">metadata.role</span>.</li>'+
+            (isAdmin
+              ? '<li>وصول فوري إلى <b>القوائم الشخصية للمشغّلين</b> — أعلى امتياز في '+
+                'النظام، وكل قراءة منها تُدوَّن باسمه.</li>'
+              : '<li>لن يرى هذه الصفحة إطلاقًا، ومحاولته الوصول إلى القوائم الشخصية '+
+                'تُدوَّن كرفض.</li>')+
+          '</ul>'+
+        '</div>'+
+        '<div class="btnRow">'+
+          '<button class="btn" type="button" data-w="back">رجوع</button>'+
+          '<button class="btn primary" type="button" data-w="create">إنشاء الحساب</button>'+
+        '</div>';
+    }
+  }
+  function radio(value, title, desc, current){
+    /* data-wrole لا data-role: الأخيرة يستعملها مفتاح «معاينة بدور» في الشريط
+       العلوي، والاسم المشترك فخّ عند أي انتقاء عام في المستند. */
+    return '<button class="rad" type="button" data-wrole="'+value+'" '+
+      'aria-pressed="'+(current===value)+'">'+
+      '<span class="mark" aria-hidden="true"></span>'+
+      '<span><span class="t">'+title+'</span><span class="d">'+desc+'</span></span></button>';
+  }
+
+  $("wizStart").addEventListener("click", startWizard);
+  $("wizOpen").addEventListener("input", function(e){
+    if(!state.wiz) return;
+    if(e.target.id==="wUser"){ state.wiz.username = e.target.value; drawWizardKeep("wUser"); }
+    if(e.target.id==="wPass"){ state.wiz.password = e.target.value; drawWizardKeep("wPass"); }
+  });
+  function drawWizardKeep(id){
+    var el = document.getElementById(id), pos = el ? el.selectionStart : null;
+    drawWizard();
+    var next = document.getElementById(id);
+    if(next){ next.focus(); try{ next.setSelectionRange(pos,pos); }catch(err){} }
+  }
+  $("wizOpen").addEventListener("click", function(e){
+    var r = e.target.closest("[data-wrole]"), b = e.target.closest("[data-w]");
+    if(r && state.wiz){ state.wiz.role = r.dataset.wrole; drawWizard(); return; }
+    if(!b || !state.wiz) return;
+    var act = b.dataset.w;
+    if(act==="cancel") return closeWizard();
+    if(act==="back")   { state.wiz.step--; return drawWizard(); }
+    if(act==="next")   { state.wiz.step++; return drawWizard(); }
+    if(act==="create") return createAccount();
+  });
+  function createAccount(){
+    var w = state.wiz, name = w.username.trim();
+    if(ACCOUNTS.some(function(a){ return a.username.toLowerCase()===name.toLowerCase(); })){
+      return notice("<b>Admin username already exists</b> — <code>CONFLICT</code>"+
+        "<br>الفهرس الفريد على <code>usernameNormalized</code> رفض الإدراج.","danger");
+    }
+    ACCOUNTS.push({ id:nextId(), username:name, role:w.role, must:true });
+    ACCOUNTS.sort(function(a,b){ return a.username.localeCompare(b.username); });
+    closeWizard();
+    rerender(true);
+    notice("تم إنشاء حساب الإدارة. <span style='color:var(--ink-3)'><span class='u'>"+esc(name)+"</span> · "+
+      (w.role==="admin"?"مدير النظام":"مشرف عمليات")+
+      " · تغيير كلمة المرور مطلوب عند أول دخول</span>","success");
+  }
+
+  /* ══ القوائم الشخصية ═════════════════════════════ */
+  function drawWatch(){
+    $("watchList").innerHTML = WATCH.map(function(w){
+      var s = WSTATUS[w.status], open = state.watchOpen===w.op;
+      return '<button class="wRow" type="button" data-op="'+w.op+'" '+
+        'aria-expanded="'+open+'">'+
+          '<span><span class="wName">'+w.name+'</span>'+
+            '<span class="wId">'+w.op+'</span></span>'+
+          '<span class="wNum">'+(w.counts.total?fmt(w.counts.total)+" صفًا":"—")+'</span>'+
+          '<span class="wSt '+s.c+'">'+s.t+'</span>'+
+        '</button>'+
+        (open ? watchDetail(w) : "");
+    }).join("");
+  }
+  function watchDetail(w){
+    if(!w.counts.total){
+      return '<div class="wOpen">لا توجد مراجعة نشطة لهذا الحساب — الحالة '+
+        '<span class="'+WSTATUS[w.status].c+'">'+WSTATUS[w.status].t+'</span>. '+
+        'لا يوجد محتوى يُقرأ، ولن يُكتب حدث قراءة محتوى.</div>';
+    }
+    return '<div class="wOpen">'+
+      'المراجعة النشطة <span class="wId">'+w.rev+'</span> · آخر تحديث '+w.updated+'<br>'+
+      'مقبولة <b style="color:var(--ink-2)">'+fmt(w.counts.active)+'</b> · '+
+      'حروف ممنوعة <b style="color:var(--ink-2)">'+w.counts.forbiddenLetters+'</b> · '+
+      'صيغة غير صالحة <b style="color:var(--ink-2)">'+w.counts.invalidFormat+'</b>'+
+      '<div style="margin-block-start:8px">'+
+        w.sample.map(function(p){ return '<span class="plate">'+p+'</span>'; }).join("")+
+      '</div>'+
+      '<div class="auditLine">هذه القراءة تُكتب باسمك: '+
+        '<code>personal_watchlist.content_read</code> · '+
+        '<code>surface=revision</code> · <code>state=active</code> · '+
+        '<code>targetIds=['+w.op+']</code></div>'+
+    '</div>';
+  }
+  $("watchList").addEventListener("click", function(e){
+    var b = e.target.closest(".wRow"); if(!b) return;
+    state.watchOpen = state.watchOpen===b.dataset.op ? null : b.dataset.op;
+    drawWatch();
+  });
+
+  /* ══ التصفية ═════════════════════════════════════ */
+  function segment(id, apply){
+    var g = $(id);
+    g.addEventListener("click", function(e){
+      var b = e.target.closest("button"); if(!b) return;
+      [].forEach.call(g.querySelectorAll("button"), function(x){
+        x.setAttribute("aria-pressed", String(x===b));
+      });
+      apply(b);
+    });
+  }
+  segment("filterSeg", function(b){ state.filter = b.dataset.f; drawRows(); });
+  $("findInput").addEventListener("input", function(){
+    state.q = this.value; drawRows();
+  });
+
+  /* ══ معاينة الدور — تبديل الشاشة كلها ════════════ */
+  segment("roleSeg", function(b){
+    state.view = b.dataset.role;
+    var mod = state.view==="mod";
+    $("adminView").hidden = mod;
+    $("modView").hidden   = !mod;
+    $("whoRole").textContent = mod ? "مشرف عمليات" : "مدير النظام";
+    if(mod){ clearNotice(); if(dlg.open) dlg.close(); }
+  });
+
+  /* ══ مصادر البيانات ══════════════════════════════ */
+  $("srcTgl").addEventListener("click", function(){
+    var on = this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed", String(on));
+    document.documentElement.setAttribute("data-src", on ? "1" : "0");
+  });
+
+  function rerender(animate){ drawRows(); paintLedger(animate); }
+
+  drawRows(); drawWatch(); paintLedger(true); drawWizard();
+})();
+</script>
+</body>
+</html>

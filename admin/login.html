@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-depth="all">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تسجيل الدخول — نظام العربي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   تسجيل الدخول — /login
+   الشاشة الوحيدة بلا هيكل: لا شريط علوي، لا تنقّل، لا تذييل تنقّل.
+   بطاقة واحدة متمركزة على المشهد المضاء.
+
+   كل ما تعرضه هذه الصفحة مأخوذ من:
+     admin-client/src/features/auth/LoginPage.tsx
+     admin-client/src/features/auth/AuthProvider.tsx
+     admin-client/src/features/auth/api.ts
+     admin-client/src/lib/api.ts
+     admin-client/src/app/App.tsx
+     server/src/interfaces/http/routes/admin.ts        (مسارات /v1/admin/auth/*)
+     server/src/application/use-cases/admin/admin-authentication.ts
+     server/src/interfaces/http/problem-response.ts
+     server/src/bootstrap/security.ts                  (حدّ الطلبات)
+   شغّل «مصادر البيانات» أسفل البطاقة لترى المصدر تحت كل لوحة.
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#f1f6f3; --ink-2:#bac6c0; --ink-3:#87938c; --ink-4:#5f6b65;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --accent:#6ec49b;
+  --wanted:#ff6b6b;
+  --clean:#3ddc97;
+  --unread:#e8b055;
+  --ease:cubic-bezier(.22,.61,.36,1);
+
+  --far-a:.050;  --far-ink:1;
+  --mid-a:.058;  --mid-ink:1;
+  --near-a:.080; --near-ink:1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* min-height لا height — الجسم يكبر مع المحتوى فتغطّيه طبقة المشهد كاملةً
+   وهي مطلقة الموضع بدل ثابتة. */
+html,body{min-block-size:100%}
+body{
+  position:relative;
+  background:#06100c;color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ── المشهد — منسوخ حرفيًا من الشاشة المرجعية ───────── */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+.l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
+.l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
+.l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
+.l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
+.l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── المادة — اللوحة الزجاجية ───────────────────────
+   بلا backdrop-filter وبلا أي حركة عليها. الإحساس الزجاجي من
+   البياض الشفّاف + اللمعة العلوية + الحدّ الرفيع + الظل. */
+.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
+.far .pane{background:rgba(255,255,255,var(--far-a));
+  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+.mid .pane{background:rgba(255,255,255,var(--mid-a))}
+.near .pane{background:rgba(255,255,255,var(--near-a));
+  border-color:rgba(255,255,255,.13);
+  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+
+/* ── المسرح ─────────────────────────────────────────
+   الصفحة تتوقّف عن التمدّد عند 1560px وتتمركز؛ عمود الدخول نفسه أضيق
+   بكثير لأن الشاشة بطاقة واحدة لا لوحة قيادة. */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 40px)}
+.shell{inline-size:100%;max-inline-size:1120px;margin-inline:auto}
+
+/* ── البطاقة ───────────────────────────────────────── */
+.cardWrap{display:grid;justify-items:center;padding-block-start:min(9vh,84px)}
+.card{inline-size:min(452px,100%)}
+.cardIn{padding:26px 26px 22px}
+.brandRow{display:flex;align-items:center;gap:11px}
+.mk{inline-size:36px;block-size:36px;border-radius:11px;display:grid;place-items:center;
+  flex:none;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+  font-size:15px;font-weight:600}
+.brandTxt{min-inline-size:0}
+.brandTxt h1{font-size:15.5px;font-weight:600;line-height:1.6}
+.brandTxt p{font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.cardTitle{margin-block-start:22px;font-size:19px;font-weight:600;line-height:1.5}
+.cardLead{font-size:12.5px;color:var(--ink-3);margin-block-start:2px}
+
+/* ── التنبيه — يقابل <Notice tone="danger"> في الشيفرة ── */
+.notice{display:flex;align-items:flex-start;gap:9px;margin-block-start:16px;
+  padding:10px 12px;border-radius:12px;font-size:12.5px;line-height:1.7;
+  border:1px solid currentColor}
+.notice[hidden]{display:none}
+.notice .nTxt{color:var(--ink-2);min-inline-size:0}
+.notice .nIco{flex:none;margin-block-start:3px}
+.notice.danger{color:var(--wanted);background:rgba(255,107,107,.07)}
+.notice.warn{color:var(--unread);background:rgba(232,176,85,.07)}
+.notice.info{color:var(--accent);background:rgba(110,196,155,.07)}
+.nRaw{display:none;margin-block-start:5px;font-size:10px;color:var(--ink-3);
+  direction:ltr;unicode-bidi:isolate;text-align:start;overflow-wrap:anywhere;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+:root[data-src="1"] .nRaw{display:block}
+
+/* ── الحقول ────────────────────────────────────────── */
+/* [hidden] وحده لا يكفي: display:grid يهزم قاعدة المتصفّح، فيبقى النموذج
+   ظاهرًا تحت بطاقة النجاح. نفس علّة .notice[hidden] أدناه. */
+.form{margin-block-start:18px;display:grid;gap:14px}
+.form[hidden]{display:none}
+.field{display:grid;gap:6px}
+.field>label{font-size:12.5px;color:var(--ink-2)}
+.inShell{display:flex;align-items:center;gap:4px;
+  border:1px solid rgba(255,255,255,.11);border-radius:10px;
+  background:rgba(255,255,255,.045);
+  padding-inline:12px 6px;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.inShell:focus-within{border-color:rgba(110,196,155,.5);background:rgba(255,255,255,.06)}
+.inShell input{flex:1;min-inline-size:0;border:0;background:transparent;color:var(--ink);
+  font:inherit;font-size:13.5px;line-height:1.7;padding-block:10px;outline:none}
+.inShell input::placeholder{color:var(--ink-3)}
+/* الحقول التي تحمل قيمًا لاتينية (اسم المستخدم وكلمة المرور) تُكتب من اليسار */
+.inShell input.ltr{direction:ltr;unicode-bidi:isolate;text-align:start}
+.pwBtn{flex:none;border:0;background:transparent;cursor:pointer;color:var(--ink-3);
+  padding:6px;border-radius:8px;display:grid;place-items:center;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.pwBtn:hover{color:var(--ink-2);background:rgba(255,255,255,.07)}
+.pwBtn[aria-pressed="true"]{color:var(--accent)}
+.fieldHint{font-size:10.5px;color:var(--ink-3);line-height:1.7}
+
+.submit{margin-block-start:4px;inline-size:100%;display:inline-flex;align-items:center;
+  justify-content:center;gap:9px;cursor:pointer;
+  border:1px solid rgba(110,196,155,.34);border-radius:11px;
+  background:rgba(110,196,155,.13);color:var(--ink);
+  font-size:13.5px;font-weight:600;padding:11px 16px;
+  transition:background .16s var(--ease),border-color .16s var(--ease),opacity .16s var(--ease)}
+.submit:hover{background:rgba(110,196,155,.19);border-color:rgba(110,196,155,.5)}
+.submit[disabled]{cursor:progress;opacity:.72}
+/* الدوّار الوحيد في الشاشة، ولا يظهر إلا أثناء الطلب.
+   الحركة على محتوى غير زجاجي — لا على اللوحة. */
+.spin{inline-size:13px;block-size:13px;border-radius:50%;flex:none;
+  border:2px solid rgba(255,255,255,.22);border-block-start-color:var(--accent);
+  animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── حالة النجاح — تحلّ محلّ النموذج ──────────────── */
+.doneBox{margin-block-start:18px;border:1px solid rgba(110,196,155,.26);border-radius:13px;
+  background:rgba(110,196,155,.06);padding:14px 15px}
+.doneHead{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600}
+.doneRow{display:grid;grid-template-columns:118px minmax(0,1fr);gap:8px;
+  font-size:12px;color:var(--ink-3);margin-block-start:9px;align-items:baseline}
+.doneRow b{color:var(--ink-2);font-weight:500;min-inline-size:0;
+  overflow-wrap:anywhere}
+.doneRow .mono{direction:ltr;unicode-bidi:isolate;text-align:start;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+.goLink{display:inline-flex;align-items:center;gap:7px;margin-block-start:13px;
+  text-decoration:none;border:1px solid rgba(255,255,255,.16);border-radius:10px;
+  background:rgba(255,255,255,.06);padding:8px 13px;font-size:12.5px;color:var(--ink-2);
+  transition:background .16s var(--ease),color .16s var(--ease)}
+.goLink:hover{background:rgba(255,255,255,.11);color:var(--ink)}
+.backBtn{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.03);
+  color:var(--ink-3);border-radius:10px;padding:8px 13px;font-size:12px;cursor:pointer;
+  margin-block-start:13px;margin-inline-start:8px;
+  transition:background .16s var(--ease),color .16s var(--ease)}
+.backBtn:hover{background:rgba(255,255,255,.09);color:var(--ink-2)}
+
+/* ── أدوات النموذج الأولي ──────────────────────────
+   ليست جزءًا من المنتج: شريط هادئ أسفل البطاقة يقود المحاكاة
+   ويكشف مصادر البيانات. الشاشة الحقيقية بلا أي عنصر منها. */
+.tools{margin-block-start:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  justify-content:center}
+.toolLbl{font-size:11px;color:var(--ink-3)}
+.seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;flex-wrap:wrap;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+.seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
+  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  transition:color .16s var(--ease),background .16s var(--ease)}
+.seg button:hover{color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
+.seg.segSm button{padding:4px 10px;font-size:11.5px}
+.tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(110,196,155,.35)}
+.tglBox{inline-size:14px;block-size:14px;border-radius:4px;border:1.5px solid currentColor;
+  display:grid;place-items:center;flex:none}
+.tglBox::after{content:"";inline-size:7px;block-size:7px;border-radius:1.5px;
+  background:var(--accent);transform:scale(0);transition:transform .16s var(--ease)}
+.tgl[aria-pressed="true"] .tglBox::after{transform:scale(1)}
+.scenNote{max-inline-size:640px;margin-inline:auto;text-align:center;
+  font-size:11.5px;color:var(--ink-3);margin-block-start:10px;line-height:1.8}
+
+/* ── مصادر البيانات ──────────────────────────────────
+   النص هنا صُعِّد درجة كاملة (ink-4 ← ink-3، و ink-3 ← ink-2): على اللوحة
+   المركّبة ‎#151d19 يعطي ‎--ink-4 نسبة 3.0:1 وهي دون 4.5:1 لنصّ الجسم،
+   بينما ‎--ink-3 يعطي 5.4:1. التوكنز نفسها لم تتغيّر — تغيّر استعمالها. */
+.src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
+  padding:8px 16px 11px;border-block-start:1px dashed rgba(255,255,255,.10);
+  direction:rtl}
+.src code{direction:ltr;unicode-bidi:isolate;color:var(--ink-2);
+  overflow-wrap:anywhere;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.src .nw{color:var(--accent)}
+.src .warn{color:var(--unread)}
+.src b{color:var(--ink-2);font-weight:500}
+:root[data-src="1"] .src{display:block}
+
+/* ── الشبكة السفلية — لوحات المواصفة ──────────────── */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;gap:18px;
+  margin-block-start:28px;align-items:start}
+@media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
+@media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
+.stack{display:grid;gap:18px;align-content:start}
+.paneHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:14px 18px 0}
+.paneTitle{font-size:14.5px;font-weight:600}
+.paneNote{font-size:11.5px;color:var(--ink-3);flex:1;min-inline-size:120px}
+.paneBody{padding:12px 18px 16px}
+
+/* ── آلة الحالات — AuthState في AuthProvider ──────── */
+.fsm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:12px 18px 6px}
+@media(max-width:900px){ .fsm{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media(max-width:520px){ .fsm{grid-template-columns:minmax(0,1fr)} }
+.st{border:1px solid var(--line-2);border-radius:12px;padding:10px 11px;
+  background:rgba(255,255,255,.02);
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.st .stN{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
+.st .sdot{inline-size:7px;block-size:7px;border-radius:50%;flex:none;
+  background:rgba(255,255,255,.22)}
+.st .stD{font-size:10.5px;color:var(--ink-3);line-height:1.7;margin-block-start:4px}
+.st.on{background:rgba(255,255,255,.07);border-color:rgba(110,196,155,.34)}
+.st.on .stN{color:var(--ink)}
+.st.on .sdot{background:var(--accent);box-shadow:0 0 8px -1px rgba(110,196,155,.7)}
+.st.dead{opacity:.55}
+.fsmFoot{padding:4px 18px 2px;font-size:11px;color:var(--ink-3);line-height:1.8}
+
+/* ── سجل الاستجابات — صفوف شبكية بأعمدة محجوزة ────
+   لا flex: عمود «الرمز» فارغ في الاستجابات الناجحة، ومع flex كانت
+   بقية الأعمدة تتزحزح بين صف وآخر. */
+.logHead,.row{display:grid;
+  grid-template-columns:74px 52px 190px 54px 128px minmax(0,1fr);
+  align-items:center;gap:11px;padding:8px 18px}
+.logHead{font-size:10.5px;color:var(--ink-3);border-block-end:1px solid var(--line-2)}
+.row{border-block-end:1px solid var(--line-2);font-size:12px;
+  transition:background .14s var(--ease)}
+.row:last-child{border-block-end:0}
+.row:hover{background:rgba(255,255,255,.045)}
+.rT{color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums;
+  direction:ltr;unicode-bidi:isolate}
+.rM{color:var(--ink-3);font-size:10.5px;direction:ltr;unicode-bidi:isolate}
+.rPath{direction:ltr;unicode-bidi:isolate;font-size:10.5px;color:var(--ink-2);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rS{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;
+  border:1px solid currentColor;text-align:center;line-height:1.7;white-space:nowrap;
+  font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.sOk{color:var(--clean)} .sBad{color:var(--wanted)} .sWarn{color:var(--unread)}
+.rC{color:var(--ink-3);font-size:10px;direction:ltr;unicode-bidi:isolate;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rTitle{color:var(--ink-3);font-size:11px;min-inline-size:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;direction:ltr;unicode-bidi:isolate;text-align:start}
+/* تحت 760px يصير الصف سطرين بمواضع صريحة فتبقى الأعمدة مصطفّة */
+@media(max-width:760px){
+  .logHead{display:none}
+  .row{grid-template-columns:74px minmax(0,1fr) 54px;row-gap:6px}
+  .rT    {grid-area:1/1/2/2}
+  .rPath {grid-area:1/2/2/3}
+  .rS    {grid-area:1/3/2/4}
+  .rM    {grid-area:2/1/3/2}
+  .rC    {grid-area:2/2/3/3}
+  .rTitle{grid-area:2/3/3/4;text-align:end}
+}
+.empty{padding:34px 18px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty b{display:block;color:var(--ink-2);font-weight:500;margin-block-end:4px}
+.logFoot{padding:9px 18px 2px;border-block-start:1px solid var(--line-2);
+  font-size:10.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── مقياس حدّ الطلبات ─────────────────────────────── */
+.meter{display:flex;gap:5px;margin-block-start:10px}
+.slot{block-size:6px;flex:1;border-radius:99px;background:rgba(255,255,255,.08);
+  transition:background .18s var(--ease)}
+.slot.used{background:rgba(255,255,255,.42)}
+.slot.hot{background:var(--wanted)}
+.meterV{font-size:26px;font-weight:600;line-height:1.3;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  direction:ltr;unicode-bidi:isolate;text-align:start}
+.meterL{font-size:11.5px;color:var(--ink-3)}
+.meterM{font-size:11px;color:var(--ink-3);margin-block-start:8px;line-height:1.8}
+
+/* ── قوائم الحقائق ─────────────────────────────────── */
+.facts{display:grid;gap:9px;font-size:12px;color:var(--ink-3);line-height:1.8}
+.facts .f{display:grid;grid-template-columns:14px minmax(0,1fr);gap:9px;align-items:start}
+.facts .bul{inline-size:5px;block-size:5px;border-radius:50%;background:var(--ink-4);
+  margin-block-start:9px;margin-inline-start:4px}
+.facts .no .bul{background:var(--wanted)}
+.facts .yes .bul{background:var(--clean)}
+.facts b{color:var(--ink-2);font-weight:500}
+.facts code{direction:ltr;unicode-bidi:isolate;font-size:10.5px;color:var(--ink-2);
+  overflow-wrap:anywhere;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;
+  font-size:12px;color:var(--ink-3);align-items:baseline}
+.kv b{color:var(--ink-2);font-weight:500;text-align:start;
+  direction:ltr;unicode-bidi:isolate;overflow-wrap:anywhere;min-inline-size:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+
+.foot{position:relative;z-index:10;padding:22px 26px 26px;color:var(--ink-3);font-size:11.5px;
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  max-inline-size:1560px;margin-inline:auto}
+
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .cardWrap{padding-block-start:24px}
+  .cardIn{padding:20px 18px 18px}
+  .meterV{font-size:22px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true">
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <div class="lamp l4"></div><div class="lamp l5"></div><div class="vign"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<main class="stage">
+ <div class="shell">
+
+  <!-- ═══ البطاقة — الطبقة الأمامية ═══ -->
+  <div class="cardWrap">
+    <section class="card near" aria-labelledby="loginTitle">
+      <div class="pane">
+        <div class="cardIn">
+
+          <div class="brandRow">
+            <span class="mk" aria-hidden="true">ع</span>
+            <span class="brandTxt">
+              <h1>نظام العربي — لوحة الإدارة</h1>
+              <p>إدارة عمليات فحص المركبات</p>
+            </span>
+          </div>
+
+          <h2 class="cardTitle" id="loginTitle">تسجيل الدخول</h2>
+          <p class="cardLead">استخدم حساب الإدارة المخصص لك.</p>
+
+          <!-- تنبيه الوصول أو الخطأ — يقابل <Notice tone="danger"> -->
+          <div class="notice danger" id="notice" role="alert" hidden>
+            <svg class="nIco" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 7.5v5"/><path d="M12 16.2v.01"/>
+            </svg>
+            <span class="nTxt">
+              <span id="noticeText"></span>
+              <span class="nRaw" id="noticeRaw"></span>
+            </span>
+          </div>
+
+          <!-- ── النموذج ── -->
+          <form class="form" id="loginForm" novalidate>
+            <div class="field">
+              <label for="username">اسم المستخدم</label>
+              <span class="inShell">
+                <input id="username" name="username" type="text" class="ltr"
+                       autocomplete="username" autocapitalize="none" spellcheck="false"
+                       autofocus required aria-describedby="userHint">
+              </span>
+              <span class="fieldHint" id="userHint">
+                يُطابَق بعد التطبيع: إزالة الفراغات ثم NFKC ثم خفض الحالة.
+              </span>
+            </div>
+
+            <div class="field">
+              <label for="password">كلمة المرور</label>
+              <span class="inShell">
+                <input id="password" name="password" type="password" class="ltr"
+                       autocomplete="current-password" required>
+                <button class="pwBtn" type="button" id="pwToggle"
+                        aria-controls="password" aria-pressed="false"
+                        aria-label="إظهار كلمة المرور">
+                  <svg id="pwIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                       stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+
+            <button class="submit" type="submit" id="submitBtn">
+              <span class="spin" id="spin" hidden aria-hidden="true"></span>
+              <span id="submitText">تسجيل الدخول</span>
+            </button>
+          </form>
+
+          <!-- ── حالة ما بعد النجاح — تحلّ محلّ النموذج ── -->
+          <div id="doneBox" hidden></div>
+
+        </div>
+
+        <div class="src">
+          الإرسال ينفّذ <code>POST /v1/admin/auth/login</code> بجسم
+          <code>{ username, password }</code> عبر
+          <code>features/auth/api.ts</code>، ويمرّ على
+          <code>lib/api.ts</code> الذي يضيف البادئة <code>/v1/admin</code> و
+          <code>credentials:'include'</code>.
+          الاسم يُرسَل بعد <code>username.trim()</code> من
+          <code>LoginPage.tsx</code>، ويُطبَّع في الخادم بـ
+          <code>normalizeUsername</code> = <code>trim + NFKC + toLocaleLowerCase('en-US')</code>.
+          النجاح يعيد <code>{ account, timeZone }</code> فقط ويضع كوكي
+          <code>elaraby_admin_session</code> بخصائص
+          <code>HttpOnly; SameSite=Strict; Path=/</code> (و <code>Secure</code> في الإنتاج).
+          <b>الزرّ:</b> نصّه <code>جارٍ تسجيل الدخول…</code> و <code>disabled</code> أثناء
+          الطلب — موجود حرفيًا في <code>LoginPage.tsx</code>؛
+          <span class="nw">الدوّار وحده إضافة بصرية من النموذج.</span>
+          <span class="warn">غير مطابق للشيفرة:</span> الشاشة الحقيقية تحمل أيضًا زرّ تبديل
+          الوضع الليلي/النهاري (<code>useTheme</code>)، ولم يُنقل لأن نظام التصميم هنا
+          يعرّف مشهدًا داكنًا واحدًا.
+          <span class="warn">غير موجودة في المنتج:</span> لوحة «تم تسجيل الدخول» أدناه من
+          هذا النموذج وحده. الشاشة الحقيقية لا تعرض شيئًا بعد النجاح — يعيد
+          <code>LoginPage.tsx</code> عنصر <code>&lt;Navigate replace&gt;</code> فورًا، فتُستبدل
+          الصفحة كلها. اللوحة هنا تكشف الوجهة وسببها بدل أن تُخفيهما في تحويل لحظي.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ═══ أدوات النموذج الأولي — ليست من المنتج ═══ -->
+  <div class="tools">
+    <span class="toolLbl">كيف وصلت</span>
+    <div class="seg segSm" role="group" aria-label="حالة الوصول إلى الصفحة" id="arrivalSeg">
+      <button type="button" data-a="direct" aria-pressed="true">زيارة مباشرة</button>
+      <button type="button" data-a="expired" aria-pressed="false">جلسة منتهية</button>
+      <button type="button" data-a="from" aria-pressed="false">تحويل من صفحة محمية</button>
+    </div>
+
+    <span class="toolLbl">ردّ الخادم</span>
+    <div class="seg segSm" role="group" aria-label="استجابة الخادم المحاكاة" id="scenSeg">
+      <button type="button" data-s="ok"    aria-pressed="true">ناجح — مدير</button>
+      <button type="button" data-s="okMod" aria-pressed="false">ناجح — مشرف</button>
+      <button type="button" data-s="first" aria-pressed="false">أول دخول</button>
+      <button type="button" data-s="bad"   aria-pressed="false">بيانات غير صحيحة</button>
+      <button type="button" data-s="limit" aria-pressed="false">تجاوز الحدّ</button>
+      <button type="button" data-s="down"  aria-pressed="false">خادم غير متاح</button>
+    </div>
+
+    <button class="tgl" type="button" id="srcTgl" aria-pressed="false">
+      <span class="tglBox" aria-hidden="true"></span><span>مصادر البيانات</span>
+    </button>
+  </div>
+  <p class="scenNote" id="scenNote">زيارة مباشرة إلى &#x2066;/login&#x2069; · دخول ناجح لحساب مدير نظام — يعيد الخادم account و timeZone ويضع كوكي الجلسة، فتنتقل الحالة إلى authenticated.</p>
+
+  <!-- ═══ لوحات المواصفة ═══ -->
+  <div class="grid">
+
+    <div class="stack">
+
+      <!-- ── آلة الحالات ── -->
+      <section class="far" aria-label="حالات الجلسة">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">حالة الجلسة</span>
+            <span class="paneNote">الحالات الأربع المعرّفة في <span dir="ltr">AuthProvider</span> — المضاءة هي الحالية</span>
+          </div>
+          <div class="fsm" id="fsm">
+            <div class="st" data-st="checking">
+              <div class="stN"><span class="sdot" aria-hidden="true"></span>checking</div>
+              <div class="stD">أثناء فحص الجلسة عند التحميل، وأثناء الإرسال.</div>
+            </div>
+            <!-- الحالة الابتدائية مكتوبة في الـ markup لا يضعها JS:
+                 لو لم تُنفَّذ النصوص تبقى اللوحة مقروءة بحالتها الصحيحة -->
+            <div class="st on" data-st="anonymous">
+              <div class="stN"><span class="sdot" aria-hidden="true"></span>anonymous</div>
+              <div class="stD">غير مسجّل. يحمل رسالة خطأ أو <span dir="ltr">null</span>.</div>
+            </div>
+            <div class="st" data-st="authenticated">
+              <div class="stN"><span class="sdot" aria-hidden="true"></span>authenticated</div>
+              <div class="stD">يحمل <span dir="ltr">account</span> و <span dir="ltr">timeZone</span>؛ عندها يتحوّل المسار.</div>
+            </div>
+            <div class="st dead" data-st="configuration-error">
+              <div class="stN"><span class="sdot" aria-hidden="true"></span>configuration-error</div>
+              <div class="stD">لا تنتج عن هذا النموذج إطلاقًا — تنشأ فقط حين يفشل فحص الجلسة الأول بغير 401.</div>
+            </div>
+          </div>
+          <div class="fsmFoot" id="fsmFoot">الحالة الآن anonymous — بلا رسالة، وهذا ما تراه الزيارة الأولى. الوجهة المحفوظة بعد النجاح: &#x2066;/&#x2069;.</div>
+          <div class="src">
+            الحالات نصًّا من نوع <code>AuthState</code> في
+            <code>features/auth/AuthProvider.tsx</code>.
+            <code>signIn</code> يضع <code>checking</code> أولًا، ثم
+            <code>authenticated</code> عند النجاح أو
+            <code>anonymous(errorMessage(error))</code> عند الفشل.
+            <code>configuration-error</code> تُبنى في فحص الجلسة الابتدائي وحده حين لا
+            تكون الاستجابة 401 — ولذلك لا يمكن لهذا النموذج الوصول إليها.
+            التحويل بعد النجاح من <code>LoginPage.tsx</code>:
+            <code>mustChangePassword ? '/password' : (location.state?.from ?? '/')</code>.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── سجل الاستجابات ── -->
+      <section class="mid" aria-label="سجل استجابات المحاكاة">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">سجل الاستجابات</span>
+            <span class="paneNote" id="logCount">لم تُرسل أي محاولة بعد</span>
+            <div class="seg segSm" role="group" aria-label="تصفية السجل" id="logSeg">
+              <button type="button" data-f="all" aria-pressed="true">الكل</button>
+              <button type="button" data-f="bad" aria-pressed="false">المرفوضة</button>
+              <button type="button" data-f="ok"  aria-pressed="false">الناجحة</button>
+            </div>
+          </div>
+          <div class="logHead" aria-hidden="true">
+            <span>الوقت</span><span>الطريقة</span><span>المسار</span>
+            <span>الحالة</span><span>الرمز</span><span>العنوان</span>
+          </div>
+          <!-- الحالة الفارغة مكتوبة ابتداءً، فلا تبقى المنطقة بيضاء لو تعطّل JS -->
+          <div id="log"><div class="empty"><b>لا توجد سجلات مطابقة</b>أرسل النموذج أعلاه لترى الاستجابة هنا.</div></div>
+          <div class="logFoot">
+            سجل محلي في المتصفّح لهذه الجلسة فقط، يُمسح بإعادة التحميل.
+            <b style="color:var(--ink-2)">لا يوجد في قاعدة البيانات أي سجل لمحاولات الدخول
+            الفاشلة</b> — لا عدّاد ولا قفل حساب ولا تاريخ محاولات.
+          </div>
+          <div class="src">
+            شكل جسم الخطأ من <code>interfaces/http/problem-response.ts</code>:
+            <code>{ type, title, status, code, retryable, reason? }</code> بنوع
+            <code>application/problem+json</code>.
+            لوحة الإدارة تعرض <code>title</code> كما هو
+            (<code>body?.title ?? body?.detail ?? body?.message</code> في
+            <code>lib/api.ts</code>).
+            <span class="nw">يحتاج بناءً:</span> عناوين الأخطاء في الخادم إنجليزية
+            (<code>Invalid username or password</code>)، فتظهر للمستخدم بالإنجليزية.
+            العربية المعروضة هنا مقترحة، ويلزمها إمّا خريطة عميل على
+            <code>code</code>/<code>reason</code> أو تعريب العناوين في الخادم.
+            <span class="warn">غير متحقَّق منه:</span> استجابة 429 يولّدها
+            <code>@fastify/rate-limit</code> لا <code>DomainError</code>، ولم أجد اختبارًا
+            يثبت شكلها بعد مرورها على معالج المشكلات — تحقّق قبل الاعتماد على نصّها.
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="stack">
+
+      <!-- ── حدّ الطلبات ── -->
+      <section class="mid" aria-label="حدّ محاولات الدخول">
+        <div class="pane">
+          <div class="paneHead"><span class="paneTitle">حدّ محاولات الدخول</span></div>
+          <div class="paneBody">
+            <div class="meterL">المحاولات في النافذة الحالية</div>
+            <div class="meterV"><span id="rlUsed">0</span> / 10</div>
+            <!-- الخانات العشر مكتوبة ابتداءً بقيمتها الحقيقية (صفر مستهلك) -->
+            <div class="meter" id="meter" aria-hidden="true"><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span></div>
+            <div class="meterM" id="rlNote">
+              10 محاولات لكل دقيقة على المسار. النافذة تبدأ مع أول محاولة.
+            </div>
+          </div>
+          <div class="src">
+            <code>authRateLimit = { max: 10, timeWindow: 60_000 }</code> من
+            <code>bootstrap/security.ts</code>، مطبَّق على
+            <code>/v1/admin/auth/login</code> عبر <code>config.rateLimit</code>.
+            الحدّ العام للتطبيق <code>max: 300</code> لكل دقيقة.
+            العدّاد الحقيقي في الخادم لكل عنوان IP لا لكل حساب — العدّاد هنا محلي للمتصفّح
+            ولا يعكس محاولات غيرك من نفس الشبكة.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ما تحمله الاستجابة ── -->
+      <section class="mid" aria-label="حقول استجابة الدخول">
+        <div class="pane">
+          <div class="paneHead"><span class="paneTitle">ما يعيده الدخول</span></div>
+          <div class="paneBody">
+            <div class="kv">
+              <b>account.id</b><span>معرّف الحساب</span>
+              <b>account.username</b><span>اسم المستخدم كما هو مخزّن</span>
+              <b>account.role</b><span>‏<span dir="ltr">admin</span> = مدير النظام · <span dir="ltr">mod</span> = مشرف عمليات</span>
+              <b>account.mustChangePassword</b><span>يفرض التحويل إلى تغيير كلمة المرور</span>
+              <b>timeZone</b><span>منطقة زمنية واحدة للوحة كلها</span>
+            </div>
+            <div class="meterM">
+              الدور يحكم التنقّل بعد الدخول: «المشرفون» و«الإصدارات» و«الإشعارات»
+              لحاملي <span dir="ltr">admin</span> وحدهم.
+            </div>
+          </div>
+          <div class="src">
+            <code>SessionResponse</code> و <code>PanelAccount</code> من
+            <code>admin-client/src/lib/types.ts</code>، ويطابقهما ردّ
+            <code>/v1/admin/auth/login</code> في
+            <code>routes/admin.ts</code>: <code>{ account: login.account, timeZone }</code>.
+            حصر الصفحات بالدور من <code>AdminRoute</code> في <code>app/App.tsx</code>.
+            وسم الدور بالعربية من <code>AppShell.tsx</code>.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ليس في هذه الشاشة ── -->
+      <section class="far" aria-label="ما لا تفعله هذه الشاشة">
+        <div class="pane">
+          <div class="paneHead">
+            <span class="paneTitle">ليس في هذه الشاشة</span>
+            <span class="paneNote">تصريح، لا نقص</span>
+          </div>
+          <div class="paneBody">
+            <div class="facts">
+              <div class="f no"><span class="bul" aria-hidden="true"></span>
+                <span><b>لا تحقّق ثنائي.</b> لا رمز رسالة ولا تطبيق مصادقة — لا وجود له في
+                شيفرة دخول اللوحة.</span></div>
+              <div class="f no"><span class="bul" aria-hidden="true"></span>
+                <span><b>لا ربط جهاز ولا تحدّيات.</b>
+                <code>challenge</code> و <code>deviceProof</code> و <code>refresh</code>
+                على <code>/v1/auth/*</code> — مسارات تطبيق المشغّلين، لا اللوحة.</span></div>
+              <div class="f no"><span class="bul" aria-hidden="true"></span>
+                <span><b>لا رموز تحديث هنا.</b> اللوحة تعتمد كوكي جلسة واحدًا.</span></div>
+              <div class="f no"><span class="bul" aria-hidden="true"></span>
+                <span><b>لا إنشاء حساب ولا «نسيت كلمة المرور».</b> الحسابات وإعادة التعيين
+                من صفحة «المشرفون».</span></div>
+              <div class="f no"><span class="bul" aria-hidden="true"></span>
+                <span><b>لا «تذكّرني».</b> الجلسة 30 دقيقة ثابتة وتتجدّد مع كل طلب.</span></div>
+              <div class="f no"><span class="bul" aria-hidden="true"></span>
+                <span><b>لا قفل حساب ولا عدّ محاولات فاشلة.</b> الضابط الوحيد حدّ الطلبات.</span></div>
+              <div class="f yes"><span class="bul" aria-hidden="true"></span>
+                <span><b>موجود:</b> رسالة واحدة للفشل لا تفرّق بين اسم غير موجود وكلمة
+                مرور خاطئة.</span></div>
+            </div>
+          </div>
+          <div class="src">
+            نفي التحقّق الثنائي وربط الجهاز مبني على قراءة
+            <code>application/use-cases/admin/admin-authentication.ts</code> كاملًا:
+            الدخول فيه تحقّق كلمة مرور واحد ثم إنشاء جلسة، بلا أي خطوة ثانية.
+            ربط الجهاز يخصّ <code>routes/auth.ts</code> (مسارات المشغّلين).
+            مدّة الجلسة <code>SESSION_MS = 30 * 60 * 1000</code> في الخادم، ويقابلها
+            <code>idleMilliseconds</code> بنفس القيمة في <code>AuthProvider</code>.
+            الرسالة الموحّدة: <code>if (!account || !verify(...)) throw UNAUTHORIZED
+            'Invalid username or password'</code> — شرط واحد للحالتين، فلا يتسرّب وجود
+            الاسم من نصّ الرسالة.
+            <span class="warn">حدّ معروف:</span> زمن الردّ يبقى قابلًا للقياس — الاسم غير
+            الموجود يعود بلا تحقّق تجزئة، وهذا فرق زمني لا تخفيه الرسالة.
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+ </div>
+</main>
+
+<footer class="foot">
+  <span>بيانات توضيحية — ليست بيانات حقيقية · نظام العربي لفحص اللوحات</span>
+  <span>هذه الشاشة لا تُظهر أبدًا ما إذا كان اسم المستخدم موجودًا — الفشل رسالة واحدة لكل الحالات</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* عزل ثنائي الاتجاه لمسار لاتيني داخل جملة عربية.
+     بلا هذا: الشرطة المائلة في «/wanted-plates» محايدة بين عربي ولاتيني،
+     فتأخذ اتجاه الفقرة RTL وتُرسم على يمين الكلمة — «wanted-plates/».
+     U+2066 عزل من اليسار و U+2069 إنهاء العزل. النصوص تُكتب بـ textContent
+     فلا تصلح هنا العناصر ذات dir="ltr". */
+  function ltr(s){ return "\u2066"+String(s)+"\u2069"; }
+
+  /* ══ سيناريوهات الخادم ══════════════════════════════
+     كل واحد منها مأخوذ من مسار حقيقي في الشيفرة:
+       ok / okMod / first  →  ردّ 200 من /v1/admin/auth/login
+       bad                 →  DomainError('UNAUTHORIZED','Invalid username or password')
+       limit               →  حدّ @fastify/rate-limit (شكل الجسم غير متحقَّق منه)
+       down                →  فشل fetch نفسه؛ errorMessage(error) يعيد error.message
+     ولذلك يظهر نصّ المتصفّح الإنجليزي كما هو.                              */
+  var SCEN = {
+    ok: {
+      lbl:"دخول ناجح لحساب مدير نظام", status:200, ok:true,
+      account:{ role:"admin", must:false },
+      note:"يعيد الخادم account و timeZone ويضع كوكي الجلسة، فتنتقل الحالة إلى authenticated."
+    },
+    okMod: {
+      lbl:"دخول ناجح لحساب مشرف عمليات", status:200, ok:true,
+      account:{ role:"mod", must:false },
+      note:"نفس الردّ بدور mod — الفرق يظهر بعد الدخول: صفحات المشرفين والإصدارات والإشعارات محجوبة."
+    },
+    first: {
+      lbl:"أول دخول بكلمة المرور الأولية", status:200, ok:true,
+      account:{ role:"admin", must:true },
+      note:"mustChangePassword = true فيحوّل LoginPage إلى "+ltr("/password")+" قبل أي شيء آخر، ويرفض الخادم بقية المسارات بـ admin_password_change_required."
+    },
+    bad: {
+      lbl:"اسم مستخدم أو كلمة مرور غير صحيحة", status:401, ok:false,
+      code:"UNAUTHORIZED", title:"Invalid username or password",
+      msg:"اسم المستخدم أو كلمة المرور غير صحيحة.",
+      note:"شرط واحد في الخادم يغطّي «الاسم غير موجود» و«كلمة المرور خاطئة»، فالرسالة واحدة ولا تكشف أيّهما."
+    },
+    limit: {
+      lbl:"تجاوز حدّ المحاولات", status:429, ok:false,
+      code:"RATE_LIMITED", title:"Rate limit exceeded",
+      msg:"تجاوزت عدد المحاولات المسموح بها. انتظر دقيقة ثم أعد المحاولة.",
+      note:"الحدّ 10 محاولات في الدقيقة لكل عنوان IP على مسار الدخول. شكل جسم الاستجابة غير متحقَّق منه في الشيفرة."
+    },
+    down: {
+      lbl:"الخادم غير متاح", status:0, ok:false,
+      code:"", title:"Failed to fetch",
+      msg:"Failed to fetch",
+      raw:"errorMessage(error) → error.message",
+      note:"عند فشل fetch نفسه تعرض اللوحة نصّ المتصفّح كما هو — رسالة إنجليزية غير مفهومة للمستخدم. عيب حقيقي في الشيفرة الحالية، لا في هذا النموذج."
+    }
+  };
+
+  /* حالة الوصول — مأخوذة من App.tsx و AuthProvider.tsx */
+  var ARRIVAL = {
+    direct: {
+      lbl:"زيارة مباشرة إلى "+ltr("/login"), notice:null, from:null,
+      dest:"/", destFile:"../gallery/overview.html", destName:"النظرة العامة"
+    },
+    expired: {
+      lbl:"انتهاء الجلسة لعدم النشاط", tone:"danger", from:null,
+      notice:"انتهت الجلسة لعدم النشاط. سجّل الدخول للمتابعة.",
+      dest:"/", destFile:"../gallery/overview.html", destName:"النظرة العامة"
+    },
+    from: {
+      lbl:"تحويل من صفحة محمية", notice:null, from:"/wanted-plates",
+      dest:"/wanted-plates", destFile:"wanted-plates.html", destName:"قائمة المطلوبين"
+    }
+  };
+
+  var LOGIN_PATH = "/v1/admin/auth/login";
+  var RL_MAX = 10, RL_WINDOW = 60000;
+
+  var state = {
+    phase:"anonymous",      /* checking · anonymous · authenticated */
+    scen:"ok",
+    arrival:"direct",
+    logFilter:"all",
+    reveal:false,
+    busy:false,
+    log:[],                 /* استجابات هذه الجلسة، الأحدث أولًا */
+    rlStart:0,
+    rlCount:0,
+    account:null,
+    notice:null             /* {tone, text, raw} */
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ══ التنبيه ══════════════════════════════════════ */
+  function drawNotice(){
+    var box=$("notice");
+    if(!state.notice){ box.hidden=true; return; }
+    box.hidden=false;
+    box.className="notice "+(state.notice.tone||"danger");
+    $("noticeText").textContent=state.notice.text;
+    $("noticeRaw").textContent=state.notice.raw||"";
+    $("noticeRaw").style.display=state.notice.raw?"":"none";
+  }
+
+  /* ══ آلة الحالات ══════════════════════════════════ */
+  function drawFsm(){
+    [].forEach.call(document.querySelectorAll(".st"),function(el){
+      el.classList.toggle("on", el.dataset.st===state.phase);
+    });
+    var a=ARRIVAL[state.arrival], txt;
+    if(state.phase==="checking"){
+      txt="الحالة الآن checking — الزرّ معطّل ونصّه «جارٍ تسجيل الدخول…».";
+    } else if(state.phase==="authenticated"){
+      txt="الحالة الآن authenticated — الوجهة "+
+          (state.account && state.account.must
+             ? ltr("/password")+" لأن mustChangePassword = true"
+             : ltr(a.dest)+" ("+a.destName+")")+".";
+    } else {
+      txt="الحالة الآن anonymous — "+
+          (state.notice ? "تحمل رسالة معروضة في أعلى البطاقة."
+                        : "بلا رسالة، وهذا ما تراه الزيارة الأولى.")+
+          " الوجهة المحفوظة بعد النجاح: "+ltr(a.from ? a.from : "/")+".";
+    }
+    $("fsmFoot").textContent=txt;
+  }
+
+  /* ══ حدّ الطلبات ══════════════════════════════════ */
+  function rlTick(){
+    var now=Date.now();
+    if(!state.rlStart || now-state.rlStart>RL_WINDOW){
+      state.rlStart=now; state.rlCount=0;
+    }
+    state.rlCount+=1;
+    return state.rlCount;
+  }
+  function drawMeter(){
+    /* العدّاد المعروض مقصور على الحدّ: ما بعده مردود قبل التحقّق،
+       فلا معنى لعرض «12 / 10». الفائض يُذكر نصًّا بدل تضخيم الرقم. */
+    var host=$("meter"), html="", i,
+        used=Math.min(state.rlCount, RL_MAX),
+        over=Math.max(0, state.rlCount-RL_MAX);
+    for(i=0;i<RL_MAX;i++){
+      var cls="slot"+(i<used ? (used>=RL_MAX?" hot":" used") : "");
+      html+='<span class="'+cls+'"></span>';
+    }
+    host.innerHTML=html;
+    $("rlUsed").textContent=String(used);
+    $("rlNote").textContent = used>=RL_MAX
+      ? "بلغت الحدّ. الطلب التالي في نفس الدقيقة يُردّ بـ 429 قبل أن يصل إلى التحقّق"+
+        (over ? " — رُدّت "+over+" محاولة بهذه الصورة." : ".")
+      : "10 محاولات لكل دقيقة على المسار. النافذة تبدأ مع أول محاولة.";
+  }
+
+  /* ══ السجل ════════════════════════════════════════ */
+  function visibleLog(){
+    return state.log.filter(function(r){
+      if(state.logFilter==="bad") return r.status===0 || r.status>=400;
+      if(state.logFilter==="ok")  return r.status>=200 && r.status<300;
+      return true;
+    });
+  }
+  function statusClass(s){
+    if(s===0) return "sWarn";
+    if(s>=400) return "sBad";
+    return "sOk";
+  }
+  function drawLog(){
+    var rows=visibleLog(), host=$("log");
+    $("logCount").textContent = state.log.length===0
+      ? "لم تُرسل أي محاولة بعد"
+      : (rows.length===state.log.length
+          ? state.log.length+" محاولة في هذه الجلسة"
+          : rows.length+" من "+state.log.length+" محاولة");
+
+    if(!rows.length){
+      host.innerHTML='<div class="empty"><b>لا توجد سجلات مطابقة</b>'+
+        (state.log.length
+          ? 'غيّر التصفية أو أرسل محاولة بردّ مختلف.'
+          : 'أرسل النموذج أعلاه لترى الاستجابة هنا.')+'</div>';
+      return;
+    }
+    host.innerHTML = rows.map(function(r){
+      return '<div class="row">'+
+        '<span class="rT">'+r.time+'</span>'+
+        '<span class="rM">POST</span>'+
+        '<span class="rPath" title="'+LOGIN_PATH+'">'+LOGIN_PATH+'</span>'+
+        '<span class="rS '+statusClass(r.status)+'">'+(r.status||"—")+'</span>'+
+        /* العمود محجوز دائمًا — فارغ في الاستجابات الناجحة — لتبقى
+           الأعمدة التالية مصطفّة بين كل الصفوف */
+        '<span class="rC">'+(r.code||"")+'</span>'+
+        '<span class="rTitle" title="'+r.title.replace(/"/g,"&quot;")+'">'+r.title+'</span>'+
+      '</div>';
+    }).join("");
+  }
+  function pushLog(entry){
+    var d=new Date();
+    entry.time=[d.getHours(),d.getMinutes(),d.getSeconds()].map(function(n){
+      return String(n).padStart(2,"0");
+    }).join(":");
+    state.log.unshift(entry);
+    if(state.log.length>20) state.log.pop();
+  }
+
+  /* ══ البطاقة بعد النجاح ═══════════════════════════ */
+  function drawDone(){
+    var box=$("doneBox"), form=$("loginForm");
+    if(state.phase!=="authenticated"){ box.hidden=true; form.hidden=false; return; }
+    form.hidden=true; box.hidden=false;
+
+    var a=ARRIVAL[state.arrival], acc=state.account,
+        must=acc.must,
+        destFile= must ? "change-password.html" : a.destFile,
+        destPath= must ? "/password" : a.dest,
+        destName= must ? "تعيين كلمة مرور جديدة" : a.destName,
+        roleLbl = acc.role==="admin" ? "مدير النظام" : "مشرف عمليات";
+
+    box.innerHTML =
+      '<div class="doneBox">'+
+        '<div class="doneHead">'+
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+          'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" '+
+          'style="color:var(--clean)" aria-hidden="true">'+
+          '<circle cx="12" cy="12" r="9"/><path d="M8.5 12.3l2.4 2.4 4.6-5"/></svg>'+
+          '<span>تم تسجيل الدخول</span>'+
+        '</div>'+
+        '<div class="doneRow"><span>اسم المستخدم</span>'+
+          '<b class="mono">'+esc(acc.username)+'</b></div>'+
+        '<div class="doneRow"><span>الدور</span><b>'+roleLbl+
+          ' <span class="mono">('+acc.role+')</span></b></div>'+
+        '<div class="doneRow"><span>تغيير إلزامي</span><b>'+
+          (must?"نعم — mustChangePassword = true":"لا")+'</b></div>'+
+        '<div class="doneRow"><span>الوجهة</span><b class="mono">'+destPath+'</b></div>'+
+        (must
+          ? '<div class="doneRow"><span>سبب التحويل</span>'+
+            '<b>كلمة المرور الأولية يجب استبدالها قبل أي صفحة أخرى</b></div>'
+          : (a.from
+              ? '<div class="doneRow"><span>سبب الوجهة</span>'+
+                '<b>الصفحة المحفوظة في <span class="mono">location.state.from</span></b></div>'
+              : '')) +
+        '<a class="goLink" href="'+destFile+'">'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+          'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+          '<path d="M15 6l-6 6 6 6"/></svg>'+
+          '<span>متابعة إلى '+destName+'</span></a>'+
+        '<button class="backBtn" type="button" id="restart">إعادة المحاكاة</button>'+
+      '</div>';
+
+    $("restart").addEventListener("click", function(){
+      state.phase="anonymous"; state.account=null; state.notice=arrivalNotice();
+      $("password").value="";
+      render();
+      $("username").focus();
+    });
+  }
+  function esc(s){
+    return String(s).replace(/[&<>"]/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+    });
+  }
+
+  /* ══ الوصف تحت الأدوات ════════════════════════════ */
+  function drawScenNote(){
+    $("scenNote").textContent =
+      ARRIVAL[state.arrival].lbl+" · "+SCEN[state.scen].lbl+" — "+SCEN[state.scen].note;
+  }
+
+  function render(){
+    drawNotice(); drawFsm(); drawLog(); drawMeter(); drawDone(); drawScenNote();
+  }
+
+  /* ══ الإرسال ══════════════════════════════════════ */
+  function arrivalNotice(){
+    var a=ARRIVAL[state.arrival];
+    return a.notice ? { tone:a.tone||"danger", text:a.notice } : null;
+  }
+
+  function setBusy(on){
+    state.busy=on;
+    $("submitBtn").disabled=on;
+    $("spin").hidden=!on;
+    $("submitText").textContent = on ? "جارٍ تسجيل الدخول…" : "تسجيل الدخول";
+  }
+
+  $("loginForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    if(state.busy) return;
+
+    var u=$("username"), p=$("password");
+    /* رسائل التحقّق العربية — نصّها حرفيًا من LoginPage.tsx و PasswordField.tsx */
+    if(!u.value){
+      u.setCustomValidity("يرجى إدخال اسم المستخدم."); u.reportValidity(); return;
+    }
+    if(!p.value){
+      p.setCustomValidity("يرجى إدخال كلمة المرور."); p.reportValidity(); return;
+    }
+
+    var trimmed=u.value.trim();
+    state.notice=null;
+    state.phase="checking";
+    setBusy(true);
+    render();
+
+    /* تأخير يمثّل زمن الشبكة — ليس قياسًا لأي شيء حقيقي */
+    setTimeout(function(){
+      var used=rlTick();
+
+      /* اسم من فراغات فقط: العميل يرسل '' بعد trim، فيردّ الخادم 400
+         من الحارس text(input.username,'username') في routes/admin.ts */
+      if(!trimmed){
+        pushLog({ status:400, code:"INVALID_INPUT", title:"username is required" });
+        state.phase="anonymous";
+        state.notice={ tone:"danger", text:"اسم المستخدم مطلوب.",
+                       raw:'title: "username is required"  ·  code: INVALID_INPUT' };
+        finish();
+        return;
+      }
+
+      /* تجاوز الحدّ يسبق كل شيء: الحارس يردّ قبل التحقّق من الحساب */
+      var s = (used>RL_MAX) ? SCEN.limit : SCEN[state.scen];
+
+      if(s.ok){
+        state.account={ username:normalize(trimmed), role:s.account.role, must:s.account.must };
+        pushLog({ status:200, code:"", title:"account + timeZone" });
+        state.phase="authenticated";
+        state.notice=null;
+      } else {
+        pushLog({ status:s.status, code:s.code, title:s.title });
+        state.phase="anonymous";
+        state.notice={ tone:"danger", text:s.msg,
+                       raw: s.raw ? s.raw
+                                  : 'title: "'+s.title+'"'+(s.code?"  ·  code: "+s.code:"") };
+        $("password").value="";
+      }
+      finish();
+    }, 620);
+
+    function finish(){ setBusy(false); render(); }
+  });
+
+  /* التطبيع الحقيقي: trim ثم NFKC ثم خفض الحالة بالإنجليزية */
+  function normalize(v){
+    return v.trim().normalize("NFKC").toLocaleLowerCase("en-US");
+  }
+
+  /* مسح رسالة التحقّق عند الكتابة — كما في onInput في الشيفرة */
+  ["username","password"].forEach(function(id){
+    $(id).addEventListener("input", function(){ this.setCustomValidity(""); });
+  });
+
+  /* ══ إظهار كلمة المرور — سلوك PasswordField ═══════ */
+  var EYE='<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>'+
+          '<circle cx="12" cy="12" r="3"/>';
+  var EYE_OFF='<path d="M3 3l18 18"/>'+
+          '<path d="M10.6 6.2A8.7 8.7 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-3.2 3.9"/>'+
+          '<path d="M6.4 8.1A15.2 15.2 0 0 0 2.5 12S6 18 12 18a8.9 8.9 0 0 0 3.5-.7"/>'+
+          '<path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>';
+  $("pwToggle").addEventListener("click", function(){
+    state.reveal=!state.reveal;
+    $("password").type = state.reveal ? "text" : "password";
+    this.setAttribute("aria-pressed", String(state.reveal));
+    this.setAttribute("aria-label", state.reveal ? "إخفاء كلمة المرور" : "إظهار كلمة المرور");
+    $("pwIcon").innerHTML = state.reveal ? EYE_OFF : EYE;
+  });
+
+  /* ══ المقسّمات ════════════════════════════════════ */
+  function segment(id, apply){
+    var g=$(id);
+    g.addEventListener("click", function(e){
+      var b=e.target.closest("button"); if(!b) return;
+      [].forEach.call(g.querySelectorAll("button"), function(x){
+        x.setAttribute("aria-pressed", String(x===b));
+      });
+      apply(b);
+    });
+  }
+  segment("arrivalSeg", function(b){
+    state.arrival=b.dataset.a;
+    /* تغيير حالة الوصول يعيد الصفحة إلى ما قبل الإرسال */
+    state.phase="anonymous"; state.account=null;
+    state.notice=arrivalNotice();
+    render();
+  });
+  segment("scenSeg", function(b){
+    state.scen=b.dataset.s;
+    if(state.phase==="authenticated"){
+      state.phase="anonymous"; state.account=null; state.notice=arrivalNotice();
+    }
+    render();
+  });
+  segment("logSeg", function(b){
+    state.logFilter=b.dataset.f;
+    drawLog();
+  });
+
+  $("srcTgl").addEventListener("click", function(){
+    var on = this.getAttribute("aria-pressed")!=="true";
+    this.setAttribute("aria-pressed", String(on));
+    document.documentElement.setAttribute("data-src", on?"1":"0");
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
