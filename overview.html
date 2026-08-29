@@ -51,8 +51,7 @@ button{font:inherit;color:inherit}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
-.bar{position:relative;z-index:40;display:flex;align-items:center;gap:22px;flex-wrap:wrap;
-  padding:14px 26px;border-block-end:1px solid var(--line);
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
   background:rgba(255,255,255,.035);
   backdrop-filter:blur(26px) saturate(1.2);-webkit-backdrop-filter:blur(26px) saturate(1.2);
   box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
@@ -90,8 +89,13 @@ button{font:inherit;color:inherit}
 .who .rl{color:var(--ink-3);font-size:11.5px}
 
 /* ── المسرح والطبقات ─────────────────────────────── */
-.stage{position:relative;z-index:10;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
-.plane{transition:opacity .5s var(--ease),filter .5s var(--ease),transform .5s var(--ease)}
+/* حاوية بعرض أقصى: على الشاشات العريضة تتوقّف الصفحة عن التمدّد وتتمركز،
+   بدل أن تُشدّ الجداول والرسوم إلى ما لا نهاية. */
+.stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
+  margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
+.barIn{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+  inline-size:100%;max-inline-size:1560px;margin-inline:auto}
+.plane{transition:opacity .5s var(--ease),filter .5s var(--ease)}
 .pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
   box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
 
@@ -123,12 +127,11 @@ button{font:inherit;color:inherit}
   --mid-a:.062;--mid-blur:16px;--mid-ink:1; --near-a:.055;--near-blur:24px;--near-ink:.55 }
 :root[data-depth="near"]{ --far-a:.022;--far-blur:40px;--far-ink:.26;
   --mid-a:.042;--mid-blur:26px;--mid-ink:.62; --near-a:.085;--near-blur:10px;--near-ink:1 }
-:root[data-depth="far"]  .near{transform:scale(.985)}
-:root[data-depth="near"] .far {transform:scale(1.012)}
+/* بلا scale على الطبقات: نفس سبب إزالة اختلاف المنظر —
+   transform على أب فيه backdrop-filter يُنتج أثرًا على الحواف. */
 
 /* ── دفتر الأرقام (متوسطة، أعلى المسرح) ──────────── */
-.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(168px,100%),1fr));
-  gap:0;padding:4px 0;overflow:hidden}
+.ledger{display:grid;gap:0;padding:4px 0;overflow:hidden}
 .fig{padding:15px 20px;border-inline-start:1px solid var(--line-2);position:relative}
 .fig:first-child{border-inline-start:0}
 .figL{font-size:11.5px;color:var(--ink-3);line-height:1.6}
@@ -187,9 +190,30 @@ button{font:inherit;color:inherit}
 :root[data-src="1"] .src{display:block}
 
 /* ── تخطيط المسرح ────────────────────────────────── */
-.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,364px);
+/* ── نقاط التكيّف ────────────────────────────────────
+   التخطيط يعيد ترتيب نفسه عند حدود واضحة بدل أن يُشدّ أو يُضغط:
+     ≥1280  عمودان، العمود الجانبي 364px
+     1080-1279  عمودان، جانبي أضيق 300px
+     <1080  عمود واحد
+   والدفتر العلوي ينزل من 5 بطاقات إلى 3 إلى 2. */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 364px;
   gap:18px;margin-block-start:18px;align-items:start}
-@media(max-width:1080px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1279px){ .grid{grid-template-columns:minmax(0,1fr) 300px} }
+@media(max-width:1079px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+.ledger{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1180px){ .ledger{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media(max-width:760px){  .ledger{grid-template-columns:repeat(2,minmax(0,1fr))} }
+/* الحدّ الفاصل الأفقي يختفي في أول عمود من كل صف */
+@media(max-width:1180px){ .fig:nth-child(3n+1){border-inline-start:0} }
+@media(max-width:760px){  .fig{border-inline-start:0}
+  .fig:nth-child(2n){border-inline-start:1px solid var(--line-2)} }
+
+@media(max-width:620px){
+  .stage{padding:16px 14px 24px}
+  .bar{padding:12px 14px}
+  .figV{font-size:26px}
+}
 
 /* منطقة الرسم — الطبقة الأمامية بتطفو فوقها */
 .chartZone{position:relative}
@@ -326,12 +350,17 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 .foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-4);font-size:11.5px;
   display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
 
-/* ── الدخول ──────────────────────────────────────── */
-.plane{opacity:0}
-.far   {animation:rise .7s var(--ease) .00s forwards}
-.mid   {animation:rise .7s var(--ease) .14s forwards}
-.near  {animation:rise .7s var(--ease) .28s forwards}
-@keyframes rise{from{transform:translateY(22px)}to{opacity:var(--pl-ink,1);transform:none}}
+/* ── الدخول ──────────────────────────────────────────
+   الحالة الأساسية ظاهرة، والحركة تُخفي ثم تُظهر فوقها.
+   لو لم تُنفَّذ الحركة لأي سبب تبقى الشاشة مقروءة بدل أن تكون بيضاء. */
+.plane{opacity:var(--pl-ink,1)}
+.far   {animation:rise .7s var(--ease) .00s both}
+.mid   {animation:rise .7s var(--ease) .14s both}
+.near  {animation:rise .7s var(--ease) .28s both}
+/* تلاشٍ فقط، بلا transform إطلاقًا.
+   أي إزاحة على عنصر يحتوي backdrop-filter تترك أثرًا ضبابيًا على الحواف
+   لا يزول إلا عند أول إعادة رسم — وهذا هو ما كان يظهر عند حافة القائمة. */
+@keyframes rise{from{opacity:0}to{opacity:var(--pl-ink,1)}}
 .far{--pl-ink:var(--far-ink)} .mid{--pl-ink:var(--mid-ink)} .near{--pl-ink:var(--near-ink)}
 
 @media (prefers-reduced-motion: reduce){
@@ -351,7 +380,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
 <div class="grain" aria-hidden="true"></div>
 
 <!-- ═══ الشريط العلوي ═══ -->
-<header class="bar">
+<header class="bar"><div class="barIn">
   <div class="brand"><span class="mk" aria-hidden="true">ع</span><span>العربي · النظرة العامة</span></div>
   <div class="barSep" aria-hidden="true"></div>
 
@@ -383,7 +412,7 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     <span class="av" aria-hidden="true">أ</span>
     <span><span style="display:block">أحمد عماد</span><span class="rl">مدير النظام</span></span>
   </div>
-</header>
+</div></header>
 
 <main class="stage">
 
@@ -681,22 +710,26 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
   /* الرسم يُرسم بمقياس 1:1 مع البكسل: عرض الـ viewBox يساوي العرض الفعلي
      للعنصر بالبكسل، فلا يتمدّد ولا ينكمش مع تكبير المتصفّح أو عرض النافذة.
      الارتفاع ثابت دائمًا، وعرض العمود نصف الخانة ليبقى الفراغ مساويًا له. */
-  var H=176,PAD={t:16,r:16,b:26,l:16},GAP=16,HA=86,HB=32;
-  var W=1000, SLOT=40, BW=20, lastW=0;
+  var PAD={t:16,r:16,b:26,l:16}, GAP=16;
+  var W=1000, H=176, SLOT=40, BW=20, HA=86, HB=32, lastW=0, lastH=0;
 
+  /* العرض والارتفاع يُقرآن من الحجم الفعلي بالبكسل، فيصبح المقياس 1:1
+     في المحورين مهما كان العرض أو نقطة التكيّف أو تكبير المتصفّح. */
   function measure(){
-    var svg=document.getElementById("chart");
-    var px=Math.round(svg.getBoundingClientRect().width) || svg.clientWidth || 1000;
-    W    = Math.max(320, px);
+    var r=document.getElementById("chart").getBoundingClientRect();
+    W = Math.max(320, Math.round(r.width)  || 1000);
+    H = Math.max(120, Math.round(r.height) || 176);
     SLOT = (W-PAD.l-PAD.r)/24;
     BW   = Math.max(4, Math.min(24, SLOT*0.5));   /* سقف 24 بكسل حسب حدّ الإتقان */
-    return W;
+    var avail = H-PAD.t-PAD.b-GAP;
+    HA = Math.round(avail*0.73);                  /* الإجمالي */
+    HB = avail-HA;                                /* المطلوب  */
   }
   function xOf(i){ return W-PAD.r-(i+0.5)*SLOT; }
 
   function drawChart(){
     var svg=document.getElementById("chart"), HOURS=cur().hours;
-    measure(); lastW=W;
+    measure(); lastW=W; lastH=H;
     svg.innerHTML="";
     svg.setAttribute("viewBox","0 0 "+W+" "+H);   /* مصدر واحد للهندسة */
     document.getElementById("chartNote").textContent=cur().chartNote;
@@ -955,31 +988,16 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     countTo(el, +el.dataset.count);
   });
 
-  /* ══ اختلاف المنظر — تفاعل بالمؤشّر لا حركة تلقائية ══ */
-  (function(){
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if(matchMedia("(pointer: coarse)").matches) return;
-    var planes=[
-      { el:document.querySelector(".far"),  k:6 },
-      { el:document.querySelectorAll(".mid"), k:12 },
-      { el:document.querySelector(".near"), k:20 }
-    ];
-    var tx=0,ty=0,cx=0,cy=0,raf=null;
-    addEventListener("pointermove",function(e){
-      tx=(e.clientX/innerWidth -.5)*2;
-      ty=(e.clientY/innerHeight-.5)*2;
-      if(!raf) raf=requestAnimationFrame(tick);
-    },{passive:true});
-    function tick(){
-      cx+=(tx-cx)*.07; cy+=(ty-cy)*.07;
-      planes.forEach(function(p){
-        var t="translate3d("+(-cx*p.k).toFixed(2)+"px,"+(-cy*p.k*.6).toFixed(2)+"px,0)";
-        if(p.el instanceof NodeList) [].forEach.call(p.el,function(n){ n.style.transform=t; });
-        else if(p.el) p.el.style.transform=t;
-      });
-      raf = (Math.abs(tx-cx)>.001||Math.abs(ty-cy)>.001) ? requestAnimationFrame(tick) : null;
-    }
-  })();
+  /* لا اختلاف منظر بالمؤشّر.
+     أي transform على أب يحتوي عنصرًا عليه backdrop-filter يجعل المتصفّح
+     يعيد أخذ عيّنة الخلفية بشكل خاطئ ويترك أثرًا ضبابيًا على الحواف يختفي
+     عند أول إعادة رسم. ولذلك أيضًا نمسح transform الدخول فور انتهائه. */
+  [].forEach.call(document.querySelectorAll(".plane"),function(p){
+    p.addEventListener("animationend",function(){
+      p.style.transform="none";
+      p.style.willChange="auto";
+    },{once:true});
+  });
 
   /* إعادة الرسم عند تغيّر العرض فقط — الارتفاع لا يؤثّر، وبهذا لا تنشأ حلقة
      لأن الرسم نفسه لا يغيّر عرض العنصر. */
@@ -988,8 +1006,9 @@ svg.hrs text.ax{direction:ltr;unicode-bidi:isolate}
     /* متزامن ومحروس بتغيّر العرض — لا حلقة لأن الرسم لا يغيّر العرض،
        ولا اعتماد على requestAnimationFrame الذي يُخنق في التبويبات المخفية. */
     function onResize(){
-      var px=Math.round(svg.getBoundingClientRect().width);
-      if(px && Math.abs(px-lastW)>=2) drawChart();
+      var r=svg.getBoundingClientRect();
+      var w=Math.round(r.width), h=Math.round(r.height);
+      if((w && Math.abs(w-lastW)>=2) || (h && Math.abs(h-lastH)>=2)) drawChart();
     }
     if(window.ResizeObserver) new ResizeObserver(onResize).observe(svg);
     addEventListener("resize", onResize, {passive:true});
