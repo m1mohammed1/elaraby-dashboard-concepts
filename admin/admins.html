@@ -25,7 +25,7 @@
    ══════════════════════════════════════════════════════════════════ */
 :root{
   /* المشهد */
-  --bg:#07100b;
+  --bg:#000000;
 
   /* الهوية والحالة — من مواصفة تسليم الواجهة (§3) */
   --brand:#ffd700;       /* ذهبي — «العربي» في الشريط العلوي وحده، لا حالة ولا زرّ */
@@ -36,14 +36,21 @@
   --primary:#115033;     /* الزرّ الأساسي المصمت ورابط التنقّل النشط */
 
   /* النصّ والحدود — قيمنا نحن؛ --ink-3 و --ink-4 لا تنزلان إلى #78827b (4.20:1) */
-  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#a5b1a9; --ink-4:#8e9a92;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
   --warn:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
-  --far-a:.050;  --far-ink:1;
-  --mid-a:.058;  --mid-ink:1;
-  --near-a:.080; --near-ink:1;
+  /* الخلفية سوداء، والخضرة انتقلت إلى الزجاج نفسه — بدرجة واحدة لكل اللوحات،
+     لا درجة لكل طبقة عمق. rgba(17,80,51,.55) فوق الأسود = #092c1c، وهو سقف
+     الدرجة عمليًا: عنده يقيس النصّ الخافت --ink-3 نسبة 4.74:1، وعند .70 يهبط
+     إلى 4.10 فيسقط تحت الحدّ. لا تُرفع. */
+  --glass:rgba(17,80,51,.55);
+  --glass-line:rgba(101,223,168,.16);
+  --glass-sheen:rgba(101,223,168,.12);
+
+  /* العمق بالإعتام وحده الآن — لا --far-a/--mid-a/--near-a بعد اليوم. */
+  --far-ink:1; --mid-ink:1; --near-ink:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-block-size:100%}
@@ -57,7 +64,10 @@ body{
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
-/* ── المشهد — منقول كما هو ────────────────────────── */
+/* ── المشهد — مُطفأ ───────────────────────────────────
+   الخلفية سوداء صمّاء. لا مصادر ضوء ولا تظليل — الخضرة كلها في الزجاج الآن،
+   فأيّ إضاءة خلفية تنافسه وتُذهب حدّته. الترميز والقواعد تبقى كما هي،
+   والطبقة تُخفى وحدها (القاعدة في آخر القسم). */
 .scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .lamp{position:absolute;border-radius:50%;filter:blur(110px)}
 .l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
@@ -66,13 +76,16 @@ button,input,select{font:inherit;color:inherit}
 .l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
 .l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
 .vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+/* الإطفاء — القواعد أعلاه محفوظة كما هي، وهذه وحدها تُخفيها. */
+.scene{display:none}
+.lamp,.vign{display:none}
 .grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
-.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset}
 .barIn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
@@ -80,7 +93,7 @@ button,input,select{font:inherit;color:inherit}
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-size:12px}
 /* --brand ذهبيّ الهوية، وهنا وحده في الصفحة كلها: على كلمة «العربي» لا غير.
    ليس لونَ حالة ولا زرّ ولا تركيز — ذهبيّان في شاشة واحدة هو الالتباس المقصود
-   تجنّبه. 12.2:1 على أرضية الشريط. */
+   تجنّبه. 10.8:1 على أرضية الشريط الزجاجية (#092c1c). */
 .brand .wm{color:var(--brand)}
 .barSep{width:1px;height:22px;background:var(--line)}
 .barGrow{flex:1}
@@ -95,22 +108,29 @@ button,input,select{font:inherit;color:inherit}
 
 .seg{display:inline-flex;padding:3px;border-radius:10px;gap:2px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}
+/* --ink-2 لا --ink-3: أرضية المقسّم (أبيض .045) فوق الزجاج الأخضر تُنزل --ink-3
+   إلى 4.17:1. الزجاج الجديد (#092c1c) أفتح من اللوحة القديمة (#151d19)، فلم يعد
+   لـ --ink-3 هامش فوق العتبة: يقيس 4.74:1 على الزجاج نفسه، وأي رفع أبيض ولو .02
+   يُسقطه. فكل نصّ يُقرأ فوق أرضية مرفوعة انتقل إلى --ink-2. */
 .seg button{border:0;background:transparent;cursor:pointer;font-size:12.5px;font-weight:500;
-  color:var(--ink-3);padding:6px 13px;border-radius:7px;
+  color:var(--ink-2);padding:6px 13px;border-radius:7px;
   transition:color .16s var(--ease),background .16s var(--ease)}
-.seg button:hover{color:var(--ink-2)}
+.seg button:hover{color:var(--ink)}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
 /* .seg.segSm سقط مع شريط تصفية الدور القديم: صار الدور مناظيرَ تبويبات (§11)،
    ولم يبقَ في الصفحة مقسّم مجزّأ سوى «معاينة بدور» في الشريط العلوي. */
-/* --ink-4 يبقى للرسوميات فقط (أيقونة البحث، حلقة الاختيار) حيث يكفي 3:1.
-   كل ما يُقرأ رُفع إلى --ink-3. */
+/* --ink-4 يبقى للرسوميات فقط (أيقونة البحث، حلقة الاختيار) حيث يكفي 3:1 —
+   وهو 4.05:1 على الزجاج الأخضر و 3.67:1 داخل حقل البحث، فوق 3 في الحالتين.
+   وكل ما يُقرأ: --ink-3 فوق الزجاج نفسه (4.74:1)، و--ink-2 فوق أي أرضية
+   مرفوعة — لأن الزجاج الأخضر لم يترك لـ --ink-3 هامشًا فوق 4.5. */
 .segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
 
+/* أرضية أبيض .035 فوق الزجاج الأخضر ⇒ --ink-3 = 4.30:1. نصّ الزرّ --ink-2 (10.2:1). */
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
-  font-size:12.5px;color:var(--ink-3);border:1px solid rgba(255,255,255,.08);
+  font-size:12.5px;color:var(--ink-2);border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.035);padding:6px 12px;border-radius:9px;
   transition:color .16s var(--ease),border-color .16s var(--ease)}
-.tgl:hover{color:var(--ink-2);border-color:rgba(255,255,255,.14)}
+.tgl:hover{color:var(--ink);border-color:rgba(255,255,255,.14)}
 .tgl[aria-pressed="true"]{color:var(--ink);border-color:rgba(101,223,168,.35)}
 .tglBox{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;
   display:grid;place-items:center}
@@ -128,19 +148,30 @@ button,input,select{font:inherit;color:inherit}
 .stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
   margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
 .plane{opacity:var(--pl-ink,1)}
-.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
-.far .pane{background:rgba(255,255,255,var(--far-a));
-  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
-.mid .pane{background:rgba(255,255,255,var(--mid-a))}
-.near .pane{background:rgba(255,255,255,var(--near-a));
-  border-color:rgba(255,255,255,.13);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+/* زجاج أخضر بدرجة واحدة لكل اللوحات — لا تتغيّر الدرجة بين طبقة وأخرى.
+   لا backdrop-filter: الخلفية سوداء صمّاء فلا شيء خلف الزجاج يُضبَّب. الظلال
+   أعمق مما كانت: أسود على أسود يحتاج فصلًا أكثر من زجاج فوق مشهد مضاء. */
+.pane{position:relative;border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
+/* العمق يُقرأ من الظل وحدّة الحدّ، لا من اختلاف درجة الخضرة. */
+.far .pane{box-shadow:0 1px 0 0 rgba(101,223,168,.07) inset,0 14px 40px -24px rgba(0,0,0,.7)}
+.near .pane{border-color:rgba(101,223,168,.24);
+  box-shadow:0 1px 0 0 rgba(101,223,168,.18) inset,0 34px 70px -26px rgba(0,0,0,.9)}
+
+/* ترتيب العمق — بالإعتام وحده الآن: الدرجة واحدة، فالطبقة المختارة تبقى
+   كاملة الوضوح والباقي يتراجع. «الكل» هو الافتراضي. */
+:root[data-depth="all"]{  --far-ink:1;   --mid-ink:1;   --near-ink:1 }
+:root[data-depth="far"]{  --far-ink:1;   --mid-ink:.58; --near-ink:.40 }
+:root[data-depth="mid"]{  --far-ink:.32; --mid-ink:1;   --near-ink:.55 }
+:root[data-depth="near"]{ --far-ink:.28; --mid-ink:.60; --near-ink:1 }
+.far{--pl-ink:var(--far-ink)} .mid{--pl-ink:var(--mid-ink)} .near{--pl-ink:var(--near-ink)}
 
 /* ── مصادر البيانات ──────────────────────────────── */
-/* نصّ متن حقيقي، لا زخرفة: --ink-4 على اللوحة المركَّبة (#151d19) يعطي 3.1:1
-   وهو دون 4.5:1، فالمتن هنا --ink-3 (5.4:1) والشيفرة --ink-2 فوقه لتبقى
-   الهرمية قائمة. */
+/* نصّ متن حقيقي، لا زخرفة: --ink-4 على الزجاج الأخضر المركَّب (#092c1c) يعطي
+   4.05:1 وهو دون 4.5:1، فالمتن هنا --ink-3 (4.74:1) والشيفرة --ink-2 (11.2:1)
+   فوقه لتبقى الهرمية قائمة. */
 .src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
   padding:8px 14px 10px;border-block-start:1px dashed rgba(255,255,255,.10);
   direction:rtl}
@@ -216,8 +247,9 @@ button,input,select{font:inherit;color:inherit}
 /* outline:0 أعلاه كان يبتلع حلقة التركيز العامة (نفس النوعية، وترتيبه
    لاحق) فلم يكن للحقل أثر تركيز بلوحة المفاتيح سوى تلوين الحدّ. */
 .find input:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
-/* النائب هنا هو التسمية المرئية الوحيدة للحقل، فلا يصلح عند 3.1:1. */
-.find input::placeholder{color:var(--ink-3)}
+/* النائب هنا هو التسمية المرئية الوحيدة للحقل. أرضية الحقل (أبيض .035) فوق
+   الزجاج الأخضر تُنزل --ink-3 إلى 4.30:1، فالنائب --ink-2 (10.2:1). */
+.find input::placeholder{color:var(--ink-2)}
 
 /* ── المناظير وسطر الأدوات — النمط المعتمد (§11) ──── */
 /* منقولة من prototype/admin/filters.html (النمط ب): .views/.view ثم .tools ثم
@@ -243,9 +275,9 @@ button,input,select{font:inherit;color:inherit}
 /* زرّ لوحة التصفية + شارة عدد المرشّحات الفعّالة (§11-3).
    ارتفاعه (29px) دون ارتفاع حقل البحث (35px) فلا يزيد سطر الأدوات شيئًا،
    واللوحة نفسها hidden فلا تدخل في المسافة قبل أول صف. */
-/* --ink-2 لا --ink-3: خلفية الزرّ (.04 أبيض) فوق لوحة .near (.08) ترفع الأرضية،
-   فيهبط --ink-3 إلى 4.49:1 — تحت العتبة بشعرة. القاعدة في هذا الملف أن كل ما
-   يُقرأ يبقى فوق 4.5:1، فالنصّ --ink-2 (8.1:1) والشيفرون وحده --ink-3. */
+/* --ink-2 لا --ink-3: خلفية الزرّ (.04 أبيض) فوق الزجاج الأخضر ترفع الأرضية،
+   فيهبط --ink-3 إلى 4.24:1. القاعدة في هذا الملف أن كل ما يُقرأ يبقى فوق
+   4.5:1، فالنصّ --ink-2 (10.0:1) والشيفرون وحده --ink-3 لأنه رسم يكفيه 3:1. */
 .ctl{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
   border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
   padding:5px 11px;border-radius:9px;font-size:12.5px;color:var(--ink-2);
@@ -264,10 +296,12 @@ button,input,select{font:inherit;color:inherit}
   grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:13px;
   align-items:start}
 .fg{display:flex;flex-direction:column;gap:6px}
-.fgL{font-size:11px;color:var(--ink-3)}
+/* أرضية اللوحة (أبيض .03) فوق الزجاج الأخضر ⇒ --ink-3 = 4.36:1. هذه تسمية
+   مجموعة مرشّحات تُقرأ، فـ --ink-2 (10.3:1). */
+.fgL{font-size:11px;color:var(--ink-2)}
 .opts{display:flex;gap:5px;flex-wrap:wrap}
-/* نفس السبب: أرضية اللوحة (.03) + أرضية الزرّ (.04) فوق .near تُنزل --ink-3
-   إلى 4.12:1. هذه أسماء مرشّحات تُقرأ، لا زخرفة. */
+/* نفس السبب: أرضية اللوحة (.03) + أرضية الزرّ (.04) فوق الزجاج الأخضر تُنزل
+   --ink-3 إلى 3.88:1. هذه أسماء مرشّحات تُقرأ، لا زخرفة — و--ink-2 يعطي 9.2:1. */
 .opt{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
   padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-2);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
@@ -290,8 +324,8 @@ button,input,select{font:inherit;color:inherit}
 /* «حذف المحدَّد» — إجراء هدّام، فلونه --error لا --wanted. (§11-4 كُتب قبل فصل
    §3، يوم كان الأحمر نفسه اسمه --wanted؛ الفقرة تعني اللون الأحمر لا حالة
    «مطلوب».) والمشكلة في الأرضية لا في اللون: أبيض .05 فوق شريط سياقي مخضرّ فوق
-   لوحة .near ينزل بـ #ff5b5b تحت العتبة. الأرضية هنا داكنة بدل فاتحة (5.1:1)،
-   والتمرير يزيدها عمقًا لا ضوءًا (5.5:1) ويشدّ الحدّ الأحمر بدل إغراق الخلفية به. */
+   الزجاج الأخضر ينزل بـ #ff5b5b إلى 4.0:1. الأرضية هنا داكنة بدل فاتحة (4.84:1)،
+   والتمرير يزيدها عمقًا لا ضوءًا (5.29:1) ويشدّ الحدّ الأحمر بدل إغراق الخلفية به. */
 .abtn.danger{color:var(--error);border-color:rgba(255,91,91,.35);
   background:rgba(0,0,0,.2)}
 .abtn.danger:hover{background:rgba(0,0,0,.34);border-color:rgba(255,91,91,.62)}
@@ -328,8 +362,11 @@ button,input,select{font:inherit;color:inherit}
   border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap;
   display:inline-block}
 .cAdmin{color:var(--accent)}
-.cMod{color:var(--ink-3)}
-.pwd{font-size:11.5px;color:var(--ink-3)}
+/* --ink-2 لا --ink-3 في الصفّ: الصفّ يمرّ بأرضيتين مرفوعتين — المرور (أبيض .045)
+   وصفّ حسابك (نعناعي .045) — وكلتاهما تُنزلان --ink-3 إلى 4.17 و 4.29:1 على
+   الزجاج الأخضر. --ink-2 يقيس 9.9 و 10.2:1 في الحالتين. */
+.cMod{color:var(--ink-2)}
+.pwd{font-size:11.5px;color:var(--ink-2)}
 .pwd.due{color:var(--warn)}
 .selfTag{font-size:10.5px;color:var(--accent);white-space:nowrap}
 .acts{display:flex;gap:5px;justify-content:flex-end}
@@ -341,8 +378,8 @@ button,input,select{font:inherit;color:inherit}
   background:rgba(255,255,255,.08)}
 .iBtn[disabled]{opacity:.34;cursor:not-allowed}
 /* زرّ الحذف في الصفّ — إجراء هدّام، --error. ونفس علاج .abtn.danger: أرضية
-   المرور العامة (أبيض .08) كانت تُنزل #ff5b5b إلى 4.17:1، فالأرضية هنا تُعتِم
-   بدل أن تُضيء (5.7:1) ويبقى الشكل الواحد للهدّام في الشاشة كلها. */
+   المرور العامة (أبيض .08) تُنزل #ff5b5b إلى 3.93:1 على الزجاج الأخضر، فالأرضية
+   هنا تُعتِم بدل أن تُضيء (5.50:1) ويبقى الشكل الواحد للهدّام في الشاشة كلها. */
 .iBtn.danger:hover:not([disabled]){color:var(--error);border-color:rgba(255,91,91,.4);
   background:rgba(0,0,0,.22)}
 .iBtn svg{display:block}
@@ -408,7 +445,8 @@ button,input,select{font:inherit;color:inherit}
 .inp.bad{border-color:rgba(255,91,91,.5)}
 /* تلميح الحقل نصّ يقرؤه المستخدم ليعرف لماذا الزر معطّل — لا يصلح --ink-4. */
 .hint{font-size:10.5px;color:var(--ink-3);margin-block-start:5px;line-height:1.7}
-.hint.bad{color:var(--error)}   /* «أقصر من 12 محرفًا» — فشل تحقّق، 5.6:1 */
+.hint.bad{color:var(--error)}   /* «أقصر من 12 محرفًا» — فشل تحقّق؛ 4.97:1 على
+                                   الزجاج و 5.53:1 داخل الحوار المعتم */
 .hint.ok{color:var(--clean)}
 .radios{display:grid;gap:7px}
 .rad{display:flex;align-items:flex-start;gap:9px;border:1px solid rgba(255,255,255,.09);
@@ -424,7 +462,9 @@ button,input,select{font:inherit;color:inherit}
   background:var(--accent);transform:scale(0);transition:transform .16s var(--ease)}
 .rad[aria-pressed="true"] .mark::after{transform:scale(1)}
 .rad .t{font-size:12.5px;font-weight:600;line-height:1.5}
-.rad .d{font-size:10.5px;color:var(--ink-3);line-height:1.65}
+/* --ink-2: أرضية الخيار (أبيض .03) والمرور (.06) والمختار (نعناعي .07) تُنزل
+   --ink-3 إلى 4.36 و 3.99 و 4.05:1. وهذا شرح الدور، أهمّ نصّ في المعالج. */
+.rad .d{font-size:10.5px;color:var(--ink-2);line-height:1.65}
 .btnRow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-block-start:14px}
 .btn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
   padding:7px 15px;border-radius:9px;font-size:12.5px;cursor:pointer;color:var(--ink-2);
@@ -444,7 +484,8 @@ button,input,select{font:inherit;color:inherit}
 /* لا direction:ltr هنا: نفس الوسم يلفّ اسم مستخدم لاتيني ويلفّ «مدير النظام»
    العربية، وإجبار العربية على ltr يزيح ما يجاورها. العزل على .u وحده. */
 .review b{color:var(--ink);font-weight:600}
-.review .k{color:var(--ink-3);font-size:10.5px;font-family:ui-monospace,Menlo,monospace;
+/* أرضية .review (أبيض .03) ⇒ --ink-3 = 4.36:1 على الزجاج الأخضر. */
+.review .k{color:var(--ink-2);font-size:10.5px;font-family:ui-monospace,Menlo,monospace;
   direction:ltr;unicode-bidi:isolate;overflow-wrap:anywhere}
 
 /* ── مصفوفة الصلاحيات ────────────────────────────── */
@@ -478,7 +519,9 @@ button,input,select{font:inherit;color:inherit}
 .wRow:hover{background:rgba(255,255,255,.045)}
 .wRow[aria-expanded="true"]{background:rgba(255,255,255,.07)}
 .wName{font-size:12.5px;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wId{font-size:10px;color:var(--ink-3);direction:ltr;unicode-bidi:isolate;
+/* صفّ القائمة يمرّ بأرضيتين مرفوعتين: المرور (أبيض .045 ⇒ --ink-3 = 4.17:1)
+   والمفتوح (أبيض .07 ⇒ 3.87:1)، وكلتاهما تحت العتبة على الزجاج الأخضر. */
+.wId{font-size:10px;color:var(--ink-2);direction:ltr;unicode-bidi:isolate;
   font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
 /* «412 صفًا» شوط مختلط (رقم + عربية): direction:rtl مع عزل، لا ltr —
    §5 من العقد. text-align:start يُبقيه على الحافة نفسها التي كان عليها. */
@@ -496,7 +539,9 @@ button,input,select{font:inherit;color:inherit}
    الآن، والقائمة قائمة» — و«محذوفة» وحدها تبقى --error لأنها أثر إجراء هدّام،
    وهو ما تسمّيه §3 بالضبط. والتمييز بين الحالتين يحمله نصّ الشارة لا لونها،
    كما ينصّ العقد على أنّ اللون وحده لا يكفي. */
-.sActive{color:var(--clean)} .sMissing{color:var(--ink-3)}
+/* .sMissing حيادية عمدًا، لكنها شارة تُقرأ فوق أرضية الصفّ المرفوعة —
+   نفس حساب .wId أعلاه، فهي --ink-2. */
+.sActive{color:var(--clean)} .sMissing{color:var(--ink-2)}
 .sDisabled{color:var(--warn)} .sExpired{color:var(--warn)} .sDeleted{color:var(--error)}
 .wOpen{padding:11px 18px 13px;border-block-end:1px solid var(--line-2);
   background:rgba(0,0,0,.16);font-size:11.5px;color:var(--ink-3);line-height:1.8}
@@ -573,7 +618,8 @@ button,input,select{font:inherit;color:inherit}
   gap:11px;margin-block-start:16px}
 .denyCard{border:1px solid var(--line);border-radius:12px;padding:11px 13px;
   background:rgba(255,255,255,.03)}
-.denyCard .t{font-size:11.5px;color:var(--ink-3);margin-block-end:4px}
+/* أرضية البطاقة (أبيض .03) ⇒ --ink-3 = 4.36:1 على الزجاج الأخضر. */
+.denyCard .t{font-size:11.5px;color:var(--ink-2);margin-block-end:4px}
 .denyCard .v{font-size:12px;color:var(--ink-2);line-height:1.75}
 .denyCard .v code{font-size:10.5px}
 

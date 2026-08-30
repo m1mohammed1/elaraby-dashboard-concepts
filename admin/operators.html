@@ -24,8 +24,8 @@
    لا سطح معتم #172019 هنا. و ink-3 / ink-4 قيمنا نحن ولا تنزل إلى #78827b
    الذي يقيس 4.20:1 — المواصفة مصدر ألوان لا مصدر حدود قراءة. */
 :root{
-  --bg:#07100b;
-  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
+  --bg:#000000;
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#a5b1a9; --ink-4:#8e9a92;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
   --brand:#ffd700;      /* الهوية في الشريط العلوي وحدها — لا حالة ولا زرّ */
   --accent:#65dfa8;
@@ -36,9 +36,13 @@
   --warn:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
 
-  --far-a:.050;  --far-ink:1;
-  --mid-a:.058;  --mid-ink:1;
-  --near-a:.080; --near-ink:1;
+  /* الخلفية سوداء، والخضرة انتقلت إلى الزجاج نفسه — بدرجة واحدة لكل اللوحات.
+     rgba(17,80,51,.55) فوق الأسود = #092c1c، وهو سقف الدرجة عمليًا:
+     عنده يقيس النصّ الخافت --ink-3 نسبة 4.74:1، وفوقه يهبط تحت 4.5. */
+  --glass:rgba(17,80,51,.55);
+  --glass-line:rgba(101,223,168,.16);
+  --glass-sheen:rgba(101,223,168,.12);
+  --far-ink:1; --mid-ink:1; --near-ink:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* min-block-size لا height: الجسم يكبر مع المحتوى فتغطّيه طبقة المشهد المطلقة كاملةً. */
@@ -56,22 +60,25 @@ button,input,select{font:inherit;color:inherit}
 [hidden]{display:none !important}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
-/* ── المشهد — منقول حرفيًا ───────────────────────── */
-.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+/* ── المشهد — مطفأ ───────────────────────────────────
+   الخلفية سوداء صمّاء. لا مصادر ضوء ولا تظليل: الخضرة كلها في الزجاج الآن،
+   فأي إضاءة خلفية تنافسه وتُذهب حدّته. الترميز والقواعد تبقى كما هي — الإخفاء
+   وحده هو التغيير. */
+.scene{display:none;position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.lamp{display:none;position:absolute;border-radius:50%;filter:blur(110px)}
 .l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
 .l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
 .l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
 .l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
 .l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
-.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.vign{display:none;position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
 .grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
-.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset}
 /* نفس إيقاع الشاشة المرجعية: فجوة 22px داخل الشريط. */
 .barIn{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
@@ -115,21 +122,30 @@ button,input,select{font:inherit;color:inherit}
 /* ── المسرح والمادة ──────────────────────────────── */
 .stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
   margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
-.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
-/* بلا backdrop-filter وبلا أي حركة على .pane — المشهد خلفها مضبَّب أصلًا. */
-.far .pane{background:rgba(255,255,255,var(--far-a));
-  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+/* زجاج أخضر بدرجة واحدة لكل اللوحات — لا تتغيّر الدرجة بين طبقة وأخرى.
+   بلا backdrop-filter وبلا أي حركة على .pane: الخلفية سوداء صمّاء فلا شيء
+   خلف الزجاج يُضبَّب. */
+.pane{position:relative;border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
+/* العمق يُقرأ من الظل وحدّة الحدّ، لا من اختلاف درجة الخضرة. */
+.far .pane{box-shadow:0 1px 0 0 rgba(101,223,168,.07) inset,0 14px 40px -24px rgba(0,0,0,.7)}
 .far{opacity:var(--far-ink)}
-.mid .pane{background:rgba(255,255,255,var(--mid-a))}
 .mid{opacity:var(--mid-ink)}
-.near .pane{background:rgba(255,255,255,var(--near-a));
-  border-color:rgba(255,255,255,.13);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near .pane{border-color:rgba(101,223,168,.24);
+  box-shadow:0 1px 0 0 rgba(101,223,168,.18) inset,0 34px 70px -26px rgba(0,0,0,.9)}
 .near{opacity:var(--near-ink)}
 
+/* ترتيب العمق — بالإعتام وحده الآن: الدرجة واحدة، فالطبقة المختارة تبقى
+   كاملة الوضوح والباقي يتراجع. «الكل» هو الافتراضي. */
+:root[data-depth="all"]{  --far-ink:1;   --mid-ink:1;   --near-ink:1 }
+:root[data-depth="far"]{  --far-ink:1;   --mid-ink:.58; --near-ink:.40 }
+:root[data-depth="mid"]{  --far-ink:.32; --mid-ink:1;   --near-ink:.55 }
+:root[data-depth="near"]{ --far-ink:.28; --mid-ink:.60; --near-ink:1 }
+
 /* ── مصادر البيانات ──────────────────────────────── */
-/* ink-3 لا ink-4: النسبة على اللوحة المركَّبة (~#151d19) هي 5.6:1 مقابل 3.2:1،
+/* ink-3 لا ink-4: النسبة على الزجاج المركَّب (#092c1c) هي 4.74:1 مقابل 4.05:1،
    وهذا نصّ مواصفة يُقرأ فعلًا لا زخرفة. النص مختلط (عربي + مسارات + أرقام)
    فيلزمه عزل ثنائي الاتجاه على الحاوية نفسها لا على <code> وحدها. */
 .src{display:none;font-size:10.5px;color:var(--ink-3);line-height:1.7;
@@ -197,8 +213,8 @@ button,input,select{font:inherit;color:inherit}
 .view[aria-selected="true"]{color:var(--ink);border-block-end-color:var(--accent)}
 /* العدّاد مختلط مع نصّ عربي فيلزمه عزل ثنائي الاتجاه وأرقام جدولية.
    ink-3 لا ink-4: هذا رقم بيانات يقرأه المستخدم ليقرّر أيّ منظور يفتح
-   (§11 قاعدة 2)، و ink-4 يعطي 3.1:1 على اللوحة المركَّبة (~#151d19) —
-   دون 4.5:1. ink-3 يعطي 5.4:1، والمنظور النشط يرتفع إلى ink-2. */
+   (§11 قاعدة 2)، و ink-4 يعطي 4.05:1 على الزجاج المركَّب (#092c1c) —
+   دون 4.5:1. ink-3 يعطي 4.74:1، والمنظور النشط يرتفع إلى ink-2. */
 .view .n{font-size:11px;color:var(--ink-3);margin-inline-start:5px;display:inline-block;
   font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
   direction:ltr;unicode-bidi:isolate}
@@ -217,7 +233,10 @@ button,input,select{font:inherit;color:inherit}
   padding:7px 32px 7px 12px;font-size:12.5px;
   transition:border-color .16s var(--ease)}
 .srch input:hover{border-color:rgba(255,255,255,.18)}
-.srch input::placeholder{color:var(--ink-3)}
+/* ink-2 لا ink-3: النصّ النائب هو التسمية المرئية الوحيدة للحقل، وحشوة الحقل
+   البيضاء (‎.045‎) ترفع الخلفية من ‎#092c1c‎ إلى ‎#143526‎ فيهبط ink-3 إلى 4.20:1.
+   على الحشوة نفسها يقيس ink-2 نسبة 9.96:1. */
+.srch input::placeholder{color:var(--ink-2)}
 /* بلا transform: الأيقونة تُزاح بالهامش لأن المحيط لوحة زجاجية. */
 .srch .si{position:absolute;inset-inline-start:11px;inset-block-start:50%;
   margin-block-start:-6px;inline-size:12px;block-size:12px;color:var(--ink-3);
@@ -238,13 +257,20 @@ button,input,select{font:inherit;color:inherit}
   stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* لوحة التصفية — مطويّة افتراضيًا */
+/* بلا خلفية بيضاء شفّافة: الزجاج الأخضر عند سقفه (ink-3 يقيس 4.74:1 عليه)،
+   فأي تفتيح فوقه يستهلك الهامش كلّه — ‎rgba(255,255,255,.03)‎ كانت ترفع السطح
+   إلى ‎#103223‎ فيهبط ink-3 إلى 4.38:1. الحدّ السفلي وحده يفصل اللوحة، والفصل
+   الحقيقي يحمله محتواها وحالة زرّ «تصفية». */
 .panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));
-  gap:14px;padding:13px 20px;background:rgba(255,255,255,.03);
+  gap:14px;padding:13px 20px;
   border-block-end:1px solid var(--line-2)}
 .fg{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
 .fgL{font-size:11px;color:var(--ink-3)}
 .opts{display:flex;gap:5px;flex-wrap:wrap}
-.opt{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+/* الحبّة غير المختارة بحدّها وحده، بلا حشوة بيضاء: الحشوة كانت ترفع خلفيتها
+   إلى ‎#1a3a2c‎ فيهبط نصّها ink-3 إلى 3.91:1. بلا حشوة يبقى على الزجاج
+   نفسه = 4.74:1، والحالة المختارة تحتها تظلّ مميّزة بحشوتها الخضراء وحدّها. */
+.opt{border:1px solid rgba(255,255,255,.1);background:transparent;
   padding:4px 10px;border-radius:8px;font-size:11.5px;cursor:pointer;color:var(--ink-3);
   transition:background .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease)}
 .opt:hover{color:var(--ink-2)}
@@ -257,7 +283,9 @@ button,input,select{font:inherit;color:inherit}
   background:rgba(101,223,168,.075)}
 /* «حُدِّد 12 من 27» — عربي + أرقام في سطر واحد */
 .ctxbar .c{font-size:12.5px;font-weight:600;direction:rtl;unicode-bidi:isolate}
-.ctxbar .cNote{font-size:11px;color:var(--ink-3);direction:rtl;unicode-bidi:isolate}
+/* ink-2 لا ink-3: التظليل الأخضر ‎.075‎ يرفع خلفية الشريط من ‎#092c1c‎ إلى
+   ‎#103927‎ فيهبط ink-3 إلى 4.02:1 — تحت الحدّ. ink-2 عليه 9.54:1. */
+.ctxbar .cNote{font-size:11px;color:var(--ink-2);direction:rtl;unicode-bidi:isolate}
 .ctxbar .sp{margin-inline-start:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .abtn{display:inline-flex;align-items:center;gap:6px;
   border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
@@ -269,8 +297,13 @@ button,input,select{font:inherit;color:inherit}
   border-color:rgba(255,255,255,.22)}
 /* «حذف» في الشريط الجماعي إجراء هدّام: --error. §11 قاعدة 4 كُتبت حين كان
    الأحمر اسمه --wanted؛ اللون نفسه بقي أحمر، وتغيّر اسمه إلى الدلالة الصحيحة. */
-.abtn.danger{color:var(--error);border-color:rgba(255,91,91,.35)}
-.abtn.danger:hover{background:rgba(255,91,91,.14)}
+/* الحشوة هنا تُعتِم ولا تُفتِح، وهو الاستثناء الوحيد في الصفحة: الأحمر
+   ‎--error‎ يقيس 4.97:1 على الزجاج — هامش 10% فقط — فالحشوة البيضاء ‎.05‎
+   الموروثة من ‎.abtn‎ فوق تظليل الشريط الأخضر كانت تُنزله إلى 3.63:1. أي تفتيح
+   على المرور يُسقطه ثانيةً، فالمرور يُعمّق الحشوة ويُضيء الحدّ بدل أن يُفتّح
+   السطح: 5.03:1 ساكنًا و 5.6:1 عند المرور. */
+.abtn.danger{color:var(--error);border-color:rgba(255,91,91,.35);background:rgba(0,0,0,.26)}
+.abtn.danger:hover{background:rgba(0,0,0,.42);border-color:rgba(255,91,91,.55);color:var(--error)}
 .abtn.go{color:var(--accent);border-color:rgba(101,223,168,.4);background:rgba(101,223,168,.10)}
 .abtn.go:hover{background:rgba(101,223,168,.17)}
 .abtn[disabled]{opacity:.42;cursor:not-allowed}
@@ -284,7 +317,7 @@ button,input,select{font:inherit;color:inherit}
   box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 30px 60px -18px rgba(0,0,0,.9)}
 /* ink-3 لا ink-4: عنوان القسم داخل القائمة يشرح ما تفعله البنود تحته
    («الحالة الجديدة»، «شهر واحد افتراضيًا») فهو نصّ يُقرأ. خلفية القائمة
-   معتمة #101b16، و ink-4 عليها 3.2:1 مقابل 5.5:1 لـ ink-3. */
+   معتمة #101b16، و ink-4 عليها 4.72:1 مقابل 5.53:1 لـ ink-3. */
 .popT{font-size:10.5px;color:var(--ink-3);padding:9px 13px 5px}
 .popI{display:flex;align-items:center;gap:9px;inline-size:100%;text-align:start;
   border:0;background:transparent;cursor:pointer;padding:7px 13px;font-size:12.5px;
@@ -439,6 +472,13 @@ button,input,select{font:inherit;color:inherit}
 .rowBody:hover{background:rgba(255,255,255,.045)}
 .rowBody.sel{background:rgba(101,223,168,.09)}
 .rowBody.sel:hover{background:rgba(101,223,168,.13)}
+/* تظليل التحديد يرفع خلفية الصف إلى ‎#113c29‎ (و‎#15432e‎ مع المرور)، فيهبط
+   عليه النصّ الخافت ink-3 إلى 3.87:1 ثم 3.51:1. التظليل نفسه هو إشارة
+   التحديد فلا يُخفَّض — يُرفع النصّ الخافت وحده درجةً إلى ink-2:
+   9.17:1 و 8.33:1. بقيّة ألوان الحالة تمرّ كما هي على التظليل
+   (كهرماني 6.33:1 · أخضر 7.45:1)، والأحمر «محذوف» لا يظهر مع تحديد أصلًا
+   لأن صفوف الأرشيف غير قابلة للتحديد. */
+.rowBody.sel .cMini,.rowBody.sel .cLbl,.rowBody.sel .t-muted{color:var(--ink-2)}
 
 .chk{inline-size:15px;block-size:15px;accent-color:var(--accent);cursor:pointer;margin:0}
 .cUser a{color:var(--ink);text-decoration:none;font-weight:500;
@@ -488,7 +528,7 @@ button,input,select{font:inherit;color:inherit}
 .t-danger{color:var(--error)}
 .t-info{color:var(--accent)}
 /* ink-3 لا ink-4: «غير مرتبط» و«منتهي» و«غير متصل» بيانات تُقرأ، و ink-4
-   يعطي 3.2:1 على اللوحة المركَّبة — دون حدّ النص العادي. */
+   يعطي 4.05:1 على الزجاج المركَّب — دون حدّ النص العادي. */
 .t-muted{color:var(--ink-3)}
 
 /* اسم مسموع لعمود التحديد — العمود بلا عنوان مرئي بحكم التصميم. */
@@ -540,8 +580,9 @@ button,input,select{font:inherit;color:inherit}
 .dlgF{display:flex;gap:9px;justify-content:flex-end;padding:12px 18px 15px;
   border-block-start:1px solid var(--line-2)}
 
-/* ink-3 لا ink-4: سطر «بيانات توضيحية» إقرار يجب أن يُقرأ فعلًا،
-   و ink-4 على خلفية المشهد يعطي 3.5:1 — دون 4.5:1. */
+/* ink-3 لا ink-4: سطر «بيانات توضيحية» إقرار يجب أن يُقرأ فعلًا.
+   الخلفية صارت سوداء صمّاء فالنسبة ارتفعت (ink-3 = 6.6:1)، ويبقى ink-3
+   لأن التذييل خارج الزجاج ويجب أن يطابق بقيّة النصّ الخافت. */
 .foot{position:relative;z-index:10;padding:0 26px 26px;color:var(--ink-3);font-size:11.5px;
   display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
 

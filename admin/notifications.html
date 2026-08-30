@@ -22,7 +22,7 @@
    ══════════════════════════════════════════════════════════════════ */
 :root{
   /* المشهد */
-  --bg:#07100b;
+  --bg:#000000;
 
   /* الهوية والحالة — من مواصفة تسليم الواجهة، انظر عقد التصميم §3
      --wanted ذهبية للحالة «مطلوب» وحدها، و--error للإجراء الهدّام والفشل.
@@ -37,14 +37,18 @@
 
   /* النصّ والحدود — قيمنا نحن. --ink-3 و--ink-4 لا تنزلان إلى #78827b
      في المواصفة (4.20:1، تحت الحدّ). */
-  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#a5b1a9; --ink-4:#8e9a92;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
   --warn:#e8b055;      /* تنبيه محلي: اقتراب من الحدّ · «يحتاج بناءً» — ليس حالة لوحة */
   --ease:cubic-bezier(.22,.61,.36,1);
 
-  --far-a:.050;  --far-ink:1;
-  --mid-a:.058;  --mid-ink:1;
-  --near-a:.080; --near-ink:1;
+  /* الخلفية سوداء، والخضرة انتقلت إلى الزجاج نفسه — بدرجة واحدة لكل اللوحات.
+     rgba(17,80,51,.55) فوق الأسود = #092c1c، وهو سقف الدرجة عمليًا:
+     عنده يقيس النصّ الخافت 4.74:1، وفوقه يهبط تحت 4.5. */
+  --glass:rgba(17,80,51,.55);
+  --glass-line:rgba(101,223,168,.16);
+  --glass-sheen:rgba(101,223,168,.12);
+  --far-ink:1; --mid-ink:1; --near-ink:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* min-height لا height: الجسم يكبر مع المحتوى فتغطّيه طبقة المشهد كاملةً
@@ -60,22 +64,25 @@ body{
 button,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
-/* ── المشهد — منقول كما هو ──────────────────────────── */
-.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+/* ── المشهد — مطفأ ──────────────────────────────────
+   الخلفية سوداء صمّاء. لا مصادر ضوء ولا تظليل — الخضرة كلها في الزجاج الآن،
+   فأي إضاءة خلفية تنافسه وتُذهب حدّته. تُترك العناصر والقواعد كما هي
+   وتُخفى وحدها. */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:none}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px);display:none}
 .l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
 .l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
 .l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
 .l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
 .l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
-.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.vign{position:absolute;inset:0;display:none;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
 .grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
-.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset}
 .barIn{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
@@ -84,7 +91,7 @@ button,input,textarea{font:inherit;color:inherit}
   color:var(--brand)}
 /* --brand ذهب الهوية، وهو محصور بهذا الموضع وحده. لا يُستعمل لحالة ولا زر ولا تركيز:
    ذهبان على شاشة واحدة يجعلان الهوية تُقرأ كحالة «مطلوب». #ffd700 على خلفية
-   الشريط المركَّبة (~#131c17) = 12.4:1. */
+   الشريط المركَّبة الجديدة (#092c1c) = 10.8:1. */
 .brand .wm{color:var(--brand)}
 .brand .wmRest{color:var(--ink-2);font-weight:500}
 .barSep{width:1px;height:22px;background:var(--line)}
@@ -109,9 +116,11 @@ button,input,textarea{font:inherit;color:inherit}
 .seg button[aria-pressed="true"]{background:rgba(255,255,255,.10);color:var(--ink)}
 .seg.segSm button{padding:4px 10px;font-size:11.5px}
 /* درجتا الرمادي لم تتغيّرا مع تغيّر اللوحة: #78827b في المواصفة يقيس 4.20:1 وهو دون
-   الحدّ، فلا ننزل إليه. فوق اللوحة المركَّبة (~#151d19): --ink-3 (#87938c) = 5.38:1
-   و--ink-4 (#7b8780) = 4.60:1 — على الحافّة. لذلك كل نصّ يحمل معنى يستخدم --ink-3،
-   ويبقى --ink-4 للزخرفة وحدها (أيقونات شريط حالة الهاتف في المعاينة). */
+   الحدّ، فلا ننزل إليه. فوق الزجاج الأخضر المركَّب (#092c1c): --ink-3 (#87938c)
+   = 4.74:1 — يمرّ، وهو ما يثبّت --glass عند .55 ويمنع رفعها.
+   و--ink-4 (#7b8780) = 4.05:1 — تحت الحدّ، فيبقى للزخرفة وحدها (أيقونات شريط
+   حالة الهاتف في المعاينة، وهي فوق خلفية الجهاز لا فوق الزجاج)، وكل نصّ يحمل
+   معنى يستخدم --ink-3. */
 .segLbl{font-size:11.5px;color:var(--ink-3);margin-inline-end:8px}
 
 .tgl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
@@ -137,19 +146,29 @@ button,input,textarea{font:inherit;color:inherit}
 /* ── المسرح والمادة ───────────────────────────────── */
 .stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
   margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
-.plane{opacity:var(--pl-ink,1)}
-.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
-/* بلا backdrop-filter وبلا حركة على الزجاج — انظر عقد التصميم §0 */
-.far .pane{background:rgba(255,255,255,var(--far-a));
-  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+/* لا قاعدة opacity على .plane هنا: --pl-ink لم يعد معرَّفًا في أي مكان بعد حذف
+   --far-a/--mid-a/--near-a، و.far/.mid/.near تضبط الإعتام مباشرةً أدناه. */
+/* زجاج أخضر بدرجة واحدة لكل اللوحات — لا تتغيّر الدرجة بين طبقة وأخرى.
+   بلا backdrop-filter وبلا حركة على الزجاج — انظر عقد التصميم §0. */
+.pane{position:relative;border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
+
+/* العمق يُقرأ من الظل وحدّة الحدّ، لا من اختلاف درجة الخضرة. */
+.far .pane{box-shadow:0 1px 0 0 rgba(101,223,168,.07) inset,0 14px 40px -24px rgba(0,0,0,.7)}
 .far{opacity:var(--far-ink)}
-.mid .pane{background:rgba(255,255,255,var(--mid-a))}
 .mid{opacity:var(--mid-ink)}
-.near .pane{background:rgba(255,255,255,var(--near-a));
-  border-color:rgba(255,255,255,.13);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near .pane{border-color:rgba(101,223,168,.24);
+  box-shadow:0 1px 0 0 rgba(101,223,168,.18) inset,0 34px 70px -26px rgba(0,0,0,.9)}
 .near{opacity:var(--near-ink)}
+
+/* ترتيب العمق — بالإعتام وحده الآن: الدرجة واحدة، فالطبقة المختارة تبقى
+   كاملة الوضوح والباقي يتراجع. «الكل» هو الافتراضي. */
+:root[data-depth="all"]{  --far-ink:1;   --mid-ink:1;   --near-ink:1 }
+:root[data-depth="far"]{  --far-ink:1;   --mid-ink:.58; --near-ink:.40 }
+:root[data-depth="mid"]{  --far-ink:.32; --mid-ink:1;   --near-ink:.55 }
+:root[data-depth="near"]{ --far-ink:.28; --mid-ink:.60; --near-ink:1 }
 
 .paneHead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:14px 18px 0}
 .paneTitle{font-size:14.5px;font-weight:600}
@@ -175,11 +194,16 @@ button,input,textarea{font:inherit;color:inherit}
 /* ── شريط الإشعار الناتج (Notice) ─────────────────── */
 .notice{display:none;align-items:flex-start;gap:12px;flex-wrap:wrap;
   padding:11px 16px;margin-block-end:14px;border-radius:12px;font-size:12.5px;
-  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--ink-2)}
+  border:1px solid var(--glass-line);background:var(--glass);color:var(--ink-2)}
 .notice.on{display:flex}
-.notice.ok{background:rgba(101,223,168,.07);border-color:rgba(101,223,168,.26)}
+/* الشريط يقف على خلفية الصفحة السوداء لا داخل لوحة، فالخلفية تبقى --glass في
+   الحالتين. الصبغة القديمة rgba(...,.07) كانت تستبدل الزجاج لا أن تعلوه، فتصير
+   القيمة الفعلية سوداء تقريبًا (#08100c) بين لوحات #092c1c — وطبقةً فوق الزجاج
+   كانت ترفع لمعان السطح فيهبط --ink-3 في سطر الخادم إلى 4.03:1. النبرة تحملها
+   حافةُ الشريط وكلمةُ الحالة («تم:» / «فشل:») وهي نصّ لا لون وحده. */
+.notice.ok{border-color:rgba(101,223,168,.32)}
 /* فشل إرسال فعلي راجع من الخادم — خطأ لا حالة. --error لا --wanted. */
-.notice.bad{background:rgba(255,91,91,.07);border-color:rgba(255,91,91,.28)}
+.notice.bad{border-color:rgba(255,91,91,.38)}
 .notice .nMsg{flex:1;min-inline-size:160px}
 .notice .nSrv{display:block;margin-block-start:2px;color:var(--ink-3);font-size:11px;
   direction:ltr;unicode-bidi:isolate;text-align:start;
@@ -229,7 +253,10 @@ textarea.input{resize:vertical;min-block-size:112px}
   background:var(--accent);transform:scale(0);transition:transform .16s var(--ease)}
 .aud[aria-pressed="true"] .audDot::after{transform:scale(1)}
 .audName{font-size:12.5px;font-weight:500;display:block}
-.audMeta{font-size:11px;color:var(--ink-3);display:block;line-height:1.65}
+/* --ink-2 لا --ink-3: بطاقة الجمهور تحمل تعبئة بيضاء (.03 → .055 عند المرور →
+   .08 عند الاختيار) تعلو الزجاج فترفع لمعانه، فيهبط --ink-3 من 4.74:1 إلى
+   4.38 / 4.15 / 3.74. البطاقة المختارة هي الحالة الافتراضية عند التحميل. */
+.audMeta{font-size:11px;color:var(--ink-2);display:block;line-height:1.65}
 /* اللون وحده لا يكفي — كل شارة حالة تحمل أيقونتها (عقد التصميم §3).
    هذه الصفحة لا تعرض حكم لوحة، فليست هنا شارة «مطلوب» ولا «غير مطلوبة»؛
    الشارتان الوحيدتان تصفان جاهزية الجمهور، ومنطق «لون + أيقونة» ينطبق عليهما.
@@ -249,8 +276,10 @@ textarea.input{resize:vertical;min-block-size:112px}
 .blockNote.on{display:flex}
 .blockIcon{flex:none;color:var(--warn);margin-block-start:3px}
 .blockNote b{color:var(--warn);font-weight:600}
+/* --ink-2 كبقيّة أكواد الصفحة (.src code و.reachWarn code و.devFoot code):
+   صبغة التنبيه الكهرمانية فوق الزجاج ترفع اللمعان، فيقيس --ink-3 هنا 4.19:1. */
 .blockNote code{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
-  font-size:10.5px;color:var(--ink-3)}
+  font-size:10.5px;color:var(--ink-2)}
 
 .reach{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   border-block-start:1px solid var(--line-2);padding-block-start:13px;margin-block-end:14px;

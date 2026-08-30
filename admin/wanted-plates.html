@@ -22,7 +22,7 @@
    ══════════════════════════════════════════════════════════════════ */
 :root{
   /* المشهد */
-  --bg:#07100b;
+  --bg:#000000;
 
   /* الهوية والحالة — من مواصفة تسليم الواجهة (§3) */
   --brand:#ffd700;       /* ذهبي — «العربي» في الشريط العلوي وحده، لا حالة ولا زر */
@@ -34,22 +34,40 @@
 
   /* --ink-3 و --ink-4 لا يتغيّران: #78827b في المواصفة يقيس 4.20:1 وهو تحت
      الحدّ، ولا نُنزل التباين لمطابقة مواصفة (§3). */
-  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c; --ink-4:#7b8780;
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#a5b1a9; --ink-4:#8e9a92;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
   /* كهرماني قديم — لم يعد يحمل معنى «مرفوض» بعد اعتماد الذهبي لـ«مطلوب»:
      كهرمانيّان متجاوران على شاشة واحدة هما الالتباس المقصود تجنّبه. باقٍ
      معرّفًا لنبرة التحذير غير الهدّامة (.note.warn) وحدها. */
   --warn:#e8b055;
   --ease:cubic-bezier(.22,.61,.36,1);
-  --far-a:.050; --mid-a:.058; --near-a:.080;
-  /* --ink-4 هو أخفت تدرّج في العقد، لكنه يقيس 3.0:1 فوق اللوحة المركَّبة (~#151d19)
-     فلا يصلح لنصّ يُقرأ. --ink-dim أخفت تدرّج نصّي يمرّ 4.5:1، وهو ما تستعمله كل
-     النصوص الثانوية هنا. --ink-4 يبقى معرّفًا كما في العقد ولا يحمل نصًّا.
-     القيمة مضبوطة على أفتح سطح يحمل هذا اللون لا على اللوحة العارية: النصوص
-     الثانوية تقع داخل صناديق شفّافة متداخلة (.panel فوق .mid، و.step و.cnt فوق
-     .near) فتُركَّب خلفياتها إلى ~#202824 لا #151d19، وعندها كانت #7d8983 تهبط
-     إلى 4.2:1. #838f89 يقيس 5.4:1 على اللوحة و4.5:1 على أفتح تلك الصناديق،
-     ويبقى أخفت من --ink-3 فيحفظ الترتيب البصري. */
+  /* الخلفية سوداء، والخضرة انتقلت إلى الزجاج نفسه — بدرجة واحدة لكل اللوحات،
+     لا درجة لكل طبقة. rgba(17,80,51,.55) فوق الأسود = #092c1c، وهو سقف الدرجة
+     عمليًا: عنده يقيس --ink-3 نسبة 4.74:1، وعند .70 يهبط إلى 4.10 فيسقط تحت الحدّ. */
+  --glass:rgba(17,80,51,.55);
+  --glass-line:rgba(101,223,168,.16);
+  --glass-sheen:rgba(101,223,168,.12);
+  /* الصناديق المتداخلة داخل اللوحة (خطوات الاستيراد · بطاقات المعاينة · لوحة
+     التصفية · رأس الجدول · التنبيه المحايد) تُغوَّر بالأسود لا تُفتَّح بالأبيض.
+     التخفيف الأبيض كان يغسل الخضرة ويرفع الأرضية فيهبط التباين: عليه كان
+     --ink-3 يقيس 4.38:1 و --ink-dim 4.17:1 — كلاهما تحت الحدّ. التغوير يعكس
+     الاتجاه: rgba(0,0,0,.24) فوق #092c1c = #072115، وعليه --ink-3 = 5.30:1
+     و --ink-dim = 5.04:1، وتبقى الدرجة خضراء لا رمادية. */
+  --recess:rgba(0,0,0,.24);
+  /* العمق بالإعتام وحده الآن — الدرجة واحدة فلم تعد --far-a/--mid-a/--near-a تعني شيئًا. */
+  --far-ink:1; --mid-ink:1; --near-ink:1;
+  /* --ink-4 هو أخفت تدرّج في العقد ولا يحمل نصًّا هنا. --ink-dim أخفت تدرّج نصّي
+     تستعمله كل النصوص الثانوية في هذه الصفحة، ويبقى أخفت من --ink-3 فيحفظ
+     الترتيب البصري.
+     قياساته على الزجاج الأخضر لا على اللوحة البيضاء القديمة: فوق اللوحة العارية
+     (#092c1c) يقيس 4.50:1 — على الحدّ تمامًا — وفوق الصناديق المغوَّرة
+     (--recess) يرتفع إلى 5.04:1. يبقى استثناءان على تخفيفات الأبيض التي هي
+     حشوة عناصر تحكّم أو إبراز صفّ لا أسطح لوحات: نائب البحث (--ink-3 فوق
+     ‎.045 = 4.17:1) والصفّ المحدَّد (‎.075: --ink-3 = 3.81:1 و --error = 3.99:1).
+     كلاهما نمط منقول من الشاشة المرجعية ومرفوع إلى صاحب المنتج.
+     ملاحظة: صبغ هذه الصناديق بـ --glass بدل تغويرها يزيد الأمر سوءًا — زجاج فوق
+     زجاج يُركَّب إلى #0d4029 فيهبط --ink-3 إلى 3.69:1؛ والتفتيح بالأبيض كان يهبط
+     به إلى 4.38:1. التغوير وحده يرفع الطرفين. */
   --ink-dim:#838f89;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -65,7 +83,9 @@ button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 
 /* ── المشهد (منقول حرفيًا من الشاشة المرجعية) ─────── */
-.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+/* الخلفية سوداء صمّاء الآن. لا مصادر ضوء ولا تظليل — الخضرة كلها في الزجاج،
+   فأي إضاءة خلفية تنافسه وتُذهب حدّته. تبقى القواعد والترميز كما هما وتُخفى. */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:none}
 .lamp{position:absolute;border-radius:50%;filter:blur(110px)}
 .l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
 .l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
@@ -73,13 +93,14 @@ button,input,select{font:inherit;color:inherit}
 .l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
 .l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
 .vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.lamp,.vign{display:none}
 .grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
-.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset}
 .barIn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
@@ -118,14 +139,29 @@ button,input,select{font:inherit;color:inherit}
 /* ── المسرح والمادة ──────────────────────────────── */
 .stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
   margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
-.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
-.far .pane{background:rgba(255,255,255,var(--far-a));
-  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
-.mid .pane{background:rgba(255,255,255,var(--mid-a))}
-.near .pane{background:rgba(255,255,255,var(--near-a));
-  border-color:rgba(255,255,255,.13);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+/* زجاج أخضر بدرجة واحدة لكل اللوحات — لا تتغيّر الدرجة بين طبقة وأخرى.
+   لا backdrop-filter: الخلفية سوداء صمّاء فلا شيء خلفها يُضبَّب. الإحساس
+   الزجاجي يحمله التخفيف الأخضر واللمعة العلوية والحدّ والظل.
+   والظلال أعمق من قبل: أسود على أسود يحتاج فصلًا أكثر من زجاج فوق مشهد مضاء. */
+.pane{position:relative;border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
+
+/* العمق يُقرأ من عمق الظل وحدّة الحدّ، لا من اختلاف درجة الخضرة. */
+.far .pane{box-shadow:0 1px 0 0 rgba(101,223,168,.07) inset,0 14px 40px -24px rgba(0,0,0,.7)}
+.far{opacity:var(--far-ink)}
+.mid{opacity:var(--mid-ink)}
+.near .pane{border-color:rgba(101,223,168,.24);
+  box-shadow:0 1px 0 0 rgba(101,223,168,.18) inset,0 34px 70px -26px rgba(0,0,0,.9)}
+.near{opacity:var(--near-ink)}
+
+/* ترتيب العمق — بالإعتام وحده: الدرجة واحدة، فالطبقة المختارة تبقى كاملة
+   الوضوح والباقي يتراجع. «الكل» هو الافتراضي، وهو ما تحمله هذه الصفحة. */
+:root[data-depth="all"]{  --far-ink:1;   --mid-ink:1;   --near-ink:1 }
+:root[data-depth="far"]{  --far-ink:1;   --mid-ink:.58; --near-ink:.40 }
+:root[data-depth="mid"]{  --far-ink:.32; --mid-ink:1;   --near-ink:.55 }
+:root[data-depth="near"]{ --far-ink:.28; --mid-ink:.60; --near-ink:1 }
 
 /* ── دفتر الأرقام ────────────────────────────────── */
 .ledgerSec{position:relative;z-index:60}
@@ -197,7 +233,7 @@ button,input,select{font:inherit;color:inherit}
 .impHead p{font-size:11.5px;color:var(--ink-3)}
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px 18px 4px;list-style:none}
 .step{border:1px solid var(--line);border-radius:11px;padding:9px 12px;
-  background:rgba(255,255,255,.025);transition:border-color .18s var(--ease),background .18s var(--ease)}
+  background:var(--recess);transition:border-color .18s var(--ease),background .18s var(--ease)}
 .step .n{font-size:10px;color:var(--ink-dim);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .step .s{font-size:12.5px;color:var(--ink-3);font-weight:500;display:block}
 .step .h{font-size:10.5px;color:var(--ink-dim);display:block;line-height:1.65}
@@ -219,10 +255,16 @@ button,input,select{font:inherit;color:inherit}
 select.input,input.input{inline-size:100%;background:rgba(255,255,255,.05);color:var(--ink);
   border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px;
   transition:border-color .16s var(--ease)}
-select.input{background-image:none}
+/* الخانة نفسها معتمة لا شفّافة: المتصفّح يرسم إطار القائمة المنسدلة بخلفية
+   الـ <select> لا بخلفية الخيارات، فلو بقيت rgba(...,.05) ظهرت القائمة فوق
+   الجدول بأرضية فاتحة يُقرأ من خلفها. #153727 هو حرفيًا ما يعطيه ذلك التخفيف
+   فوق اللوحة (#092c1c)، فالمظهر مغلقًا لم يتغيّر بشيء. */
+select.input{background-image:none;background-color:#153727}
 /* اسم الملف لاتيني: dir="ltr" يضمن ترتيب محارفه، و text-align:end يبقيه
    محاذيًا لبقية الحقول في تخطيط RTL بدل أن يقفز إلى اليسار وحده. */
 input.fileVal{text-align:end}
+/* قائمة <select> الأصلية تُرسم فوق محتوى الصفحة وتغطّي الجدول والخطوات تحتها،
+   فتبقى معتمة #101b16 ولا تأخذ الزجاج الأخضر: لو شفّت لقُرئ النصّ من تحتها. */
 select.input option{background:#101b16;color:var(--ink)}
 input.input::placeholder{color:var(--ink-dim)}
 .input:hover{border-color:rgba(255,255,255,.16)}
@@ -252,7 +294,7 @@ input.input::placeholder{color:var(--ink-dim)}
 
 .note{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;line-height:1.75;
   border-radius:11px;padding:9px 13px;margin-block-start:12px;
-  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--ink-2)}
+  border:1px solid rgba(255,255,255,.1);background:var(--recess);color:var(--ink-2)}
 .note.danger{border-color:rgba(255,91,91,.32);background:rgba(255,91,91,.09);color:#ffcccc}
 .note strong{color:#fff;font-weight:600}
 .note.warn{border-color:rgba(232,176,85,.32);background:rgba(232,176,85,.09);color:#f3d7a8}
@@ -271,7 +313,7 @@ input.input::placeholder{color:var(--ink-dim)}
 .counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-block-start:12px}
 .counts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:760px){ .counts,.counts.three{grid-template-columns:repeat(2,minmax(0,1fr))} }
-.cnt{border:1px solid var(--line);border-radius:11px;padding:10px 13px;background:rgba(255,255,255,.03)}
+.cnt{border:1px solid var(--line);border-radius:11px;padding:10px 13px;background:var(--recess)}
 .cnt dt{font-size:11px;color:var(--ink-3)}
 .cnt dd{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;
   direction:ltr;unicode-bidi:isolate;line-height:1.4;margin-block-start:2px}
@@ -348,14 +390,14 @@ input.input::placeholder{color:var(--ink-dim)}
 .fbtn:hover{background:rgba(255,255,255,.1);color:var(--ink)}
 .fbtn[aria-expanded="true"]{background:rgba(255,255,255,.11);color:var(--ink);
   border-color:rgba(255,255,255,.2)}
-/* حبّة مملوءة بلون فاتح ⇒ نصّ داكن. #07100b فوق #65dfa8 = 11.9:1. */
+/* حبّة مملوءة بلون فاتح ⇒ نصّ داكن. #000000 فوق #65dfa8 = 13.3:1. */
 .fbadge{background:var(--accent);color:var(--bg);font-weight:700;font-size:10px;
   min-inline-size:16px;block-size:16px;border-radius:99px;display:grid;place-items:center;
   padding-inline:4px;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .fbadge[hidden]{display:none}
 .chev{flex:none;color:var(--ink-3)}
 
-.panel{border-block-end:1px solid var(--line-2);background:rgba(255,255,255,.03);
+.panel{border-block-end:1px solid var(--line-2);background:var(--recess);
   padding:14px 18px;display:grid;
   grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:14px}
 .panel[hidden]{display:none}
@@ -413,8 +455,8 @@ input.input::placeholder{color:var(--ink-dim)}
 .wrow:hover{background:rgba(255,255,255,.045)}
 .wrow.on{background:rgba(255,255,255,.075)}
 .wrow.head{font-size:11px;color:var(--ink-3);padding-block:8px;
-  border-block-end:1px solid var(--line);background:rgba(255,255,255,.02)}
-.wrow.head:hover{background:rgba(255,255,255,.02)}
+  border-block-end:1px solid var(--line);background:var(--recess)}
+.wrow.head:hover{background:var(--recess)}
 /* رأس تبويب «الصيغة غير الصالحة» يستخدم خانة .c-why لا .c-num، لأن .c-num
    اتجاهه ltr فيصطفّ عنوان «السبب» العربي إلى اليسار بينما نصّ الخلايا تحته
    يصطفّ إلى اليمين. اللون يعود لون الرأس لا لون التحذير. */

@@ -10,10 +10,27 @@
 <style>
 /* ══ لوحة المواصفة، مستخرجة من أوامر الرسم داخل ملف PDF ══ */
 :root{
-  --bg:#07100b; --surface:#172019; --surface-2:#111a14; --surface-3:#0c1710;
+  /* الخلفية سوداء صمّاء، والخضرة انتقلت إلى الزجاج نفسه — درجة واحدة لكل اللوحات.
+     rgba(17,80,51,.55) فوق الأسود = ‎#092c1c، وهو سقف الدرجة عمليًا ولا يُرفع. */
+  --bg:#000000;
+  --glass:rgba(17,80,51,.55);
+  --glass-line:rgba(101,223,168,.16);
+  --glass-sheen:rgba(101,223,168,.12);
+
+  /* أسطح المواصفة تبقى كما هي: هذه الصفحة تعرضها كعيّنات في جانب المقارنة،
+     فصبغها بالزجاج يمحو الشيء المعروض نفسه. --spec-bg هو خلفية لوحة المواصفة
+     في العيّنة، بعد أن صارت --bg سوداء. */
+  --spec-bg:#07100b;
+  --surface:#172019; --surface-2:#111a14; --surface-3:#0c1710;
   --brand:#ffd700; --wanted:#ffb800; --clean:#65dfa8; --error:#ff5b5b;
   --primary:#115033; --primary-2:#0b2e1e;
-  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#78827b; --ink-4:#6d786f;
+
+  /* النصّ: --ink-3 و --ink-4 قيمنا نحن، لا قيم المواصفة. النصّ الخافت في المواصفة
+     ‎#78827b يقيس 3.80:1 فوق ‎#092c1c — تحت الحدّ. ‎#87938c يقيس 4.74:1.
+     قيمة المواصفة تبقى موجودة باسم --spec-ink-3 لأن العيّنة في القسم 3 تعرضها
+     كما هي؛ استعمالها في كروم الصفحة نفسه هو ما كان الخطأ. */
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#a5b1a9; --ink-4:#8e9a92;
+  --spec-ink-3:#78827b;
   --line:#314037;
   /* اللوحة الحالية للمقارنة */
   --o-bg:#06100c; --o-accent:#6ec49b; --o-wanted:#ff6b6b; --o-clean:#3ddc97;
@@ -31,15 +48,16 @@ button{font:inherit;color:inherit}
 .wrap{position:relative;z-index:2;inline-size:100%;max-inline-size:1240px;
   margin-inline:auto;padding:40px 26px 80px}
 h1{font-size:28px;font-weight:600;line-height:1.35}
-.sub{color:var(--ink-3);font-size:14px;margin-block-start:8px;max-width:78ch}
+.sub{color:var(--ink-3);font-size:14px;margin-block-start:8px;max-inline-size:78ch}
 .sub b{color:var(--ink-2);font-weight:500}
 
 section{margin-block-start:40px}
 .secHead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
   padding-block-end:12px;border-block-end:1px solid var(--line);margin-block-end:20px}
 .secN{inline-size:24px;block-size:24px;border-radius:7px;display:grid;place-items:center;
-  border:1px solid var(--line);background:var(--surface);font-size:11px;font-weight:600;
-  flex:none;align-self:center;color:var(--ink-3)}
+  border:1px solid var(--glass-line);background:var(--glass);font-size:11px;font-weight:600;
+  flex:none;align-self:center;color:var(--ink-3);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset}
 .secT{font-size:19px;font-weight:600}
 .secNote{font-size:12.5px;color:var(--ink-3);flex:1;min-inline-size:200px}
 
@@ -54,13 +72,17 @@ section{margin-block-start:40px}
 /* ── مرجع التطبيق ── */
 .shots{display:grid;grid-template-columns:1.9fr 1fr;gap:14px;align-items:start}
 @media(max-width:820px){.shots{grid-template-columns:1fr}}
-.shot{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.shot{border-radius:14px;overflow:hidden;border:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
 .shot img{display:block;inline-size:100%;block-size:auto}
 .shotC{padding:9px 13px;font-size:11.5px;color:var(--ink-3);border-block-start:1px solid var(--line)}
 
 /* ── جدول اللوحة ── */
 .pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(212px,100%),1fr));gap:11px}
-.sw{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.sw{border-radius:12px;overflow:hidden;border:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
 .swC{block-size:56px}
 .swB{padding:9px 12px 11px}
 .swN{font-size:12.5px;font-weight:600}
@@ -71,7 +93,12 @@ section{margin-block-start:40px}
 /* ── المقارنة ── */
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:900px){.cmp{grid-template-columns:1fr}}
-.side{border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+/* الإطار وحده زجاجي — أما ما بداخله فعيّنتان تحتفظان بلونيهما حرفيًا.
+   لهذا وحده يبقى `background:rgba(255,255,255,.058)` على `.old .pane` أدناه:
+   هو **الشيء المعروض** لا سطح لوحة في هذه الصفحة. صبغه بالزجاج الأخضر يمحو
+   طرف المقارنة. لا تنسخ هذا السطر إلى أي صفحة أخرى. */
+.side{border-radius:16px;overflow:hidden;border:1px solid var(--glass-line);
+  box-shadow:0 20px 50px -22px rgba(0,0,0,.75)}
 .sideH{padding:11px 16px;font-size:13px;font-weight:600;border-block-end:1px solid var(--line);
   display:flex;align-items:center;gap:9px}
 .sideH .dot{inline-size:9px;block-size:9px;border-radius:50%;flex:none}
@@ -91,10 +118,10 @@ section{margin-block-start:40px}
 .old .cue{color:var(--o-accent)}
 
 /* لوحة المواصفة */
-.neu{background:var(--bg)}
+.neu{background:var(--spec-bg)}
 .neu .sideH{color:var(--ink)}
 .neu .pane{background:var(--surface);border:1px solid var(--line)}
-.neu .fL{color:var(--ink-3)} .neu .fV{color:var(--ink)}
+.neu .fL{color:var(--spec-ink-3)} .neu .fV{color:var(--ink)}
 .neu .hot{color:var(--wanted)}
 .neu .badgeW{color:var(--wanted)} .neu .badgeC{color:var(--clean)}
 .neu .btnP{background:var(--primary);color:var(--ink)}

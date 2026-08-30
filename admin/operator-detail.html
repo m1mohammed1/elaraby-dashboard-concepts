@@ -16,7 +16,8 @@
    ══════════════════════════════════════════════════════════════════ */
 :root{
   /* ── المشهد ── */
-  --bg:#07100b;
+  /* الخلفية سوداء صمّاء، والخضرة انتقلت إلى الزجاج نفسه. */
+  --bg:#000000;
 
   /* ── الهوية والحالة — من مواصفة تسليم الواجهة ──
      «مطلوب» ذهبية لا حمراء: تغيير دلالة لا درجة. يترتّب عليه فصلٌ كان
@@ -36,17 +37,26 @@
   /* ── النصّ والحدود — قيمنا نحن ──
      --ink-3 و --ink-4 لا تتبعان المواصفة: قيمة المواصفة #78827b تقيس 4.20:1
      على سطحها المعتم، تحت الحدّ. لا نُنزل التباين لنطابق مواصفة. */
-  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#87938c;
-  /* --ink-4 مرفوع من #5f6b65: القيمة القديمة تعطي 3.09:1 فقط فوق اللوحة
-     المركّبة (~#151d19) وهي تحمل نصًّا حقيقيًا (سطور «مصادر البيانات»،
-     عدّاد الصفحات، معرّف المشغّل، التذييل). #7b8780 يعطي 4.60:1. */
-  --ink-4:#7b8780;
+  --ink:#f0f4f1; --ink-2:#d8e0db; --ink-3:#a5b1a9;
+  /* --ink-4 مرفوع من #5f6b65 وهو يحمل نصًّا حقيقيًا (سطور «مصادر البيانات»،
+     عدّاد الصفحات، معرّف المشغّل، التذييل). كان يقيس 4.60:1 فوق اللوحة
+     البيضاء القديمة (~#151d19)؛ وفوق الزجاج الأخضر الجديد (#092c1c) يقيس
+     4.05:1 — تحت الحدّ. لا تُرفع هنا وحدها: التوكن مثبَّت في §3 من نظام
+     التصميم وتتقاسمه الشاشات التسع كلها، فرفعه قرار على مستوى النظام لا
+     ترقيع في ملف واحد. العجز مسجَّل هنا ليُرفع، لا ليُنسى. */
+  --ink-4:#8e9a92;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
   --ease:cubic-bezier(.22,.61,.36,1);
 
-  --far-a:.050;  --far-ink:1;
-  --mid-a:.058;  --mid-ink:1;
-  --near-a:.080; --near-ink:1;
+  /* ── الزجاج ──
+     درجة واحدة لكل اللوحات، لا درجة لكل طبقة. rgba(17,80,51,.55) فوق الأسود
+     تُركِّب #092c1c، وعنده يقيس النصّ الخافت --ink-3 مقدار 4.74:1. عند .70
+     يهبط إلى 4.10 ويسقط تحت الحدّ — فلا تُرفع الدرجة عن .55. */
+  --glass:rgba(17,80,51,.55);
+  --glass-line:rgba(101,223,168,.16);
+  --glass-sheen:rgba(101,223,168,.12);
+
+  --far-ink:1; --mid-ink:1; --near-ink:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-block-size:100%}
@@ -64,21 +74,24 @@ a{color:inherit}
 /* ── المشهد ───────────────────────────────────────── */
 /* مطلقة لا ثابتة — position:fixed يُركَّب في طبقة منفصلة لا يُعاد رسمها
    بشكل موثوق مع التمرير، فيبدو أسفل الصفحة أفتح حتى أول إعادة رسم. */
-.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.lamp{position:absolute;border-radius:50%;filter:blur(110px)}
+/* الخلفية سوداء صمّاء الآن: لا مصابيح ولا تظليل. الخضرة كلها في الزجاج،
+   وأي إضاءة خلفية تنافسه وتُذهب حدّته. تُترك القواعد والترميز كما هما
+   لأن بقيّة الشاشات تشاركهما، وتُخفى هنا فقط. */
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:none}
+.lamp{position:absolute;border-radius:50%;filter:blur(110px);display:none}
 .l1{width:860px;height:860px;top:-280px;left:-190px;background:radial-gradient(circle,#0f4d38,transparent 70%);opacity:.19}
 .l2{width:740px;height:740px;top:-170px;right:-160px;background:radial-gradient(circle,#10613f,transparent 70%);opacity:.14}
 .l3{width:980px;height:980px;bottom:-450px;left:22%;background:radial-gradient(circle,#0b3a30,transparent 70%);opacity:.16}
 .l4{width:620px;height:620px;bottom:-220px;right:5%;background:radial-gradient(circle,#145a45,transparent 70%);opacity:.10}
 .l5{width:1200px;height:540px;top:34%;left:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#08302a,transparent 70%);opacity:.12}
-.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%)}
+.vign{position:absolute;inset:0;background:radial-gradient(ellipse 125% 92% at 50% 44%,transparent 28%,rgba(0,0,0,.66) 100%);display:none}
 .grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.035;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
 /* ── الشريط العلوي ────────────────────────────────── */
-.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--line);
-  background:rgba(255,255,255,.05);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.07) inset}
+.bar{position:relative;z-index:40;padding:14px 26px;border-block-end:1px solid var(--glass-line);
+  background:var(--glass);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset}
 .barIn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
   inline-size:100%;max-inline-size:1560px;margin-inline:auto}
 .brand{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600}
@@ -121,18 +134,28 @@ a{color:inherit}
 /* ── المسرح والمادة ──────────────────────────────── */
 .stage{position:relative;z-index:10;inline-size:100%;max-inline-size:1560px;
   margin-inline:auto;padding:24px 26px 30px;min-block-size:calc(100vh - 62px)}
-.pane{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,.085);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.10) inset,0 20px 50px -22px rgba(0,0,0,.55)}
-/* بلا backdrop-filter وبلا حركة على الزجاج — الخلفية وحدها تتغيّر بالعمق. */
-.far .pane{background:rgba(255,255,255,var(--far-a));
-  box-shadow:0 1px 0 0 rgba(255,255,255,.055) inset,0 14px 40px -24px rgba(0,0,0,.5)}
+/* زجاج أخضر بدرجة واحدة لكل اللوحات — لا تتغيّر الدرجة بين طبقة وأخرى.
+   بلا backdrop-filter: الخلفية سوداء صمّاء فلا شيء خلفها يُضبَّب، والفلتر
+   كان يترك شبحًا للوحة بعد التمرير. الإحساس الزجاجي يحمله التخفيف الأخضر
+   واللمعة العلوية والحدّ والظل. */
+.pane{position:relative;border-radius:16px;
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  box-shadow:0 1px 0 0 var(--glass-sheen) inset,0 20px 50px -22px rgba(0,0,0,.75)}
+/* العمق يُقرأ من عمق الظل وحدّة الحدّ، لا من اختلاف درجة الخضرة. */
+.far .pane{box-shadow:0 1px 0 0 rgba(101,223,168,.07) inset,0 14px 40px -24px rgba(0,0,0,.7)}
 .far{opacity:var(--far-ink)}
-.mid .pane{background:rgba(255,255,255,var(--mid-a))}
 .mid{opacity:var(--mid-ink)}
-.near .pane{background:rgba(255,255,255,var(--near-a));
-  border-color:rgba(255,255,255,.13);
-  box-shadow:0 1px 0 0 rgba(255,255,255,.15) inset,0 34px 70px -26px rgba(0,0,0,.78)}
+.near .pane{border-color:rgba(101,223,168,.24);
+  box-shadow:0 1px 0 0 rgba(101,223,168,.18) inset,0 34px 70px -26px rgba(0,0,0,.9)}
 .near{opacity:var(--near-ink)}
+
+/* ترتيب العمق — بالإعتام وحده: الدرجة واحدة، فالطبقة المختارة تبقى كاملة
+   الوضوح والباقي يتراجع. «الكل» هو الافتراضي. */
+:root[data-depth="all"]{  --far-ink:1;   --mid-ink:1;   --near-ink:1 }
+:root[data-depth="far"]{  --far-ink:1;   --mid-ink:.58; --near-ink:.40 }
+:root[data-depth="mid"]{  --far-ink:.32; --mid-ink:1;   --near-ink:.55 }
+:root[data-depth="near"]{ --far-ink:.28; --mid-ink:.60; --near-ink:1 }
 
 /* ── العودة والعنوان ─────────────────────────────── */
 .back{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-3);
@@ -228,7 +251,7 @@ a{color:inherit}
 .rpD.out{cursor:default}
 .rpD[disabled]{color:var(--ink-4);cursor:default}
 .rpD.in{background:rgba(101,223,168,.13);color:var(--ink)}
-/* حشوة --accent فاتحة، فنصّها داكن لا فاتح — 11.7:1 */
+/* حشوة --accent فاتحة، فنصّها داكن لا فاتح — 12.67:1 بعد صيرورة --bg أسود */
 .rpD.edge{background:var(--accent);color:var(--bg);font-weight:700}
 .rpFoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 12px;border-block-start:1px solid var(--line-2)}
@@ -358,7 +381,7 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 .locBtn[disabled]{opacity:.5}
 /* شارة الحكم — اللون وحده لا يكفي: كل حالة تحمل أيقونتها.
    حبّة بحدّ currentColor بلا حشوة مصمتة، فالذهبي يبقى نصًّا على الزجاج
-   (9.9:1) ولا يصير سطحًا فاتحًا يحتاج نصًّا داكنًا. */
+   (8.72:1 على المركّب #092c1c) ولا يصير سطحًا فاتحًا يحتاج نصًّا داكنًا. */
 .rV{display:inline-flex;align-items:center;justify-content:center;gap:4px;
   font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;
   border:1px solid currentColor;line-height:1.7;text-align:center;white-space:nowrap}
@@ -484,6 +507,22 @@ svg.dayc text.ax{direction:ltr;unicode-bidi:isolate}
 .btn[disabled]{opacity:.5;cursor:default}
 .btn svg{display:block;flex:none}
 .pwForm{display:grid;gap:9px}
+/* الحقل والتسمية.
+   ‎.input‎ كان بلا قاعدة أساس، فيسقط إلى تنسيق المتصفّح الافتراضي: صندوق
+   أبيض مصمت فوق الزجاج الأخضر — وهو أوضح سطح أبيض ناجٍ في الشاشة، ونصّه
+   يرث ‎--ink‎ الفاتح من ‎button,input{color:inherit}‎ فيصير فاتحًا على أبيض
+   وغير مقروء. الحشوة هنا تِلّة بيضاء شفّافة كحال ‎.pagJump input‎ في نفس
+   الملف — حشوة عنصر تحكّم لا سطح لوحة. */
+.field{display:grid;gap:6px}
+.input{inline-size:100%;min-inline-size:0;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 11px;
+  color:var(--ink);font:inherit;font-size:13px;
+  direction:ltr;unicode-bidi:isolate;text-align:start;
+  transition:border-color .16s var(--ease),background .16s var(--ease)}
+.input::placeholder{color:var(--ink-3)}
+.input:hover{border-color:rgba(255,255,255,.2)}
+.input:focus{outline:none;border-color:rgba(101,223,168,.5);background:rgba(255,255,255,.07)}
+.input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pwWrap{display:flex;gap:7px}
 .pwWrap .input{flex:1;min-inline-size:0}
 .reveal{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
